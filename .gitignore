@@ -1,0 +1,54 @@
+# -------------------------
+# OS-specific files
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Node.js dependencies
+# -------------------------
+node_modules/
+.pnpm-store/
+
+# -------------------------
+# Package manager lockfiles
+# -------------------------
+# package-lock.json
+# pnpm-lock.yaml
+# yarn.lock
+# bun.lockb
+# bun.lock
+
+# -------------------------
+# Build output
+# -------------------------
+/build
+/.svelte-kit
+/package
+/dist
+/old
+
+# -------------------------
+# Environment & secrets
+# -------------------------
+.env
+.env.*
+!.env.example
+
+# -------------------------
+# Databases & local data
+# -------------------------
+dev.db
+*.db
+
+# -------------------------
+# Test results
+# -------------------------
+/test-results
+
+# -------------------------
+# Editor-specific files
+# -------------------------
+.vscode/
+.zed/
+.cusor/
