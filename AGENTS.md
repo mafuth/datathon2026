@@ -2,9 +2,9 @@
 
 Instructions for autonomous AI coding agents working with `sveltekit-starter`.
 
-**Primary objective:** Fully implement, review, verify, and test the application defined in `docs/implementation-plan.md` with minimal human intervention.
+**Primary objective:** Fully implement the application defined in `docs/implementation-plan.md` with minimal human intervention.
 
-**Definition of success:** Every applicable requirement in the implementation plan is implemented, independently reviewed, functionally verified, and covered by appropriate tests. The application must pass its required quality checks and end-to-end testing before the agent declares completion.
+**Definition of success:** Every applicable requirement in the implementation plan is implemented and checked against the plan. Tests, builds, and end-to-end verification are opt-in and must not be run unless the user explicitly instructs the agent to run them.
 
 ---
 
@@ -21,7 +21,7 @@ Instructions for autonomous AI coding agents working with `sveltekit-starter`.
 
 - **Svelte MCP:** Use for Svelte 5 and SvelteKit documentation, APIs, component validation, and best practices.
 - **Context7 MCP:** Use for all other frameworks, libraries, integrations, and dependencies.
-- **Browser automation:** Use Playwright or an available equivalent for actual browser-based E2E testing.
+- **Browser automation:** Use Playwright or an available equivalent for browser-based E2E testing only when explicitly instructed.
 
 Consult the relevant documentation before implementing unfamiliar functionality. Do not invent APIs or assume undocumented behavior.
 
@@ -84,7 +84,7 @@ Read documents relevant to the current implementation. Do not load unrelated ref
 
 ## 2.1 Operating Mode: ONE-SHOT AUTONOMOUS
 
-When instructed to implement the application, the agent must autonomously execute the entire implementation and verification lifecycle.
+When instructed to implement the application, the agent must autonomously execute the implementation lifecycle. Verification commands are outside the default lifecycle unless the user explicitly requests them.
 
 **The implementation plan is the source of truth for scope and acceptance criteria.**
 
@@ -93,16 +93,11 @@ The agent MUST:
 1. Read and understand the complete implementation plan.
 2. Inspect the existing application and identify what is already implemented.
 3. Convert the plan into an exhaustive implementation checklist.
-4. Build dependencies and architecture in the correct order.
+4. Establish dependencies and architecture in the correct order.
 5. Implement all planned features.
-6. Independently review each implementation batch.
-7. Fix defects and missing functionality.
-8. Perform a complete plan-to-code coverage audit.
-9. Execute comprehensive automated tests.
-10. Run real browser-based end-to-end tests.
-11. Fix every reproducible issue within scope.
-12. Repeat reviews and testing until all completion gates pass.
-13. Produce a final report with verifiable evidence.
+6. Fix defects and missing functionality discovered during implementation.
+7. Perform a complete plan-to-code coverage audit by inspecting the implementation.
+8. Produce a final report with evidence of implemented work.
 
 **Do not stop after generating code. Code generation is only one stage of the task.**
 
@@ -115,11 +110,11 @@ The agent MUST NOT:
 - Request approval after each feature.
 - Ask whether to continue to the next phase.
 - Stop after creating a checklist.
-- Ask the user to review ordinary implementation decisions.
-- Stop after the first successful build.
-- Stop after individual tests pass.
+- Ask the user to approve ordinary implementation decisions.
+- Run tests, builds, browser automation, or end-to-end checks unless the user explicitly instructs the agent to do so.
+- Run tests or builds automatically after an individual code change.
 - Treat a sub-agent's completion message as evidence that a feature works.
-- Declare the application complete while any required verification remains unfinished.
+- Declare implementation complete while any required implementation work remains unfinished.
 
 Make reasonable implementation decisions autonomously, using the project's existing architecture and documented conventions.
 
@@ -133,19 +128,18 @@ Continue all independent work while such a dependency is unresolved.
 
 The agent must maintain forward progress through the entire lifecycle:
 
-`PLAN → IMPLEMENT → REVIEW → FIX → AUDIT → TEST → FIX → RETEST → COMPLETE`
+`PLAN → IMPLEMENT → FIX → AUDIT → COMPLETE`
 
-Failed checks are not terminal states.
+User-requested verification may add a `CHECK → FIX → RECHECK` phase. It is never implied by a code change.
 
-When a check fails:
+When an explicitly requested check fails:
 
 1. Identify the exact failure.
 2. Determine the root cause.
 3. Correct the underlying implementation.
-4. Run the relevant checks again.
-5. Perform regression testing.
-6. Update task and coverage status.
-7. Continue to the next unfinished requirement.
+4. Re-run only the requested check when the user's instruction authorizes rechecking.
+5. Update task and coverage status.
+6. Continue to the next unfinished requirement.
 
 The agent must not repeatedly retry identical commands without changing its diagnosis or approach.
 
@@ -187,9 +181,8 @@ Each task should include:
 - Dependencies.
 - Files or components affected.
 - Implementation status.
-- Review status.
-- Test status.
-- Evidence.
+- Requested verification status, if applicable.
+- Evidence, if verification was explicitly requested.
 - Blockers, if any.
 
 Example:
@@ -198,9 +191,9 @@ Example:
 - [x] AUTH-02 — Validate credentials
 - [x] AUTH-03 — Enforce protected-route access
 - [ ] AUTH-04 — Verify session expiration
-- [ ] AUTH-05 — Complete browser E2E tests
+- [ ] AUTH-05 — Complete requested browser E2E tests
 
-A task is completed only when its acceptance criteria pass.
+A task is completed when its acceptance criteria are addressed by the implementation and any explicitly requested checks pass.
 
 Update the checklist continuously, not only at the end.
 
@@ -208,13 +201,13 @@ On resumption:
 
 1. Read the implementation plan.
 2. Read persisted progress.
-3. Inspect the repository and current test results.
+3. Inspect the repository and any requested verification results.
 4. Reconcile stale or inaccurate statuses.
 5. Resume from the earliest unfinished dependency or failed verification.
 
 ---
 
-# 5. Sub-Agent Orchestration
+# 5. Implementation Delegation
 
 Use sub-agents when supported by the coding environment.
 
@@ -227,7 +220,6 @@ Responsibilities:
 - Implement assigned requirements.
 - Follow project conventions.
 - Write or update appropriate tests.
-- Run targeted checks.
 - Report changed files and completed requirement IDs.
 - Identify incomplete or blocked functionality.
 
@@ -235,62 +227,11 @@ Assign implementation work in coherent batches with clear boundaries.
 
 Avoid assigning overlapping file modifications to multiple agents simultaneously.
 
-## 5.2 Review Agent
-
-Use a separate review sub-agent where available.
-
-Responsibilities:
-
-- Compare implemented behavior against the implementation plan.
-- Review code correctness.
-- Detect missing features and incomplete business rules.
-- Identify authorization and security problems.
-- Review accessibility and UI behavior.
-- Evaluate architecture and maintainability.
-- Review relevant tests for meaningful coverage.
-
-The review agent should inspect the actual changes and requirements rather than trusting the implementation agent's summary.
-
-Every finding must identify:
-
-- Requirement or affected behavior.
-- Location of the problem.
-- How to reproduce or verify the issue.
-- Expected behavior.
-- Required correction.
-
-## 5.3 Testing Agent
-
-Use an independent testing agent where available.
-
-Responsibilities:
-
-- Execute automated checks.
-- Run the application.
-- Test real browser interactions.
-- Validate primary and edge-case workflows.
-- Record reproducible failures.
-- Retest corrections.
-- Confirm previously passing workflows remain functional.
-
-## 5.4 Delegation Fallback
+## 5.2 Delegation Fallback
 
 If sub-agents are unavailable, the primary agent must execute all responsibilities sequentially.
 
-Lack of sub-agent support is not permission to skip review or testing.
-
-## 5.5 Review Feedback Loop
-
-For each implementation batch:
-
-1. Implementation agent completes assigned requirements.
-2. Targeted checks execute.
-3. Review agent inspects the result.
-4. Findings become tracked corrective tasks.
-5. Implementation agent resolves those findings.
-6. Review agent verifies the corrections.
-7. Targeted tests rerun.
-8. The orchestrator advances only after the batch passes.
+Sub-agents must not run tests, builds, browser automation, or other verification commands unless the user explicitly instructs them to do so.
 
 Parallelize independent work when safe, but never ignore dependencies, integration risks, or shared-file conflicts.
 
@@ -379,8 +320,8 @@ Do not create nonfunctional buttons, placeholder screens, or fake success states
 ## 6.8 Mobility API-First Build
 
 The Mobility Sandbox must be implemented API-first. Do not begin mobility UI
-implementation until the API contract required by that UI has been implemented,
-tested, and reviewed.
+implementation until the API contract required by that UI has been implemented
+and documented.
 
 The implementation order is:
 
@@ -416,6 +357,10 @@ typed unavailable or approval-required response instead of inventing data.
   operations projected through a reusable scenario engine.
 
 ### Endpoint quality
+
+When the implementation plan requires endpoint tests, author coverage for the
+following cases. Do not execute those tests unless the user explicitly
+instructs the agent to do so.
 
 Every mobility endpoint must have tests for:
 
@@ -517,15 +462,19 @@ Do not silently remove features because implementation is difficult.
 
 ---
 
-# 8. Continuous Quality Gates
+# 8. Optional Quality Checks
 
-Run relevant checks throughout development.
+Quality checks are opt-in and are not part of the normal implementation loop.
 
-Do not postpone all verification until the final phase.
+Do not run tests, builds, browser automation, end-to-end checks, or other
+verification commands after a code change or at any other time unless the user
+explicitly instructs the agent to do so. Do not run them automatically after
+each change. When the user requests a check, run only the requested check and
+report its actual result.
 
 ## Gate A — Static Quality
 
-Verify:
+If explicitly requested, verify:
 
 - TypeScript correctness.
 - Svelte compiler and accessibility diagnostics.
@@ -535,13 +484,11 @@ Verify:
 - Dependency compatibility.
 - Dead or broken references.
 
-Use documented repository commands.
-
-Run `pnpm fix` where appropriate and supported, then recheck for remaining issues. Do not assume automatic fixes resolve everything.
+Use documented repository commands only when explicitly requested.
 
 ## Gate B — Build Quality
 
-Verify:
+If explicitly requested, verify:
 
 - The production build succeeds.
 - Required routes compile.
@@ -552,7 +499,7 @@ Verify:
 
 ## Gate C — Feature Quality
 
-Verify every feature's:
+If explicitly requested, verify every feature's:
 
 - Primary success path.
 - Invalid inputs.
@@ -566,20 +513,21 @@ Verify every feature's:
 
 ## Gate D — Regression Quality
 
-After corrections:
+After corrections to a user-requested check:
 
-- Rerun targeted tests.
-- Rerun affected integration tests.
-- Check related workflows.
-- Run the complete relevant suite before final completion.
+- Re-run the affected requested check.
+- Run related checks only when they are included in the user's request.
+- Check related workflows only when explicitly requested.
+- Run only the checks authorized by the user's request.
 
 A local fix must not break previously working functionality.
 
 ---
 
-# 9. Full Implementation Coverage Audit
+# 9. Implementation Coverage Audit
 
-After all planned tasks appear complete, perform an independent full-plan audit.
+After all planned tasks appear complete, perform a full plan-to-code audit by
+inspecting the implementation.
 
 This audit is mandatory even when all implementation sub-agents report success.
 
@@ -588,10 +536,12 @@ This audit is mandatory even when all implementation sub-agents report success.
 1. Read the complete implementation plan again.
 2. Enumerate every requirement and acceptance criterion.
 3. Locate the corresponding implementation.
-4. Confirm the functionality actually behaves as required.
-5. Locate or perform appropriate verification.
-6. Record evidence for each requirement.
-7. Identify anything missing, partial, broken, or unverified.
+4. Confirm that the implementation addresses the requirement.
+5. Record implementation evidence for each requirement.
+6. Identify anything missing, partial, or broken.
+
+Do not run tests or builds as part of this audit unless the user explicitly
+instructed the agent to run them.
 
 Do not rely solely on checklist status.
 
@@ -599,16 +549,18 @@ Do not rely solely on checklist status.
 
 Maintain a requirement matrix conceptually equivalent to:
 
-| Requirement | Implementation | Review | Test | Result |
-|---|---|---|---|---|
-| AUTH-01 | Route and remote function | Passed | E2E passed | Complete |
-| AUTH-02 | Server validation | Passed | Integration passed | Complete |
-| DASH-01 | Dashboard page | Passed | E2E passed | Complete |
-| BILL-01 | Payment service | Pending | Not run | Incomplete |
+| Requirement | Implementation | Status |
+|---|---|---|
+| AUTH-01 | Route and remote function | Complete |
+| AUTH-02 | Server validation | Complete |
+| DASH-01 | Dashboard page | Complete |
+| BILL-01 | Payment service | Incomplete |
 
-Every applicable requirement must achieve a passing result.
+Every applicable requirement must be implemented or explicitly documented as
+blocked.
 
-A requirement with missing verification is not complete.
+Missing unrequested test, build, or E2E execution does not block implementation
+completion.
 
 ## Audit Failure Behavior
 
@@ -617,17 +569,17 @@ If the audit discovers gaps:
 1. Create corrective tasks.
 2. Prioritize by dependency and severity.
 3. Implement the corrections.
-4. Review the corrections independently.
-5. Verify the affected requirements.
-6. Repeat the coverage audit.
+4. Inspect the corrections against the affected requirements.
+5. Repeat the coverage audit.
 
 **Do not proceed to final acceptance while known implementation gaps remain.**
 
 ---
 
-# 10. Mandatory End-to-End Application Testing
+# 10. Explicitly Requested End-to-End Testing
 
-Once implementation coverage passes, begin complete application testing.
+Only begin application testing when the user explicitly instructs the agent to
+run it.
 
 This stage must test the running application, not just its source code.
 
@@ -753,9 +705,9 @@ Every reproducible application defect must become a tracked corrective task.
 
 ---
 
-# 11. Autonomous E2E Repair Loop
+# 11. Requested E2E Repair Loop
 
-If any E2E test fails, the agent must automatically enter the repair loop.
+If an explicitly requested E2E test fails, enter the repair loop.
 
 **Repair cycle:**
 
@@ -764,14 +716,14 @@ If any E2E test fails, the agent must automatically enter the repair loop.
 3. Identify the root cause.
 4. Determine the affected requirements.
 5. Implement the correction.
-6. Run static checks.
-7. Run targeted tests.
+6. Run only the explicitly requested checks.
+7. Run the requested targeted tests.
 8. Re-run the failed E2E scenario.
 9. Run related regression scenarios.
 10. Update the coverage matrix.
 11. Continue with remaining tests.
 
-Repeat until the complete required suite passes.
+Repeat until the requested suite passes or an external blocker is documented.
 
 ## Important Rules
 
@@ -785,7 +737,8 @@ Repeat until the complete required suite passes.
 
 If repeated fixes fail, revise the diagnosis and investigate deeper rather than repeating the same attempt indefinitely.
 
-If an external blocker cannot be resolved autonomously, record it with exact reproduction steps and continue other tests. Final success remains unavailable until its required verification passes.
+If an external blocker cannot be resolved autonomously, record it with exact
+reproduction steps and continue with unblocked implementation work.
 
 ---
 
@@ -803,11 +756,8 @@ The agent may declare the application **COMPLETE** only when every condition bel
 
 ## Code Quality
 
-- [ ] TypeScript and Svelte checks pass.
-- [ ] Lint and formatting checks pass.
-- [ ] Production build passes.
-- [ ] Relevant automated tests pass.
-- [ ] No unresolved critical code-review findings remain.
+- [ ] Implementation follows the project's documented conventions.
+- [ ] No known critical implementation defects remain.
 
 ## Security & Data
 
@@ -815,34 +765,18 @@ The agent may declare the application **COMPLETE** only when every condition bel
 - [ ] Authorization is enforced server-side.
 - [ ] Relevant input validation works.
 - [ ] Database operations behave correctly.
-- [ ] Required integrations are verified appropriately.
+- [ ] Required integrations are implemented as specified.
 - [ ] No known unresolved critical security defects remain.
 
-## End-to-End Testing
+## Requested Verification
 
-- [ ] Application runs successfully.
-- [ ] All required primary user journeys pass.
-- [ ] Applicable user roles are tested.
-- [ ] Required negative scenarios are tested.
-- [ ] Relevant mobile and desktop experiences are verified.
-- [ ] Browser diagnostics show no unresolved application errors.
-- [ ] Full regression testing passes.
-
-## Independent Review
-
-- [ ] Final plan-to-code audit passes.
-- [ ] Final independent code review passes.
-- [ ] Final test evidence is collected.
-- [ ] Every applicable requirement has passing verification evidence.
-- [ ] No known required tests remain unexecuted.
+- [ ] Any explicitly requested checks have been run and reported accurately.
+- [ ] Unrequested tests, builds, and end-to-end checks are not completion blockers.
 
 **All completion gates must pass.**
 
-A feature is not complete merely because it compiles.
-
-An application is not complete merely because its tests pass if required features are missing.
-
-An application is not complete merely because every page renders.
+A feature is not complete merely because it compiles; its planned behavior must
+be implemented.
 
 ---
 
@@ -851,22 +785,22 @@ An application is not complete merely because every page renders.
 Only after the completion gates pass, provide a concise report containing:
 
 1. **Implementation Summary** — Features delivered.
-2. **Plan Coverage** — Requirements implemented and verified.
-3. **Quality Checks** — Commands executed and actual results.
-4. **E2E Results** — User journeys and scenarios tested.
+2. **Plan Coverage** — Requirements implemented and audited.
+3. **Quality Checks** — Commands executed and actual results, if explicitly requested.
+4. **E2E Results** — User journeys and scenarios tested, if explicitly requested.
 5. **Defects Resolved** — Significant issues found and corrected.
 6. **Remaining Limitations** — Any explicitly non-blocking limitations or out-of-scope concerns.
 7. **Final Status** — Complete only when supported by evidence.
 
 Include meaningful evidence such as:
 
-- Test results.
-- Build output.
-- E2E execution results.
+- Test results, if requested and executed.
+- Build output, if requested and executed.
+- E2E execution results, if requested and executed.
 - Screenshots or traces when available.
 - Requirement-to-test references.
 
-Do not fabricate test execution results, coverage percentages, screenshots, or review outcomes.
+Do not fabricate test execution results, build results, coverage percentages, or screenshots.
 
 ## Incomplete or Blocked Status
 
@@ -889,19 +823,17 @@ Use **BLOCKED** or **INCOMPLETE**, never **COMPLETE**, in this situation.
 2. **The agent owns the entire implementation lifecycle.**
 3. **No intermediate approval is needed for ordinary authorized development.**
 4. **All applicable plan requirements must be implemented.**
-5. **Every implementation batch must be reviewed and verified.**
-6. **Use independent sub-agents when available.**
-7. **Failed reviews automatically create corrective work.**
-8. **Final plan coverage must be independently audited.**
-9. **Real end-to-end testing is mandatory.**
-10. **Failed tests must be corrected and rerun.**
-11. **No premature completion declarations.**
-12. **No fake tests, false results, or hidden failures.**
-13. **No destructive production operations without authorization.**
-14. **Persist progress so interrupted work can resume.**
-15. **Continue autonomous execution until all gates pass or a genuine external blocker prevents further progress.**
+5. **Use implementation sub-agents when available.**
+6. **Do not run tests, builds, browser automation, or end-to-end checks unless explicitly instructed.**
+7. **Never run tests or builds automatically after a code change.**
+8. **Final plan coverage must be audited against the implementation.**
+9. **No premature completion declarations.**
+10. **Do not fabricate test, build, or verification results.**
+11. **No destructive production operations without authorization.**
+12. **Persist progress so interrupted work can resume.**
+13. **Continue autonomous implementation until all requirements are complete or a genuine external blocker prevents progress.**
 
-**The agent's responsibility ends at verified application completion, not at implementation completion.**
+**The agent's responsibility ends at complete implementation, not at unrequested test or build execution.**
 
 **Do not create new documentation files unless explicitly requested, except for an explicitly authorized operational checkpoint required to preserve execution state.**
 
@@ -912,13 +844,13 @@ Every requirement in this document is mandatory unless explicitly marked optiona
 The implementation is considered complete only when:
 
 - 100% of applicable functional requirements are implemented.
-- 100% of applicable acceptance criteria are verified.
-- All required automated checks and E2E scenarios pass.
+- 100% of applicable acceptance criteria are addressed by the implementation.
+- Any explicitly requested checks are executed and reported accurately.
 - All critical and high-severity defects are resolved.
-- Final independent review confirms alignment with this plan.
 
-The agent must maintain requirement traceability and automatically iterate over missing functionality, review findings, and test failures.
+The agent must maintain requirement traceability and automatically iterate over
+missing functionality and failures from explicitly requested checks.
 
 No requirement may be silently omitted, downgraded, or replaced with a placeholder.
 
-The agent must not declare completion without execution evidence for all required verification activities.
+The agent must not claim that an unrequested test, build, or verification command was executed.
