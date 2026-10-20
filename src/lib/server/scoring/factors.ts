@@ -1,9 +1,11 @@
-import type { Island, Population, Service, TransportConnection } from '../../db/models';
+import type { Island, Service, TransportConnection } from '../../db/models';
 import type {
   AirportAccess,
   CrowdednessResult,
+  DemandAllocationResult,
+  DemandMetric,
+  DemandSummary,
   ExternalDemandResult,
-  HubDemandImpact,
   IslandScoreResult,
   ScoreComponent,
   ScoreStatus,
@@ -12,22 +14,22 @@ import type {
 } from './types';
 
 import { scoringConfig } from './config';
-
-type DemandAllocation = {
-  health: number;
-  education: number;
-  routeType: 'local' | 'land' | 'marine' | 'airport' | 'unavailable';
-  destinationIslandId: string | null;
-  demand: number;
-};
-
-type DemandTotals = {
-  health: number;
-  education: number;
-};
-
-const LAND_CONNECTIONS = new Set(['bridge', 'causeway', 'land_link']);
-const HEALTH_TYPES = ['hospital', 'health_center', 'clinic'] as const;
+import {
+  AIR_TRANSPORT_TYPES,
+  bestEducationService,
+  bestHealthService,
+  buildDemandAllocation,
+  demandAllocationFor,
+  directConnections,
+  educationDemand,
+  educationServices,
+  healthDemand,
+  healthServices,
+  populationForIsland,
+  totalPopulation,
+  transportServices
+} from './demand-allocation';
+import { calculateTransportDemand } from './transport-demand';
 
 function finite(value: number | null | undefined): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -75,117 +77,12 @@ function component(
   };
 }
 
-function populationForIsland(snapshot: ScoringSnapshot, islandId: string): Population[] {
-  return snapshot.population.filter((record) => record.islandId === islandId);
-}
-
-function populationAmount(records: Population[], category: string): number | null {
-  return finite(records.find((record) => record.ageCategory === category)?.amount);
-}
-
-function totalPopulation(records: Population[]): number | null {
-  return (
-    populationAmount(records, 'total') ??
-    (records.length > 0 ? records.reduce((sum, record) => sum + record.amount, 0) : null)
-  );
-}
-
-function healthDemand(records: Population[]): Record<string, number> {
-  const total = totalPopulation(records) ?? 0;
-  const children =
-    populationAmount(records, 'child_population_0_14') ?? populationAmount(records, 'child_population_0_17') ?? 0;
-  const elderly = populationAmount(records, 'elderly_population_65_plus') ?? 0;
-  return {
-    primary: total,
-    maternal_child: children,
-    hospital_emergency: total,
-    chronic_elderly: elderly
-  };
-}
-
-function educationDemand(records: Population[]): Record<string, number> {
-  const children =
-    populationAmount(records, 'child_population_0_14') ?? populationAmount(records, 'child_population_0_17') ?? 0;
-  return {
-    preschool: children,
-    primary: children,
-    secondary: populationAmount(records, 'adolescent_population_10_19') ?? children,
-    higher_secondary: populationAmount(records, 'adolescent_population_10_19') ?? children,
-    tertiary:
-      populationAmount(records, 'youth_population_18_35') ?? populationAmount(records, 'youth_population_15_24') ?? 0
-  };
-}
-
-function healthServices(services: Service[]): Service[] {
-  return services.filter((service) => service.serviceType === 'health');
-}
-
-function educationServices(services: Service[]): Service[] {
-  return services.filter((service) => service.serviceType === 'education');
-}
-
-function transportServices(services: Service[]): Service[] {
-  return services.filter((service) => service.serviceType === 'transport');
-}
-
 function healthQuality(service: Service): number {
   return scoringConfig.healthQuality[service.subtype as keyof typeof scoringConfig.healthQuality] ?? 0;
 }
 
 function educationQuality(service: Service): number {
   return scoringConfig.educationQuality[service.subtype as keyof typeof scoringConfig.educationQuality] ?? 0;
-}
-
-function connectionFromIsland(connection: TransportConnection, islandId: string): string | null {
-  if (connection.fromIslandId === islandId) return connection.toIslandId;
-  if (connection.toIslandId === islandId && connection.directionality === 'bidirectional') {
-    return connection.fromIslandId;
-  }
-  return null;
-}
-
-function connectionFactor(connection: TransportConnection): {
-  routeType: DemandAllocation['routeType'];
-  factor: number;
-} {
-  if (LAND_CONNECTIONS.has(connection.connectionType)) return { routeType: 'land', factor: 0.9 };
-  if (connection.connectionType === 'ferry') return { routeType: 'marine', factor: connection.modeled ? 0.6 : 0.7 };
-  return { routeType: 'unavailable', factor: 0 };
-}
-
-function directConnections(
-  snapshot: ScoringSnapshot,
-  islandId: string
-): Array<{
-  islandId: string;
-  connection: TransportConnection;
-  factor: number;
-  routeType: DemandAllocation['routeType'];
-}> {
-  return snapshot.connections.flatMap((connection) => {
-    const target = connectionFromIsland(connection, islandId);
-    if (!target) return [];
-    const route = connectionFactor(connection);
-    return route.factor > 0 ? [{ islandId: target, connection, ...route }] : [];
-  });
-}
-
-function bestHealthService(services: Service[], key: string): Service | null {
-  const candidates = services.filter((service) => {
-    if (key === 'hospital_emergency') return service.subtype === 'hospital';
-    return HEALTH_TYPES.includes(service.subtype as (typeof HEALTH_TYPES)[number]);
-  });
-  return candidates.sort((left, right) => healthQuality(right) - healthQuality(left))[0] ?? null;
-}
-
-function bestEducationService(services: Service[], key: string): Service | null {
-  const candidates = services.filter((service) => {
-    if (key === 'preschool') return service.subtype === 'preschool';
-    if (key === 'higher_secondary') return service.subtype === 'high_school';
-    if (key === 'tertiary') return service.subtype === 'tertiary';
-    return service.subtype === key || (key === 'primary' && service.subtype === 'school');
-  });
-  return candidates.sort((left, right) => educationQuality(right) - educationQuality(left))[0] ?? null;
 }
 
 function calculateCrowdedness(island: Island, population: number | null): CrowdednessResult {
@@ -224,159 +121,96 @@ function calculateCrowdedness(island: Island, population: number | null): Crowde
 }
 
 function airportAccess(snapshot: ScoringSnapshot, islandId: string): AirportAccess {
-  const ownAirport = snapshot.services.find(
-    (service) => service.islandId === islandId && service.serviceType === 'transport' && service.subtype === 'airport'
-  );
-  if (ownAirport) return { available: true, source: 'own_airport', airportIslandId: islandId };
-
-  const linkedAirport = directConnections(snapshot, islandId).find(({ islandId: target }) =>
+  const hasAirport = (targetIslandId: string) =>
     snapshot.services.some(
-      (service) => service.islandId === target && service.serviceType === 'transport' && service.subtype === 'airport'
-    )
-  );
-  return linkedAirport
-    ? { available: true, source: 'direct_land_connection', airportIslandId: linkedAirport.islandId }
-    : { available: false, source: 'unavailable', airportIslandId: null };
-}
-
-function allocateDemand(snapshot: ScoringSnapshot): Map<string, DemandTotals> {
-  const totals = new Map<string, DemandTotals>();
-  for (const origin of snapshot.islands.filter((island) => island.islandType === 'inhabited')) {
-    const records = populationForIsland(snapshot, origin.id);
-    const health = healthDemand(records);
-    const education = educationDemand(records);
-    const originHealthServices = healthServices(snapshot.services.filter((service) => service.islandId === origin.id));
-    const originEducationServices = educationServices(
-      snapshot.services.filter((service) => service.islandId === origin.id)
+      (service) =>
+        service.islandId === targetIslandId &&
+        service.serviceType === 'transport' &&
+        AIR_TRANSPORT_TYPES.includes(service.subtype as (typeof AIR_TRANSPORT_TYPES)[number])
     );
-    const connections = directConnections(snapshot, origin.id);
-    for (const [key, demand] of Object.entries(health)) {
-      if (demand <= 0) continue;
-      const local = bestHealthService(originHealthServices, key);
-      const destination = local
-        ? { islandId: origin.id, factor: 1 }
-        : connections
-            .map((entry) => ({
-              islandId: entry.islandId,
-              factor: entry.factor,
-              service: bestHealthService(
-                healthServices(snapshot.services.filter((service) => service.islandId === entry.islandId)),
-                key
-              )
-            }))
-            .filter((entry) => entry.service)
-            .sort((left, right) => right.factor - left.factor)[0];
-      if (!destination) continue;
-      const current = totals.get(destination.islandId) ?? { health: 0, education: 0 };
-      if (destination.islandId !== origin.id) current.health += demand * destination.factor;
-      totals.set(destination.islandId, current);
-    }
-    for (const [key, demand] of Object.entries(education)) {
-      if (demand <= 0) continue;
-      const local = bestEducationService(originEducationServices, key);
-      const destination = local
-        ? { islandId: origin.id, factor: 1 }
-        : connections
-            .map((entry) => ({
-              islandId: entry.islandId,
-              factor: entry.factor,
-              service: bestEducationService(
-                educationServices(snapshot.services.filter((service) => service.islandId === entry.islandId)),
-                key
-              )
-            }))
-            .filter((entry) => entry.service)
-            .sort((left, right) => right.factor - left.factor)[0];
-      if (!destination) continue;
-      const current = totals.get(destination.islandId) ?? { health: 0, education: 0 };
-      if (destination.islandId !== origin.id) current.education += demand * destination.factor;
-      totals.set(destination.islandId, current);
+  if (hasAirport(islandId)) return { available: true, source: 'own_airport', airportIslandId: islandId };
+
+  const visited = new Set([islandId]);
+  const pending = [islandId];
+  for (let index = 0; index < pending.length; index += 1) {
+    const currentIslandId = pending[index];
+    for (const connection of directConnections(snapshot, currentIslandId)) {
+      if (connection.routeType !== 'land' || visited.has(connection.islandId)) continue;
+      if (hasAirport(connection.islandId)) {
+        return { available: true, source: 'land_connection', airportIslandId: connection.islandId };
+      }
+      visited.add(connection.islandId);
+      pending.push(connection.islandId);
     }
   }
-  return totals;
+  return { available: false, source: 'unavailable', airportIslandId: null };
+}
+
+function demandFactor(metric: DemandMetric | undefined, population: number | null): number | null {
+  if (!metric || population === null) return null;
+  const denominator = Math.max(1, population);
+  return round(
+    Math.max(
+      scoringConfig.minimumExternalDemandFactor,
+      1 - scoringConfig.externalDemandImpact * ((metric.local + metric.inbound) / denominator)
+    )
+  );
+}
+
+function weightedDemandFactor(
+  metrics: Record<string, DemandMetric> | undefined,
+  population: number | null
+): number | null {
+  if (!metrics || population === null) return null;
+  const values = Object.values(metrics)
+    .map((metric) => ({ value: demandFactor(metric, population), weight: metric.local }))
+    .filter((entry): entry is { value: number; weight: number } => entry.value !== null && entry.weight > 0);
+  if (values.length === 0) return null;
+  const totalWeight = values.reduce((sum, entry) => sum + entry.weight, 0);
+  return round(values.reduce((sum, entry) => sum + entry.value * entry.weight, 0) / totalWeight);
 }
 
 function externalDemand(
   population: number | null,
-  demand: DemandTotals | undefined,
+  demand: DemandSummary | undefined,
   crowding: CrowdednessResult
 ): ExternalDemandResult {
-  const inboundHealthDemand = demand?.health ?? 0;
-  const inboundEducationDemand = demand?.education ?? 0;
-  const healthPressure = population && population > 0 ? inboundHealthDemand / population : null;
-  const educationPressure = population && population > 0 ? inboundEducationDemand / population : null;
+  const localHealthDemand = demand?.health.local ?? 0;
+  const localEducationDemand = demand?.education.local ?? 0;
+  const inboundHealthDemand = demand?.health.inbound ?? 0;
+  const inboundEducationDemand = demand?.education.inbound ?? 0;
+  const outboundHealthDemand = demand?.health.outbound ?? 0;
+  const outboundEducationDemand = demand?.education.outbound ?? 0;
+  const denominator = population === null ? null : Math.max(1, population);
+  const healthPressure = denominator === null ? null : (localHealthDemand + inboundHealthDemand) / denominator;
+  const educationPressure = denominator === null ? null : (localEducationDemand + inboundEducationDemand) / denominator;
+  const inboundHealthPressure = denominator === null ? null : inboundHealthDemand / denominator;
+  const inboundEducationPressure = denominator === null ? null : inboundEducationDemand / denominator;
   const healthFactor =
-    healthPressure === null
-      ? null
-      : Math.max(
-          scoringConfig.minimumExternalDemandFactor,
-          1 - scoringConfig.externalDemandImpact * Math.min(1, healthPressure)
-        );
+    weightedDemandFactor(demand?.healthByNeed, population) ?? demandFactor(demand?.health, population);
   const educationFactor =
-    educationPressure === null
-      ? null
-      : Math.max(
-          scoringConfig.minimumExternalDemandFactor,
-          1 - scoringConfig.externalDemandImpact * Math.min(1, educationPressure)
-        );
+    weightedDemandFactor(demand?.educationByNeed, population) ?? demandFactor(demand?.education, population);
   const limitations = [
-    'External demand is estimated from reachable population need; service capacity is not stored in the current database.',
+    'Service demand is estimated from age-based population need; validated service capacity is not stored in the current database.',
+    'Aggregate demand percentages are capped at 100%; detailed service rows may represent multiple needs for the same resident.',
     ...(crowding.status === 'unavailable' ? ['Destination land area is unavailable for demand adjustment.'] : [])
   ];
   return {
     inboundHealthDemand: round(inboundHealthDemand),
     inboundEducationDemand: round(inboundEducationDemand),
+    localHealthDemand: round(localHealthDemand),
+    localEducationDemand: round(localEducationDemand),
+    outboundHealthDemand: round(outboundHealthDemand),
+    outboundEducationDemand: round(outboundEducationDemand),
     healthPressure: healthPressure === null ? null : round(healthPressure),
     educationPressure: educationPressure === null ? null : round(educationPressure),
-    healthFactor,
-    educationFactor,
+    inboundHealthPressure: inboundHealthPressure === null ? null : round(inboundHealthPressure),
+    inboundEducationPressure: inboundEducationPressure === null ? null : round(inboundEducationPressure),
+    healthFactor: healthFactor === null ? null : round(healthFactor),
+    educationFactor: educationFactor === null ? null : round(educationFactor),
     status: population === null ? 'unavailable' : 'partial',
     limitations
   };
-}
-
-function hubType(service: Service): HubDemandImpact['hubType'] | null {
-  if (service.subtype === 'airport') return 'airport';
-  if (service.subtype === 'port' || service.subtype === 'jetty') return 'ferry_terminal';
-  if (['bus_station', 'bus_stop', 'public_transport'].includes(service.subtype)) return 'land_gateway';
-  return null;
-}
-
-function hubImpacts(
-  island: Island,
-  snapshot: ScoringSnapshot,
-  population: number | null,
-  external: ExternalDemandResult
-): HubDemandImpact[] {
-  const hubs = transportServices(snapshot.services).filter((service) => service.islandId === island.id);
-  return hubs.flatMap((hub) => {
-    const type = hubType(hub);
-    if (!type) return [];
-    const localDemand = population ?? 0;
-    const incomingDemand = (external.inboundHealthDemand ?? 0) + (external.inboundEducationDemand ?? 0);
-    const transferDemand =
-      connectionsForIsland(snapshot, island.id).length > 1 ? incomingDemand * scoringConfig.transferDemandShare : 0;
-    const totalDemand = localDemand + incomingDemand + transferDemand;
-    const capacity = Math.max(1, localDemand * scoringConfig.hubCapacityProxyByType[type]);
-    const pressure = Math.min(1, totalDemand / capacity);
-    const factor = Math.max(scoringConfig.minimumHubFactor, 1 - scoringConfig.hubDemandImpact * pressure);
-    return [
-      {
-        hubId: hub.id,
-        hubType: type,
-        localDemand: round(localDemand),
-        incomingDemand: round(incomingDemand),
-        transferDemand: round(transferDemand),
-        totalDemand: round(totalDemand),
-        capacity: round(capacity),
-        pressure: round(pressure),
-        factor: round(factor),
-        scoreImpact: round((1 - factor) * 100),
-        status: 'partial' as const,
-        limitation: 'Hub capacity is estimated from a configured population proxy.'
-      }
-    ];
-  });
 }
 
 function serviceBreakdown(
@@ -384,56 +218,52 @@ function serviceBreakdown(
   snapshot: ScoringSnapshot,
   kind: 'health' | 'education',
   crowding: CrowdednessResult,
-  external: ExternalDemandResult
+  external: ExternalDemandResult,
+  demandAllocations: DemandAllocationResult
 ): ServiceScore[] {
   const records = populationForIsland(snapshot, island.id);
   const demands = kind === 'health' ? healthDemand(records) : educationDemand(records);
-  const localServices = snapshot.services.filter(
-    (service) => service.islandId === island.id && service.serviceType === kind
-  );
-  const connections = directConnections(snapshot, island.id);
-  const demandAllocations = allocateDemand(snapshot);
   const result: ServiceScore[] = [];
   for (const [key, demand] of Object.entries(demands)) {
     if (demand <= 0) continue;
-    const local = kind === 'health' ? bestHealthService(localServices, key) : bestEducationService(localServices, key);
-    let base = local ? (kind === 'health' ? healthQuality(local) * 100 : educationQuality(local) * 100) : null;
-    let destinationIslandId = local ? island.id : null;
-    let routeType: ServiceScore['routeType'] = local ? 'local' : 'unavailable';
-    if (!local) {
-      const candidate = connections
-        .map((entry) => {
-          const services = snapshot.services.filter(
-            (service) => service.islandId === entry.islandId && service.serviceType === kind
-          );
-          const service = kind === 'health' ? bestHealthService(services, key) : bestEducationService(services, key);
-          return { ...entry, service };
-        })
-        .filter((entry) => entry.service)
-        .sort((left, right) => right.factor - left.factor)[0];
-      if (candidate?.service) {
-        base =
-          (kind === 'health' ? healthQuality(candidate.service) : educationQuality(candidate.service)) *
-          candidate.factor *
-          100;
-        destinationIslandId = candidate.islandId;
-        routeType = candidate.routeType;
-      }
-    }
+    const allocation = demandAllocationFor(demandAllocations, island.id, kind, key);
+    const destinationIslandId = allocation?.destinationIslandId ?? null;
+    const routeType = allocation?.routeType ?? 'unavailable';
+    const destinationServices = destinationIslandId
+      ? snapshot.services.filter((service) => service.islandId === destinationIslandId && service.serviceType === kind)
+      : [];
+    const destinationService =
+      kind === 'health' ? bestHealthService(destinationServices, key) : bestEducationService(destinationServices, key);
+    const base = destinationService
+      ? (kind === 'health' ? healthQuality(destinationService) : educationQuality(destinationService)) *
+        (allocation?.routeFactor ?? 0) *
+        100
+      : null;
     const destination = destinationIslandId
       ? snapshot.islands.find((record) => record.id === destinationIslandId)
       : null;
     const destinationPopulation = destination ? totalPopulation(populationForIsland(snapshot, destination.id)) : null;
     const destinationCrowding = destination ? calculateCrowdedness(destination, destinationPopulation) : crowding;
     const destinationExternal = destination
-      ? externalDemand(destinationPopulation, demandAllocations.get(destination.id), destinationCrowding)
+      ? externalDemand(destinationPopulation, demandAllocations.byIsland.get(destination.id), destinationCrowding)
       : external;
-    const demandFactor = kind === 'health' ? destinationExternal.healthFactor : destinationExternal.educationFactor;
+    const destinationDemand = destination ? demandAllocations.byIsland.get(destination.id) : undefined;
+    const demandMetric = destinationDemand
+      ? kind === 'health'
+        ? destinationDemand.healthByNeed[key]
+        : destinationDemand.educationByNeed[key]
+      : undefined;
+    const demandFactorValue =
+      demandFactor(demandMetric, destinationPopulation) ??
+      (kind === 'health' ? destinationExternal.healthFactor : destinationExternal.educationFactor);
     const crowdingFactor = kind === 'health' ? destinationCrowding.healthFactor : destinationCrowding.educationFactor;
+    const demandSource: ServiceScore['demandSource'] =
+      destinationIslandId === null ? 'unserved' : destinationIslandId === island.id ? 'local' : 'outbound';
     result.push({
       key,
-      score: base === null ? 0 : round(base * (demandFactor ?? 1) * (crowdingFactor ?? 1)),
+      score: base === null ? 0 : round(base * (demandFactorValue ?? 1) * (crowdingFactor ?? 1)),
       demand,
+      demandSource,
       destinationIslandId,
       routeType,
       status: 'partial',
@@ -441,7 +271,7 @@ function serviceBreakdown(
         ...(base === null
           ? ['No matching local or directly connected service was found; this need contributes partial score 0.']
           : []),
-        ...(crowding.status === 'unavailable' ? ['Destination land area is unavailable.'] : []),
+        ...(destinationCrowding.status === 'unavailable' ? ['Destination land area is unavailable.'] : []),
         'Age-specific service capacity and approved travel times are not stored in the current database.'
       ]
     });
@@ -477,7 +307,7 @@ function transportScores(
   snapshot: ScoringSnapshot,
   population: number | null,
   airport: AirportAccess,
-  hubs: HubDemandImpact[]
+  transportDemand: IslandScoreResult['transport']['demand']
 ): IslandScoreResult['transport'] {
   const services = transportServices(snapshot.services).filter((service) => service.islandId === island.id);
   const connections = directConnections(snapshot, island.id);
@@ -488,31 +318,27 @@ function transportScores(
     services.filter((service) => ['port', 'jetty'].includes(service.subtype)).length +
     connections.filter((entry) => entry.routeType === 'marine').length;
   const airEvidence =
-    services.filter((service) => service.subtype === 'airport').length +
-    (airport.source === 'direct_land_connection' ? 1 : 0);
-  const landHub = hubs.filter((hub) => hub.hubType === 'land_gateway').map((hub) => hub.factor ?? 1);
-  const marineHub = hubs.filter((hub) => hub.hubType === 'ferry_terminal').map((hub) => hub.factor ?? 1);
-  const airHub = hubs.filter((hub) => hub.hubType === 'airport').map((hub) => hub.factor ?? 1);
-  const maxFactor = (values: number[]) => (values.length === 0 ? null : Math.max(...values));
+    services.filter((service) => AIR_TRANSPORT_TYPES.includes(service.subtype as (typeof AIR_TRANSPORT_TYPES)[number]))
+      .length + (airport.source === 'land_connection' ? 1 : 0);
   const land = transportComponent(
-    landEvidence > 0 ? 100 : population === null ? null : 0,
+    transportDemand.modes.land.score ?? (landEvidence > 0 ? 100 : population === null ? null : 0),
     population,
     landEvidence,
-    maxFactor(landHub),
+    1,
     ['Local road-network distance and capacity are unavailable.']
   );
   const marine = transportComponent(
-    marineEvidence > 0 ? 100 : population === null ? null : 0,
+    transportDemand.modes.marine.score ?? (marineEvidence > 0 ? 100 : population === null ? null : 0),
     population,
     marineEvidence,
-    maxFactor(marineHub),
+    1,
     ['Marine travel time and terminal capacity are unavailable.']
   );
   const air = transportComponent(
-    airport.available ? 100 : population === null ? null : 0,
+    transportDemand.modes.air.score ?? (airport.available ? 100 : population === null ? null : 0),
     population,
     airEvidence,
-    maxFactor(airHub),
+    1,
     ['Approved air route time and airport capacity are unavailable.']
   );
   const score = weightedMean([
@@ -527,23 +353,30 @@ function transportScores(
     land,
     marine,
     air,
-    hubImpacts: hubs
+    hubImpacts: transportDemand.hubImpacts,
+    demand: transportDemand
   };
 }
 
-export function calculateIslandScore(islandId: string, snapshot: ScoringSnapshot): IslandScoreResult {
+export function calculateIslandScore(
+  islandId: string,
+  snapshot: ScoringSnapshot,
+  demandAllocations: DemandAllocationResult | undefined = undefined
+): IslandScoreResult {
   const island = snapshot.islands.find((record) => record.id === islandId);
   if (!island) throw new Error(`Island ${islandId} was not found`);
 
   const populationRecords = populationForIsland(snapshot, island.id);
   const population = totalPopulation(populationRecords);
   const crowding = calculateCrowdedness(island, population);
-  const allocations = allocateDemand(snapshot);
-  const external = externalDemand(population, allocations.get(island.id), crowding);
+  const allocations = demandAllocations ?? buildDemandAllocation(snapshot);
+  const islandDemand = allocations.byIsland.get(island.id);
+  if (!islandDemand) throw new Error(`Demand allocation is missing for island ${island.id}`);
+  const external = externalDemand(population, islandDemand, crowding);
   const airport = airportAccess(snapshot, island.id);
-  const hubs = hubImpacts(island, snapshot, population, external);
-  const healthBreakdown = serviceBreakdown(island, snapshot, 'health', crowding, external);
-  const educationBreakdown = serviceBreakdown(island, snapshot, 'education', crowding, external);
+  const transportDemand = calculateTransportDemand(island.id, snapshot, allocations);
+  const healthBreakdown = serviceBreakdown(island, snapshot, 'health', crowding, external, allocations);
+  const educationBreakdown = serviceBreakdown(island, snapshot, 'education', crowding, external, allocations);
   const health = scoreFromBreakdown(healthBreakdown, population, crowding.healthFactor, [
     ...external.limitations,
     'Health access includes the best local or directly connected service evidence.'
@@ -552,7 +385,7 @@ export function calculateIslandScore(islandId: string, snapshot: ScoringSnapshot
     ...external.limitations,
     'Education relocation support and approved travel times are not stored in the current database.'
   ]);
-  const transport = transportScores(island, snapshot, population, airport, hubs);
+  const transport = transportScores(island, snapshot, population, airport, transportDemand);
   const overallScore = weightedMean([
     { value: health.score, weight: scoringConfig.domainWeights.health },
     { value: education.score, weight: scoringConfig.domainWeights.education },
@@ -563,7 +396,7 @@ export function calculateIslandScore(islandId: string, snapshot: ScoringSnapshot
     ...health.limitations,
     ...education.limitations,
     ...transport.limitations,
-    ...hubs.map((hub) => hub.limitation).filter((value): value is string => value !== null)
+    ...transportDemand.hubImpacts.map((hub) => hub.limitation).filter((value): value is string => value !== null)
   ];
   return {
     islandId: island.id,
@@ -573,6 +406,7 @@ export function calculateIslandScore(islandId: string, snapshot: ScoringSnapshot
     education,
     transport,
     crowdedness: crowding,
+    demand: islandDemand,
     externalDemand: external,
     airportAccess: airport,
     limitations: [...new Set(limitations)],
@@ -594,6 +428,7 @@ export function calculateIslandScore(islandId: string, snapshot: ScoringSnapshot
 
 function connectionsForIsland(snapshot: ScoringSnapshot, islandId: string): TransportConnection[] {
   return snapshot.connections.filter(
-    (connection) => connection.fromIslandId === islandId || connection.toIslandId === islandId
+    (connection) =>
+      connection.scoreEligible !== false && (connection.fromIslandId === islandId || connection.toIslandId === islandId)
   );
 }

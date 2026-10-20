@@ -5,9 +5,19 @@
 
   import 'maplibre-gl/dist/maplibre-gl.css';
 
+  import type { IslandProfile } from './island-profile';
   import type { AnalyticsData, AnalyticsIsland } from './national-analytics-card.svelte';
   import type { IslandSearchOption } from './national-score-card.svelte';
 
+  import IslandAnalyticsCard from './island-analytics-card.svelte';
+  import IslandScoreCard from './island-score-card.svelte';
+  import {
+    buildZoomInterpolation,
+    NATIONAL_ISLAND_FILL_OPACITY_STOPS,
+    NATIONAL_ISLAND_FILL_START_ZOOM,
+    NATIONAL_SCORE_FIELD_OPACITY_STOPS,
+    NATIONAL_SCORE_FIELDS_HANDOFF_ZOOM
+  } from './national-accessibility-map-style';
   import NationalAnalyticsCard from './national-analytics-card.svelte';
   import NationalScoreCard from './national-score-card.svelte';
 
@@ -52,47 +62,47 @@
   const EMPTY_SCORE_FIELD_COLLECTION: ScoreFieldCollection = { type: 'FeatureCollection', features: [] };
   const MALDIVES_CENTER: Coordinate = [73.2, 3.4];
   const ANIMATED_EMOJI_BASE_URL =
-    'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/';
+    'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/';
   const LOADING_MESSAGES = [
     {
       title: 'The islands are arguing over who gets rendered first.',
-      emoji: 'Beaming%20Face%20with%20Smiling%20Eyes.png',
-      alt: 'Beaming Face with Smiling Eyes'
+      emoji: 'People%20with%20activities/Man%20Gesturing%20No%20Light%20Skin%20Tone.png',
+      alt: 'Man Gesturing No Light Skin Tone'
     },
     {
       title: 'Counting islands without losing the plot.',
-      emoji: 'Thinking%20Face.png',
-      alt: 'Thinking Face'
+      emoji: 'People%20with%20professions/Man%20Technologist%20Light%20Skin%20Tone.png',
+      alt: 'Man Technologist Light Skin Tone'
     },
     {
       title: 'The data is swimming over.',
-      emoji: 'Smiling%20Face.png',
-      alt: 'Smiling Face'
+      emoji: 'People%20with%20activities/Man%20Swimming%20Light%20Skin%20Tone.png',
+      alt: 'Man Swimming Light Skin Tone'
     },
     {
       title: 'Asking the map to stop pretending it is still asleep.',
-      emoji: 'Zzz.png',
-      alt: 'Zzz Face'
+      emoji: 'People%20with%20activities/Person%20in%20Bed%20Light%20Skin%20Tone.png',
+      alt: 'Person in Bed Light Skin Tone'
     },
     {
       title: 'Untangling a few suspiciously complicated spreadsheets.',
-      emoji: 'Face%20with%20Monocle.png',
-      alt: 'Face with Monocle'
+      emoji: 'People%20with%20professions/Man%20Office%20Worker%20Light%20Skin%20Tone.png',
+      alt: 'Man Office Worker Light Skin Tone'
     },
     {
       title: 'Polishing the pixels until they behave.',
-      emoji: 'Slightly%20Smiling%20Face.png',
-      alt: 'Slightly Smiling Face'
+      emoji: 'People%20with%20professions/Man%20Artist%20Light%20Skin%20Tone.png',
+      alt: 'Man Artist Light Skin Tone'
     },
     {
       title: 'Convincing the score to reveal its secrets.',
-      emoji: 'Worried%20Face.png',
-      alt: 'Worried Face'
+      emoji: 'People%20with%20professions/Man%20Detective%20Light%20Skin%20Tone.png',
+      alt: 'Man Detective Light Skin Tone'
     },
     {
-      title: 'The map is stretching before its big entrance.',
-      emoji: 'Smiling%20Face.png',
-      alt: 'Smiling Face'
+      title: 'The map is finding its balance before the big entrance.',
+      emoji: 'People%20with%20activities/Man%20in%20Lotus%20Position%20Light%20Skin%20Tone.png',
+      alt: 'Man in Lotus Position Light Skin Tone'
     }
   ] as const;
 
@@ -106,32 +116,58 @@
   let islandDetailLoaded = false;
   let islandDetailLoading = false;
   let analyticsOpen = $state(false);
+  let islandAnalyticsOpen = $state(false);
+  let selectedIslandId = $state<string | null>(null);
   let analyticsLoading = $state(false);
   let analyticsError = $state<string | null>(null);
   let analyticsData = $state<AnalyticsData | null>(null);
+  let islandProfile = $state<IslandProfile | null>(null);
+  let islandProfileLoading = $state(false);
+  let islandProfileError = $state<string | null>(null);
+  let islandProfileRequest = 0;
   let nationalMetrics = $derived([
     { key: 'health', label: 'Health', value: analyticsData?.national.categories.health?.score },
     { key: 'education', label: 'Schools', value: analyticsData?.national.categories.education?.score },
     { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score }
   ]);
+  let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
+
+  function selectIslandById(id: string, centroid?: Coordinate): void {
+    selectedIslandId = id;
+    analyticsOpen = false;
+    islandAnalyticsOpen = true;
+    void loadIslandProfile(id);
+
+    const island = islandCollection.features.find((feature) => feature.properties.id === id);
+    focusIsland({
+      id,
+      name: island?.properties.name ?? selectedIsland?.name ?? 'Island',
+      atollName: island?.properties.atollName ?? selectedIsland?.atollName ?? '',
+      centroid: island?.properties.centroid ?? centroid,
+      score: island?.properties.score ?? selectedIsland?.overall.score ?? null
+    });
+
+    if (!analyticsData) void loadAnalytics();
+  }
+
+  function returnToNational(): void {
+    selectedIslandId = null;
+    islandAnalyticsOpen = false;
+    islandProfile = null;
+    islandProfileError = null;
+  }
 
   function focusIsland(island: IslandSearchOption): void {
     if (!mapInstance || !island.centroid) return;
     mapInstance.flyTo({ center: island.centroid, zoom: 10, duration: 900, essential: true });
   }
 
+  function selectSearchIsland(island: IslandSearchOption): void {
+    selectIslandById(island.id, island.centroid);
+  }
+
   function focusAnalyticsIsland(island: AnalyticsIsland): void {
-    const mapIsland = islandCollection.features.find((feature) => feature.properties.id === island.id);
-    const centroid = mapIsland?.properties.centroid ?? island.centroid;
-    if (centroid) {
-      focusIsland({
-        id: island.id,
-        name: island.name,
-        atollName: island.atollName,
-        centroid,
-        score: island.overall.score
-      });
-    }
+    selectIslandById(island.id, island.centroid);
   }
 
   async function loadAnalytics(): Promise<void> {
@@ -139,13 +175,32 @@
     analyticsLoading = true;
     analyticsError = null;
     try {
-      const response = await fetch('/api/map/analytics');
+      const response = await fetch('/api/map/analytics', { cache: 'no-store' });
       if (!response.ok) throw new Error(`Analytics request failed with status ${response.status}`);
       analyticsData = (await response.json()) as AnalyticsData;
     } catch (error) {
       analyticsError = error instanceof Error ? error.message : 'Analytics could not be loaded.';
     } finally {
       analyticsLoading = false;
+    }
+  }
+
+  async function loadIslandProfile(id: string): Promise<void> {
+    const requestId = ++islandProfileRequest;
+    islandProfile = null;
+    islandProfileLoading = true;
+    islandProfileError = null;
+    try {
+      const response = await fetch(`/api/map/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Island profile request failed with status ${response.status}`);
+      const profile = (await response.json()) as IslandProfile;
+      if (requestId === islandProfileRequest) islandProfile = profile;
+    } catch (error) {
+      if (requestId === islandProfileRequest) {
+        islandProfileError = error instanceof Error ? error.message : 'Island profile could not be loaded.';
+      }
+    } finally {
+      if (requestId === islandProfileRequest) islandProfileLoading = false;
     }
   }
 
@@ -206,11 +261,11 @@
           id: 'national-score-fields',
           type: 'circle',
           source: 'score-fields',
-          maxzoom: 6.8,
+          maxzoom: NATIONAL_SCORE_FIELDS_HANDOFF_ZOOM,
           paint: {
             'circle-color': scoreColor,
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 4.4, 5, 5.4, 7, 6.4, 10, 6.8, 11],
-            'circle-opacity': ['interpolate', ['linear'], ['zoom'], 4.4, 0.58, 5.8, 0.46, 6.8, 0],
+            'circle-opacity': buildZoomInterpolation(NATIONAL_SCORE_FIELD_OPACITY_STOPS),
             'circle-blur': 0.34,
             'circle-stroke-width': 0
           }
@@ -219,17 +274,17 @@
           id: 'island-fill',
           type: 'fill',
           source: 'islands',
-          minzoom: 5.8,
+          minzoom: NATIONAL_ISLAND_FILL_START_ZOOM,
           paint: {
             'fill-color': scoreColor,
-            'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4.4, 0.82, 7, 0.92]
+            'fill-opacity': buildZoomInterpolation(NATIONAL_ISLAND_FILL_OPACITY_STOPS)
           }
         },
         {
           id: 'island-outline',
           type: 'line',
           source: 'islands',
-          minzoom: 5.8,
+          minzoom: NATIONAL_ISLAND_FILL_START_ZOOM,
           paint: {
             'line-color': '#6f8580',
             'line-opacity': 0.68,
@@ -304,6 +359,17 @@
         void loadIslandGeometry();
         mapInstance.on('zoomend', () => {
           if (mapInstance && mapInstance.getZoom() >= 6.2) void loadIslandGeometry(true);
+        });
+        mapInstance.on('click', 'island-fill', (event) => {
+          const feature = event.features?.[0];
+          const id = feature?.properties?.id ?? feature?.id;
+          if (typeof id === 'string') selectIslandById(id, feature?.properties?.centroid as Coordinate | undefined);
+        });
+        mapInstance.on('mouseenter', 'island-fill', () => {
+          if (mapInstance) mapInstance.getCanvas().style.cursor = 'pointer';
+        });
+        mapInstance.on('mouseleave', 'island-fill', () => {
+          if (mapInstance) mapInstance.getCanvas().style.cursor = '';
         });
         mapReady = true;
         void loadAnalytics();
@@ -409,23 +475,31 @@
   {/if}
 
   <div class="national-panel-slot" aria-live="polite">
-    <NationalScoreCard
-      title="Mobility Sandbox MV"
-      caption="National score"
-      overall={analyticsData?.national.score}
-      metrics={nationalMetrics}
-      islands={islandCollection.features.map((feature) => ({
-        id: feature.properties.id,
-        name: feature.properties.name,
-        atollName: feature.properties.atollName,
-        centroid: feature.properties.centroid,
-        score: feature.properties.score
-      }))}
-      onIslandSelect={focusIsland}
-      onAnalyticsOpen={openAnalytics}
-      loading={!mapReady || analyticsLoading}
-      error={Boolean(analyticsError)}
-    />
+    {#if selectedIslandId}
+      <IslandScoreCard
+        island={selectedIsland}
+        loading={!mapReady || analyticsLoading || !selectedIsland}
+        error={Boolean(analyticsError)}
+      />
+    {:else}
+      <NationalScoreCard
+        title="Mobility Sandbox MV"
+        caption="National score"
+        overall={analyticsData?.national.score}
+        metrics={nationalMetrics}
+        islands={islandCollection.features.map((feature) => ({
+          id: feature.properties.id,
+          name: feature.properties.name,
+          atollName: feature.properties.atollName,
+          centroid: feature.properties.centroid,
+          score: feature.properties.score
+        }))}
+        onIslandSelect={selectSearchIsland}
+        onAnalyticsOpen={openAnalytics}
+        loading={!mapReady || analyticsLoading}
+        error={Boolean(analyticsError)}
+      />
+    {/if}
   </div>
 
   <NationalAnalyticsCard
@@ -434,6 +508,15 @@
     loading={analyticsLoading}
     error={analyticsError}
     onIslandSelect={focusAnalyticsIsland}
+  />
+
+  <IslandAnalyticsCard
+    bind:open={islandAnalyticsOpen}
+    island={selectedIsland}
+    profile={islandProfile}
+    loading={analyticsLoading || islandProfileLoading || !selectedIsland}
+    error={analyticsError ?? islandProfileError}
+    onClose={returnToNational}
   />
 
   <section class="map-legend" aria-label="Accessibility score legend">

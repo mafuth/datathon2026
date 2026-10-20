@@ -31,6 +31,33 @@ assertScore(islandScore.crowdedness.score, 'island crowdedness score');
 assert(islandScore.health.breakdown.length > 0, 'health breakdown is missing');
 assert(islandScore.education.breakdown.length > 0, 'education breakdown is missing');
 assert(Array.isArray(islandScore.transport.hubImpacts), 'transport hub breakdown is missing');
+assert(Array.isArray(islandScore.transport.demand.stops), 'transport stop demand is missing');
+assertScore(islandScore.transport.demand.score, 'transport demand score');
+assert(
+  islandScore.transport.demand.averageLoad === null || islandScore.transport.demand.averageLoad >= 0,
+  'transport average load is invalid'
+);
+assert(
+  islandScore.demand.health.demandPercent === null || islandScore.demand.health.demandPercent <= 1,
+  'health demand exceeds 100%'
+);
+assert(
+  islandScore.demand.education.demandPercent === null || islandScore.demand.education.demandPercent <= 1,
+  'education demand exceeds 100%'
+);
+assert(
+  islandScore.demand.health.outboundPercent === null || islandScore.demand.health.outboundPercent <= 1,
+  'outbound health demand exceeds 100%'
+);
+assert(Array.isArray(islandScore.demand.inboundSources), 'inbound demand sources are missing');
+
+const laamuGan = await getIslandScore('island:692');
+assert(laamuGan.evidence.transportServices > 0, 'Laamu Gan transport services were not seeded');
+assert(laamuGan.evidence.transportConnections > 0, 'Laamu Gan transport connections were not seeded');
+assert((laamuGan.transport.score ?? 0) > 0, 'Laamu Gan transport score is unexpectedly zero');
+assert((laamuGan.transport.marine.score ?? 0) > 0, 'Laamu Gan marine transport score is unexpectedly zero');
+assert.equal(laamuGan.airportAccess.source, 'land_connection', 'Laamu Gan airport access is not land-connected');
+assert.equal(laamuGan.airportAccess.airportIslandId, 'island:706', 'Laamu Gan airport source is not Kadhdhoo');
 
 const nationalScore = await getNationalScore();
 assert.equal(nationalScore.islandCount, islands.length);
@@ -46,9 +73,7 @@ assert.equal(
   nationalScore.inhabitedIslandCount
 );
 
-const inheritedAirport = nationalScore.scores.find(
-  (result) => result.airportAccess.source === 'direct_land_connection'
-);
+const inheritedAirport = nationalScore.scores.find((result) => result.airportAccess.source === 'land_connection');
 if (inheritedAirport) {
   assert(inheritedAirport.airportAccess.airportIslandId, 'inherited airport has no source island');
 }

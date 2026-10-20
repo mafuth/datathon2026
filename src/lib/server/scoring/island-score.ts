@@ -1,13 +1,14 @@
-import type { IslandScoreResult, ScoringSnapshot } from './types';
+import type { DemandAllocationResult, IslandScoreResult, ScoringSnapshot } from './types';
 
 import { loadScoringSnapshot } from './database-input';
 import { calculateIslandScore } from './factors';
 
 export async function getIslandScore(
   islandId: string,
-  snapshot: ScoringSnapshot | undefined = undefined
+  snapshot: ScoringSnapshot | undefined = undefined,
+  demandAllocations: DemandAllocationResult | undefined = undefined
 ): Promise<IslandScoreResult> {
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new Error('Island ID is required');
-  return calculateIslandScore(normalizedId, snapshot ?? (await loadScoringSnapshot()));
+  return calculateIslandScore(normalizedId, snapshot ?? (await loadScoringSnapshot()), demandAllocations);
 }

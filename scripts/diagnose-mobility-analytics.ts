@@ -45,15 +45,27 @@ const mappings = confirmedServiceMappings(
       typeof entry.disposition === 'string'
   ) as never
 );
-const facilities = readJson<RecordValue[]>(resolve('old/data/mobility/normalized/facilities.json'));
-const canonicalFacilities = facilities.map((record) => {
-  const id = text(record, 'id');
-  const sourceIslandId = text(record, 'island_id');
+const baseline = readJson<{
+  services: Array<{
+    id: string;
+    islandId: string | null;
+    serviceType: string;
+    subtype: string;
+    name: string | null;
+  }>;
+}>(resolve('data/mobility/normalized/current-db-baseline.json'));
+const canonicalFacilities = baseline.services.map((service) => {
+  const sourceCategory = service.serviceType === 'education' ? 'school' : service.subtype;
   return {
-    record,
-    id,
-    islandId: sourceIslandId ?? (id ? (mappings.get(id) ?? null) : null),
-    wasUnmapped: sourceIslandId === null
+    record: {
+      id: service.id,
+      category: sourceCategory,
+      name: service.name,
+      island_id: service.islandId
+    },
+    id: service.id,
+    islandId: service.islandId ?? mappings.get(service.id) ?? null,
+    wasUnmapped: service.islandId === null
   };
 });
 
@@ -143,7 +155,7 @@ const artifact = {
   generatedAt: new Date().toISOString(),
   source: {
     database: 'local.db',
-    canonicalFacilities: 'old/data/mobility/normalized/facilities.json',
+    canonicalFacilities: 'data/mobility/normalized/current-db-baseline.json',
     analytics: '/api/map/analytics (same getNationalScore contract)'
   },
   summary: {

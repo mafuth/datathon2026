@@ -7,119 +7,286 @@ import type {
   NewTransportRoute
 } from '../src/lib/db/models';
 
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { eq, inArray, sql } from 'drizzle-orm';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 import { Atoll, Island, Population, Service, TransportConnection, TransportRoute } from '../src/lib/db/models';
 import db from '../src/lib/server/database';
-import { preserveExistingServiceIslandMappings } from '../src/lib/server/mobility/preserve-service-island-mappings';
-import { confirmedServiceMappings } from '../src/lib/server/mobility/reviewed-service-overlay';
 
-type JsonRecord = Record<string, unknown>;
-type GeoJsonFeature = {
-  id?: unknown;
-  geometry?: JsonRecord | null;
-  properties?: JsonRecord;
+type Position = [number, number];
+type Ring = Position[];
+type IslandShape = {
+  id: string;
+  polygons: Ring[][];
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+};
+type BaselineArtifact = {
+  schema_version: string;
+  atolls: NewAtoll[];
+  islands: NewIsland[];
+  population: NewPopulation[];
+  services: NewService[];
+  transportRoutes: NewTransportRoute[];
+  transportConnections: NewTransportConnection[];
+};
+type OSMService = {
+  id: string;
+  service_type: 'health' | 'education' | 'transport';
+  subtype: string;
+  marine_evidence?: 'port' | 'jetty' | 'breakwater' | 'ferry_stop';
+  name: string | null;
+  latitude: number;
+  longitude: number;
+  geometry?: { type: 'Point' | 'LineString'; coordinates: Position | Position[] };
+  tags: Record<string, string>;
+  source: 'OpenStreetMap';
+  source_object_id: string;
+  source_url: string;
+};
+type MarineEvidence = 'baseline' | 'explicit_osm' | 'expanded_osm' | 'inferred_ferry_endpoint' | 'missing';
+type OSMRoute = {
+  id: string;
+  name: string | null;
+  route_type: 'ferry';
+  geometry: { type: 'LineString'; coordinates: Position[] };
+  passenger_eligible: boolean;
+  source: 'OpenStreetMap';
+  source_object_id: string;
+  source_url: string;
+  modeled: false;
+};
+type OSMConnection = {
+  id: string;
+  from_island_id: string;
+  to_island_id: string;
+  connection_type: 'bridge' | 'causeway';
+  directionality: 'forward' | 'bidirectional';
+  sequence: number | null;
+  distance_m: number | null;
+  geometry: unknown;
+  source: 'OpenStreetMap';
+  source_object_id: string;
+  modeled: false;
+};
+type OSMServicesArtifact = { services: OSMService[] };
+type OSMMarineArtifact = { services: OSMService[]; routes: OSMRoute[] };
+type OSMConnectionsArtifact = { connections: OSMConnection[] };
+type RtlFerryStop = {
+  rtl_stop_name: string;
+  official_island_id: string | null;
+  reconciliation_status: string;
+};
+type RtlFerryRoute = {
+  route_id: number;
+  route_code: string;
+  route_name: string;
+  stop_names: string[];
+};
+type RtlFerryArtifact = {
+  schema_version: string;
+  islands: RtlFerryStop[];
+  routes: RtlFerryRoute[];
 };
 
-const atollCodeByName: Record<string, string> = {
-  'Alifu Alifu': 'AA',
-  'Alifu Dhaalu': 'Adh',
-  Baa: 'B',
-  Dhaalu: 'Dh',
-  Faafu: 'F',
-  'Gaafu Alifu': 'GA',
-  'Gaafu Dhaalu': 'GDh',
-  Gnaviyani: 'Gn',
-  'Haa Alifu': 'HA',
-  'Haa Dhaalu': 'HDh',
-  Kaafu: 'K',
-  Laamu: 'L',
-  Lhaviyani: 'Lh',
-  MLE: 'MLE',
-  Meemu: 'M',
-  Noonu: 'N',
-  Raa: 'R',
-  Seenu: 'S',
-  Shaviyani: 'Sh',
-  Thaa: 'Th',
-  Vaavu: 'V'
-};
-
-const healthCategories = new Set(['hospital', 'health_center', 'clinic']);
-const transportCategories = new Set([
-  'aerodrome',
-  'bus_station',
-  'bus_stop',
-  'ferry_terminal',
-  'helipad',
-  'parking',
-  'pier',
-  'public_transport',
-  'taxi',
-  'terminal'
-]);
+const SEARCH_AREA_MULTIPLIER = 100;
+const SEARCH_LINEAR_MULTIPLIER = Math.sqrt(SEARCH_AREA_MULTIPLIER);
+const MAX_EXPANDED_SEARCH_DISTANCE_DEGREES = 1.5;
+const baselinePath = resolve(process.env.MOBILITY_BASELINE_PATH ?? 'data/mobility/normalized/current-db-baseline.json');
+const osmServicesPath = resolve(process.env.MOBILITY_OSM_SERVICES_PATH ?? 'data/mobility/normalized/osm-services.json');
+const osmMarinePath = resolve(process.env.MOBILITY_OSM_MARINE_PATH ?? 'data/mobility/normalized/osm-marine.json');
+const osmConnectionsPath = resolve(
+  process.env.MOBILITY_OSM_CONNECTIONS_PATH ?? 'data/mobility/normalized/transport-connections.json'
+);
+const rtlFerryPath = resolve(process.env.MOBILITY_RTL_FERRY_PATH ?? 'data/mobility/transport/rtl-ferry-coverage.json');
+const servicePatchAuditPath = resolve(
+  process.env.MOBILITY_SERVICE_PATCH_AUDIT_PATH ?? 'data/mobility/derived/osm-service-patch.json'
+);
+const marineCoveragePath = resolve(
+  process.env.MOBILITY_MARINE_COVERAGE_PATH ?? 'data/mobility/derived/osm-marine-coverage.json'
+);
+const requireMarineCoverage = process.env.MOBILITY_REQUIRE_INHABITED_MARINE === 'true';
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8')) as T;
 }
 
-function stringValue(record: JsonRecord | undefined, key: string): string | null {
-  const value = record?.[key];
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function position(value: unknown): value is Position {
+  return Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number';
 }
 
-function islandType(category: string | null): string {
-  switch (category) {
-    case 'Residential Island':
-      return 'inhabited';
-    case 'Tourism Island':
-      return 'resort';
-    case 'Uninhabited Island':
-      return 'uninhabited';
-    case 'Industrial Island':
-      return 'industrial';
-    case 'Institutional Island':
-      return 'institutional';
-    default:
-      return 'unknown';
+function polygonRings(geoJson: string): Ring[][] {
+  const geometry = JSON.parse(geoJson) as { type?: unknown; coordinates?: unknown };
+  if (!Array.isArray(geometry.coordinates)) return [];
+  if (geometry.type === 'Polygon') {
+    return [geometry.coordinates.filter(Array.isArray).map((ring) => ring.filter(position))];
   }
-}
-
-function pointCoordinates(geometry: unknown): { latitude: number; longitude: number } | null {
-  if (!geometry || typeof geometry !== 'object' || Array.isArray(geometry)) return null;
-  const record = geometry as JsonRecord;
-  if (record.type !== 'Point' || !Array.isArray(record.coordinates) || record.coordinates.length !== 2) return null;
-  const longitude = record.coordinates[0];
-  const latitude = record.coordinates[1];
-  if (typeof longitude !== 'number' || typeof latitude !== 'number') return null;
-  if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
-    throw new Error(`Invalid service coordinates: ${longitude}, ${latitude}`);
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.flatMap((polygon) =>
+      Array.isArray(polygon) ? [polygon.filter(Array.isArray).map((ring) => ring.filter(position))] : []
+    );
   }
-  return { latitude, longitude };
+  return [];
 }
 
-function educationSubtype(attributes: JsonRecord | undefined): string {
-  const stage = stringValue(attributes, 'education_stage');
-  const institutionType = stringValue(attributes, 'institution_type');
-  if (stage === 'pre_primary' || institutionType === 'preschool') return 'preschool';
-  if (stage === 'higher_secondary' || institutionType === 'higher_secondary_school') return 'high_school';
-  return 'school';
+function bounds(polygons: Ring[][]): [number, number, number, number] {
+  const points = polygons.flat(2);
+  return [
+    Math.min(...points.map((point) => point[0])),
+    Math.min(...points.map((point) => point[1])),
+    Math.max(...points.map((point) => point[0])),
+    Math.max(...points.map((point) => point[1]))
+  ];
 }
 
-function transportSubtype(category: string, tags: JsonRecord | undefined): string {
-  if (category === 'aerodrome') return 'airport';
-  if (category === 'bus_station') return 'bus_station';
-  if (category === 'bus_stop') return 'bus_stop';
-  if (category === 'ferry_terminal') return 'port';
-  if (category === 'pier') return 'jetty';
-  if (category === 'public_transport') {
-    if (tags?.amenity === 'ferry_terminal') return 'port';
-    if (tags?.ferry === 'yes') return 'port';
-    if (tags?.highway === 'bus_stop') return 'bus_stop';
+function pointInRing(point: Position, ring: Ring): boolean {
+  let inside = false;
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index++) {
+    const current = ring[index];
+    const prior = ring[previous];
+    const crosses = current[1] > point[1] !== prior[1] > point[1];
+    if (
+      crosses &&
+      point[0] < ((prior[0] - current[0]) * (point[1] - current[1])) / (prior[1] - current[1]) + current[0]
+    ) {
+      inside = !inside;
+    }
   }
-  return category;
+  return inside;
+}
+
+function pointInIsland(point: Position, shape: IslandShape): boolean {
+  if (point[0] < shape.minX || point[0] > shape.maxX || point[1] < shape.minY || point[1] > shape.maxY) return false;
+  return shape.polygons.some((rings) => {
+    const [outer, ...holes] = rings;
+    return Boolean(outer && pointInRing(point, outer) && !holes.some((hole) => pointInRing(point, hole)));
+  });
+}
+
+function distanceToBoundsSquared(point: Position, shape: IslandShape): number {
+  const deltaX = point[0] < shape.minX ? shape.minX - point[0] : point[0] > shape.maxX ? point[0] - shape.maxX : 0;
+  const deltaY = point[1] < shape.minY ? shape.minY - point[1] : point[1] > shape.maxY ? point[1] - shape.maxY : 0;
+  return deltaX ** 2 + deltaY ** 2;
+}
+
+function expandedSearchDistance(maxDistanceDegrees: number, distanceSquared: number): number | null {
+  let searchDistance = maxDistanceDegrees * SEARCH_LINEAR_MULTIPLIER;
+  while (searchDistance <= MAX_EXPANDED_SEARCH_DISTANCE_DEGREES) {
+    if (distanceSquared <= searchDistance ** 2) return searchDistance;
+    searchDistance *= 2;
+  }
+  return null;
+}
+
+function islandAt(point: Position, shapes: IslandShape[], maxDistanceDegrees: number): string | null {
+  const exact = shapes.find((shape) => pointInIsland(point, shape));
+  if (exact) return exact.id;
+  if (maxDistanceDegrees <= 0) return null;
+
+  const nearest = shapes
+    .map((shape) => ({ shape, distance: distanceToBoundsSquared(point, shape) }))
+    .sort((first, second) => first.distance - second.distance)[0];
+  if (!nearest) return null;
+
+  // Start with a 100x search area, then keep widening the envelope for inaccurate polygons.
+  return expandedSearchDistance(maxDistanceDegrees, nearest.distance) === null ? null : nearest.shape.id;
+}
+
+function distanceSquared(first: Position, second: Position): number {
+  return (first[0] - second[0]) ** 2 + (first[1] - second[1]) ** 2;
+}
+
+function distanceM(first: Position, second: Position): number {
+  const radius = 6_371_000;
+  const latitude = (value: number) => (value * Math.PI) / 180;
+  const deltaLatitude = latitude(second[1] - first[1]);
+  const deltaLongitude = latitude(second[0] - first[0]);
+  const a =
+    Math.sin(deltaLatitude / 2) ** 2 +
+    Math.cos(latitude(first[1])) * Math.cos(latitude(second[1])) * Math.sin(deltaLongitude / 2) ** 2;
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+}
+
+function normalizeName(value: string | null): string {
+  return value?.toLowerCase().replace(/[^a-z0-9]+/g, '') ?? '';
+}
+
+function routeCoordinates(route: OSMRoute): Position[] {
+  return route.geometry.coordinates.filter(position);
+}
+
+function routeIslandSequence(route: OSMRoute, shapes: IslandShape[]): Array<{ islandId: string; point: Position }> {
+  const exact: Array<{ islandId: string; point: Position }> = [];
+  for (const point of routeCoordinates(route)) {
+    const islandId = islandAt(point, shapes, 0);
+    if (islandId && exact.at(-1)?.islandId !== islandId) exact.push({ islandId, point });
+  }
+  if (exact.length >= 2) return exact;
+
+  const endpoints = routeCoordinates(route).filter((point) => point.length === 2);
+  const fallback: Array<{ islandId: string; point: Position }> = [];
+  for (const point of [endpoints[0], endpoints.at(-1)]) {
+    if (!point) continue;
+    const islandId = islandAt(point, shapes, 0.03);
+    if (islandId && fallback.at(-1)?.islandId !== islandId) fallback.push({ islandId, point });
+  }
+  return fallback;
+}
+
+function serviceRowFromOSM(record: OSMService, islandId: string | null): NewService {
+  return {
+    id: record.id,
+    islandId,
+    serviceType: record.service_type,
+    subtype: record.subtype,
+    name: record.name,
+    latitude: record.latitude,
+    longitude: record.longitude
+  };
+}
+
+function servicePoints(record: OSMService): Position[] {
+  const geometry = record.geometry?.coordinates;
+  const points =
+    Array.isArray(geometry) && geometry.length > 0 && Array.isArray(geometry[0])
+      ? (geometry as Position[])
+      : [geometry as Position];
+  return [...points, [record.longitude, record.latitude]].filter(position);
+}
+
+function expandedMarineDistance(record: OSMService, shape: IslandShape, maxDistanceDegrees: number): number | null {
+  const distanceSquared = Math.min(
+    ...servicePoints(record).map((point) => distanceToBoundsSquared(point, shape)),
+    Number.POSITIVE_INFINITY
+  );
+  return expandedSearchDistance(maxDistanceDegrees, distanceSquared) === null ? null : Math.sqrt(distanceSquared);
+}
+
+function serviceIslandId(record: OSMService, shapes: IslandShape[], maxDistanceDegrees: number): string | null {
+  const points = servicePoints(record);
+  return (
+    points.map((point) => islandAt(point, shapes, 0)).find((islandId): islandId is string => islandId !== null) ??
+    points
+      .map((point) => islandAt(point, shapes, maxDistanceDegrees))
+      .find((islandId): islandId is string => islandId !== null) ??
+    null
+  );
+}
+
+function insertCoverageService(services: NewService[], route: OSMRoute, islandId: string, point: Position): NewService {
+  const service: NewService = {
+    id: `osm:inferred:ferry-endpoint:${route.id}:${islandId}`,
+    islandId,
+    serviceType: 'transport',
+    subtype: 'jetty',
+    name: route.name ? `${route.name} ferry endpoint` : 'OSM ferry route endpoint',
+    latitude: point[1],
+    longitude: point[0]
+  };
+  services.push(service);
+  return service;
 }
 
 async function insertChunks<T>(rows: T[], insert: (chunk: T[]) => Promise<void>): Promise<void> {
@@ -128,562 +295,403 @@ async function insertChunks<T>(rows: T[], insert: (chunk: T[]) => Promise<void>)
   }
 }
 
-const normalizedRoot = resolve(process.env.MOBILITY_NORMALIZED_DATA_ROOT ?? 'old/data/mobility/normalized');
-const graphsRoot = resolve(process.env.MOBILITY_GRAPHS_ROOT ?? 'old/data/mobility/graphs');
-const islandsArtifact = readJson<{ features: GeoJsonFeature[] }>(resolve(normalizedRoot, 'islands.geojson'));
-const populationArtifact = readJson<JsonRecord[]>(resolve(normalizedRoot, 'population.json'));
-const reconciliationArtifact = readJson<{ records: JsonRecord[] }>(
-  resolve('old/data/mobility/derived/population-reconciliation.json')
-);
-const populationFallbackArtifact = readJson<JsonRecord[]>(
-  resolve('old/data/mobility/derived/population-fallbacks.json')
-);
-const populationIndicatorArtifact = readJson<{ records: JsonRecord[] }>(
-  resolve('old/data/mobility/derived/island-indicators.json')
-);
-const facilitiesArtifact = readJson<JsonRecord[]>(resolve(normalizedRoot, 'facilities.json'));
-const reviewArtifact = readJson<{
-  entries: Array<JsonRecord & { service_id?: string; island_id?: string; disposition?: string }>;
-}>(resolve('data/mobility/derived/service-island-mapping-review.json'));
-const reviewedOverrideArtifact = readJson<{
-  entries: Array<JsonRecord & { service_id?: string; island_id?: string; disposition?: string }>;
-}>(resolve('data/mobility/derived/service-island-reviewed-overrides.json'));
-const reviewedServiceMappings = confirmedServiceMappings(
-  reviewArtifact.entries.filter(
-    (entry): entry is JsonRecord & { service_id: string; island_id: string; disposition: string } =>
-      typeof entry.service_id === 'string' &&
-      typeof entry.island_id === 'string' &&
-      typeof entry.disposition === 'string'
-  ),
-  reviewedOverrideArtifact.entries.filter(
-    (entry): entry is JsonRecord & { service_id: string; island_id: string; disposition: string } =>
-      typeof entry.service_id === 'string' &&
-      typeof entry.island_id === 'string' &&
-      typeof entry.disposition === 'string'
-  )
-);
-const transportArtifact = readJson<{ features: JsonRecord[] }>(resolve(normalizedRoot, 'transport.json'));
-const ferryRoutesArtifact = readJson<{ routes: JsonRecord[] }>(resolve(graphsRoot, 'ferry-routes.json'));
-const busRoutesArtifactPath = resolve(
-  process.env.MOBILITY_BUS_ROUTES_PATH ?? 'data/mobility/normalized/bus-routes.json'
-);
-const rtlBusArtifactPath = resolve(process.env.MOBILITY_RTL_BUS_PATH ?? 'data/mobility/normalized/rtl-bus.json');
-const rtlBusArtifact = existsSync(rtlBusArtifactPath)
-  ? readJson<{ routes: JsonRecord[]; stops: JsonRecord[] }>(rtlBusArtifactPath)
-  : { routes: [], stops: [] };
-const busRoutesArtifact =
-  rtlBusArtifact.routes.length > 0
-    ? rtlBusArtifact
-    : existsSync(busRoutesArtifactPath)
-      ? readJson<{ routes: JsonRecord[] }>(busRoutesArtifactPath)
-      : { routes: [] };
-const marineArtifact = readJson<{ nodes: JsonRecord[]; edges: JsonRecord[] }>(resolve(graphsRoot, 'marine.json'));
-const connectionArtifactPath = resolve(
-  process.env.MOBILITY_CONNECTIONS_PATH ?? 'data/mobility/normalized/transport-connections.json'
-);
-const connectionArtifact = existsSync(connectionArtifactPath)
-  ? readJson<{ connections: JsonRecord[] }>(connectionArtifactPath)
-  : existsSync(resolve(normalizedRoot, 'transport-connections.json'))
-    ? readJson<{ connections: JsonRecord[] }>(resolve(normalizedRoot, 'transport-connections.json'))
-    : { connections: [] };
+const baseline = readJson<BaselineArtifact>(baselinePath);
+if (!baseline.schema_version.startsWith('current-db-mobility-baseline-')) {
+  throw new Error(`Unsupported mobility baseline: ${baseline.schema_version}`);
+}
+const osmServices = readJson<OSMServicesArtifact>(osmServicesPath).services;
+const osmMarine = readJson<OSMMarineArtifact>(osmMarinePath);
+const osmConnections = readJson<OSMConnectionsArtifact>(osmConnectionsPath).connections;
+const rtlFerry = readJson<RtlFerryArtifact>(rtlFerryPath);
+if (!rtlFerry.schema_version.startsWith('rtl_ferry_coverage.')) {
+  throw new Error(`Unsupported RTL ferry artifact: ${rtlFerry.schema_version}`);
+}
 
-const atollNames = [
-  ...new Set(islandsArtifact.features.map((feature) => stringValue(feature.properties, 'atoll')).filter(Boolean))
-] as string[];
-const atolls: NewAtoll[] = atollNames.map((name) => {
-  const id = atollCodeByName[name];
-  if (!id) throw new Error(`No atoll code mapping exists for ${name}`);
-  return { id, name };
+const islandShapes: IslandShape[] = baseline.islands.flatMap((island) => {
+  const polygons = polygonRings(island.geoJson);
+  if (polygons.length === 0) return [];
+  const [minX, minY, maxX, maxY] = bounds(polygons);
+  return [{ id: island.id, polygons, minX, minY, maxX, maxY }];
 });
+const inhabitedIslandIds = new Set(
+  baseline.islands.filter((island) => island.islandType === 'inhabited').map((island) => island.id)
+);
+const services: NewService[] = baseline.services.map((service) => ({ ...service }));
+const baselineServiceById = new Map(baseline.services.map((service) => [service.id, service] as const));
+const patchedServiceIds = new Set<string>();
+const osmEvidenceServiceIds = new Set<string>();
+const patchDetails: Array<{ serviceId: string; osmId: string; fields: string[] }> = [];
+const addedServiceIds: string[] = [];
+const unmappedOsmServices: Array<{ id: string; serviceType: string; subtype: string; name: string | null }> = [];
 
-const islands: NewIsland[] = islandsArtifact.features.map((feature) => {
-  const properties = feature.properties ?? {};
-  const id = typeof feature.id === 'string' ? feature.id : stringValue(properties, 'id');
-  const name = stringValue(properties, 'name');
-  const atollName = stringValue(properties, 'atoll');
-  const centroid = properties.centroid;
-  if (!id || !atollName || !Array.isArray(centroid) || centroid.length !== 2) {
-    throw new Error(`Island record is missing required identity or centroid data: ${JSON.stringify(feature)}`);
-  }
-  const longitude = centroid[0];
-  const latitude = centroid[1];
-  if (typeof longitude !== 'number' || typeof latitude !== 'number') throw new Error(`Invalid centroid for ${id}`);
-  if (!feature.geometry) throw new Error(`Island ${id} has no boundary geometry`);
-  const areaHa = properties.area_ha;
-  if (typeof areaHa !== 'number' || !Number.isFinite(areaHa) || areaHa <= 0) {
-    throw new Error(`Invalid land area for island ${id}`);
-  }
-  return {
-    id,
-    name: name ?? id,
-    islandType: islandType(stringValue(properties, 'category')),
-    latitude,
-    longitude,
-    landAreaKm2: areaHa / 100,
-    geoJson: JSON.stringify(feature.geometry),
-    atollId: atollCodeByName[atollName]
-  };
-});
+for (const record of osmServices) {
+  const point: Position = [record.longitude, record.latitude];
+  const mappingDistance = record.service_type === 'transport' ? 0.03 : 0.01;
+  const mappedIslandId = serviceIslandId(record, islandShapes, mappingDistance);
+  const exactMatch = baselineServiceById.get(record.id);
+  const name = normalizeName(record.name);
+  const fuzzyMatch =
+    exactMatch ??
+    (name
+      ? baseline.services.find((service) => {
+          if (service.serviceType !== record.service_type || service.subtype !== record.subtype) return false;
+          if (normalizeName(service.name) !== name) return false;
+          if (mappedIslandId && service.islandId === mappedIslandId) return true;
+          if (service.latitude === null || service.longitude === null) return true;
+          return distanceSquared([service.longitude, service.latitude], point) <= 0.01 ** 2;
+        })
+      : undefined);
 
-const islandIds = new Set(islands.map((island) => island.id));
-const populationTotals = new Map<string, JsonRecord>();
-for (const record of populationArtifact) {
-  const islandId = stringValue(record, 'island_id');
-  const isP5Total = record.source === 'MBS Census 2022 P5' && record.sex === 'both' && record.nationality === 'total';
-  const isP3Total = record.source === 'MBS Census 2022 P3' && record.demographic_grain === 'total';
-  if (islandId && (isP5Total || isP3Total)) populationTotals.set(islandId, record);
-}
-for (const record of reconciliationArtifact.records) {
-  const islandId = stringValue(record, 'islandId');
-  const amount = record.population;
-  if (
-    islandId &&
-    islandIds.has(islandId) &&
-    typeof amount === 'number' &&
-    Number.isInteger(amount) &&
-    amount >= 0 &&
-    !populationTotals.has(islandId)
-  ) {
-    populationTotals.set(islandId, record);
+  if (fuzzyMatch) {
+    const current = services.find((service) => service.id === fuzzyMatch.id);
+    if (!current) continue;
+    osmEvidenceServiceIds.add(current.id);
+    const fields: string[] = [];
+    if (current.islandId === null && mappedIslandId) {
+      current.islandId = mappedIslandId;
+      fields.push('islandId');
+    }
+    if (current.latitude === null && current.longitude === null) {
+      current.latitude = record.latitude;
+      current.longitude = record.longitude;
+      fields.push('coordinates');
+    }
+    if (current.name === null && record.name) {
+      current.name = record.name;
+      fields.push('name');
+    }
+    if (fields.length > 0) {
+      patchedServiceIds.add(current.id);
+      patchDetails.push({ serviceId: current.id, osmId: record.id, fields });
+    }
+    continue;
   }
-}
-for (const record of populationFallbackArtifact) {
-  const islandId = stringValue(record, 'islandId');
-  const amount = record.population;
-  if (
-    islandId &&
-    islandIds.has(islandId) &&
-    typeof amount === 'number' &&
-    Number.isInteger(amount) &&
-    amount >= 0 &&
-    !populationTotals.has(islandId)
-  ) {
-    populationTotals.set(islandId, record);
-  }
-}
-for (const record of populationArtifact) {
-  const islandId = stringValue(record, 'island_id');
-  if (islandId && record.source === 'MBS Census 2022 P3' && record.demographic_grain === 'total') {
-    populationTotals.set(islandId, record);
-  }
-}
-const populations: NewPopulation[] = [...populationTotals.entries()].map(([islandId, record]) => {
-  const amount = record.population;
-  if (!islandIds.has(islandId)) throw new Error(`Population record references unknown island ${islandId}`);
-  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 0) {
-    throw new Error(`Invalid population amount for ${islandId}`);
-  }
-  return { islandId, ageCategory: 'total', amount };
-});
 
-const indicatorDefinitions = [
-  ['childPopulation017', 'child_population_0_17'],
-  ['childPopulation014', 'child_population_0_14'],
-  ['adolescentPopulation1019', 'adolescent_population_10_19'],
-  ['workingAgePopulation1564', 'working_age_population_15_64'],
-  ['youthPopulation1524', 'youth_population_15_24'],
-  ['youthPopulation1835', 'youth_population_18_35'],
-  ['elderlyPopulation65Plus', 'elderly_population_65_plus']
-] as const;
-const populationIndicatorRows: NewPopulation[] = [];
-for (const record of populationIndicatorArtifact.records) {
-  const islandId = stringValue(record, 'islandId');
-  if (!islandId || !islandIds.has(islandId)) continue;
-  const source = stringValue(record, 'sourceReference');
-  const sourceUrl = stringValue(record, 'sourceUrl');
-  const sourceRowId = stringValue(record, 'sourceRowId');
-  const ageDataScope = stringValue(record, 'ageDataScope');
-  if (!source || !sourceUrl || !sourceRowId || !ageDataScope) {
-    throw new Error(`Population indicator record is missing provenance: ${JSON.stringify(record)}`);
+  if (!mappedIslandId) {
+    unmappedOsmServices.push({
+      id: record.id,
+      serviceType: record.service_type,
+      subtype: record.subtype,
+      name: record.name
+    });
+    continue;
   }
-  for (const [field, indicator] of indicatorDefinitions) {
-    const values = record[field];
-    if (!values || typeof values !== 'object' || Array.isArray(values)) continue;
-    {
-      const value = (values as JsonRecord).both;
-      if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) continue;
-      populationIndicatorRows.push({
-        islandId,
-        ageCategory: indicator,
-        amount: value
+
+  const hasMarineCoverage =
+    record.service_type === 'transport' &&
+    services.some(
+      (service) =>
+        service.islandId === mappedIslandId &&
+        service.serviceType === 'transport' &&
+        ['port', 'jetty'].includes(service.subtype)
+    );
+  const hasSameCoverage = services.some(
+    (service) =>
+      service.islandId === mappedIslandId &&
+      service.serviceType === record.service_type &&
+      (record.service_type === 'transport' ? hasMarineCoverage : service.subtype === record.subtype)
+  );
+  if (hasSameCoverage) continue;
+
+  const added = serviceRowFromOSM(record, mappedIslandId);
+  services.push(added);
+  osmEvidenceServiceIds.add(added.id);
+  addedServiceIds.push(added.id);
+}
+
+const marineCoverage = new Map<
+  string,
+  {
+    evidence: MarineEvidence;
+    serviceId: string | null;
+    routeId: string | null;
+  }
+>();
+for (const islandId of inhabitedIslandIds) {
+  const explicit = services.find(
+    (service) =>
+      service.islandId === islandId &&
+      service.serviceType === 'transport' &&
+      ['port', 'jetty'].includes(service.subtype)
+  );
+  if (explicit) {
+    marineCoverage.set(islandId, {
+      evidence: osmEvidenceServiceIds.has(explicit.id) ? 'explicit_osm' : 'baseline',
+      serviceId: explicit.id,
+      routeId: null
+    });
+    continue;
+  }
+
+  const routeEndpoint = osmMarine.routes
+    .filter((route) => route.passenger_eligible)
+    .flatMap((route) => {
+      const sequence = routeIslandSequence(route, islandShapes);
+      return sequence.filter((entry) => entry.islandId === islandId).map((entry) => ({ route, ...entry }));
+    })[0];
+  if (routeEndpoint) {
+    const inferred = insertCoverageService(services, routeEndpoint.route, islandId, routeEndpoint.point);
+    marineCoverage.set(islandId, {
+      evidence: 'inferred_ferry_endpoint',
+      serviceId: inferred.id,
+      routeId: routeEndpoint.route.id
+    });
+  } else {
+    const shape = islandShapes.find((candidate) => candidate.id === islandId);
+    const expandedMatch = shape
+      ? osmMarine.services
+          .map((record) => ({ record, distance: expandedMarineDistance(record, shape, 0.03) }))
+          .filter((entry): entry is { record: OSMService; distance: number } => entry.distance !== null)
+          .sort((first, second) => first.distance - second.distance)[0]
+      : undefined;
+    if (expandedMatch) {
+      const inferred = serviceRowFromOSM(expandedMatch.record, islandId);
+      inferred.id = `osm:inferred:expanded:${expandedMatch.record.id}:${islandId}`;
+      inferred.name = expandedMatch.record.name
+        ? `${expandedMatch.record.name} (expanded OSM search)`
+        : 'Expanded OSM marine search result';
+      services.push(inferred);
+      osmEvidenceServiceIds.add(inferred.id);
+      marineCoverage.set(islandId, {
+        evidence: 'expanded_osm',
+        serviceId: inferred.id,
+        routeId: null
       });
+    } else {
+      marineCoverage.set(islandId, { evidence: 'missing', serviceId: null, routeId: null });
     }
   }
 }
-populations.push(...populationIndicatorRows);
 
-const services: NewService[] = [];
-
-for (const record of facilitiesArtifact) {
-  const category = stringValue(record, 'category');
-  if (!category || (!healthCategories.has(category) && category !== 'school' && category !== 'airport')) continue;
-  const attributes = record.attributes as JsonRecord | undefined;
-  const recordId = stringValue(record, 'id');
-  const islandId = reviewedIslandId(record, recordId);
-  if (islandId && !islandIds.has(islandId)) throw new Error(`Facility references unknown island ${islandId}`);
-  const coordinates = pointCoordinates(record.geometry);
-  services.push({
-    id:
-      stringValue(record, 'id') ??
-      (() => {
-        throw new Error('Facility is missing an ID');
-      })(),
-    islandId,
-    serviceType: healthCategories.has(category) ? 'health' : category === 'school' ? 'education' : 'transport',
-    subtype: category === 'school' ? educationSubtype(attributes) : category === 'airport' ? 'airport' : category,
-    name: stringValue(record, 'name') ?? stringValue(attributes, 'name'),
-    latitude: coordinates?.latitude ?? null,
-    longitude: coordinates?.longitude ?? null
-  });
-}
-
-for (const record of transportArtifact.features) {
-  const category = stringValue(record, 'category');
-  if (!category || !transportCategories.has(category)) continue;
-  if (category === 'bus_stop' && rtlBusArtifact.stops.length > 0) continue;
-  const islandId = reviewedIslandId(record, stringValue(record, 'id'));
-  if (islandId && !islandIds.has(islandId)) throw new Error(`Transport record references unknown island ${islandId}`);
-  const coordinates = pointCoordinates(record.geometry);
-  services.push({
-    id:
-      stringValue(record, 'id') ??
-      (() => {
-        throw new Error('Transport record is missing an ID');
-      })(),
-    islandId,
-    serviceType: 'transport',
-    subtype: transportSubtype(category, record.tags as JsonRecord | undefined),
-    name: stringValue(record, 'name'),
-    latitude: coordinates?.latitude ?? null,
-    longitude: coordinates?.longitude ?? null
-  });
-}
-
-for (const stop of rtlBusArtifact.stops) {
-  const id = stringValue(stop, 'id');
-  const name = stringValue(stop, 'name');
-  const latitude = stop.latitude;
-  const longitude = stop.longitude;
-  if (!id || typeof latitude !== 'number' || typeof longitude !== 'number') continue;
-  services.push({
-    id,
-    islandId: reviewedIslandId(stop, id),
-    serviceType: 'transport',
-    subtype: 'bus_stop',
-    name,
-    latitude,
-    longitude
-  });
-}
-
-const serviceIds = new Set<string>();
-for (const service of services) {
-  if (serviceIds.has(service.id)) throw new Error(`Duplicate service ID ${service.id}`);
-  serviceIds.add(service.id);
-}
-
-const existingServiceIslandMappings = new Map(
-  (await db.select({ id: Service.id, islandId: Service.islandId }).from(Service))
-    .filter((service): service is { id: string; islandId: string } => service.islandId !== null)
-    .map((service) => [service.id, service.islandId] as const)
+mkdirSync(dirname(servicePatchAuditPath), { recursive: true });
+writeFileSync(
+  servicePatchAuditPath,
+  `${JSON.stringify(
+    {
+      schema_version: 'osm-service-patch-v1',
+      generated_at: new Date().toISOString(),
+      search_policy: {
+        area_multiplier: SEARCH_AREA_MULTIPLIER,
+        linear_multiplier: SEARCH_LINEAR_MULTIPLIER,
+        max_distance_degrees: MAX_EXPANDED_SEARCH_DISTANCE_DEGREES
+      },
+      baseline: baselinePath,
+      osm_services: osmServicesPath,
+      patched_existing: patchDetails,
+      added_missing: addedServiceIds,
+      unmapped_osm_services: unmappedOsmServices
+    },
+    null,
+    2
+  )}\n`
 );
-const servicesWithPreservedMappings = preserveExistingServiceIslandMappings(services, existingServiceIslandMappings);
+const coverageRows = baseline.islands
+  .filter((island) => inhabitedIslandIds.has(island.id))
+  .map((island) => ({ islandId: island.id, islandName: island.name, ...marineCoverage.get(island.id) }));
+mkdirSync(dirname(marineCoveragePath), { recursive: true });
+writeFileSync(
+  marineCoveragePath,
+  `${JSON.stringify(
+    {
+      schema_version: 'osm-marine-coverage-v1',
+      generated_at: new Date().toISOString(),
+      search_policy: {
+        area_multiplier: SEARCH_AREA_MULTIPLIER,
+        linear_multiplier: SEARCH_LINEAR_MULTIPLIER,
+        max_distance_degrees: MAX_EXPANDED_SEARCH_DISTANCE_DEGREES
+      },
+      baseline: baselinePath,
+      marine_artifact: osmMarinePath,
+      summary: {
+        inhabited_islands: coverageRows.length,
+        baseline: coverageRows.filter((row) => row.evidence === 'baseline').length,
+        explicit_osm: coverageRows.filter((row) => row.evidence === 'explicit_osm').length,
+        expanded_osm: coverageRows.filter((row) => row.evidence === 'expanded_osm').length,
+        inferred_ferry_endpoint: coverageRows.filter((row) => row.evidence === 'inferred_ferry_endpoint').length,
+        missing: coverageRows.filter((row) => row.evidence === 'missing').length
+      },
+      islands: coverageRows
+    },
+    null,
+    2
+  )}\n`
+);
 
-function reviewedIslandId(record: JsonRecord, id: string | null): string | null {
-  const sourceIslandId = stringValue(record, 'island_id');
-  if (sourceIslandId !== null) return sourceIslandId;
-  return id ? (reviewedServiceMappings.get(id) ?? null) : null;
+const missingMarineCoverage = coverageRows.filter((row) => row.evidence === 'missing');
+if (missingMarineCoverage.length > 0 && requireMarineCoverage) {
+  throw new Error(
+    `OSM marine coverage is missing for inhabited islands: ${missingMarineCoverage
+      .map((row) => `${row.islandId} (${row.islandName})`)
+      .join(', ')}`
+  );
 }
 
-const unavailableAgeRecords = populationArtifact.filter((record) => record.age_group !== null).length;
-
-function lineGeoJson(value: unknown): string | null {
-  if (Array.isArray(value)) {
-    if (value.length < 2 || value.some((point) => !Array.isArray(point) || point.length < 2)) return null;
-    return JSON.stringify({ type: 'LineString', coordinates: value });
-  }
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const geometry = value as JsonRecord;
-  if (geometry.type !== 'LineString' && geometry.type !== 'MultiLineString') return null;
-  if (!Array.isArray(geometry.coordinates)) return null;
-  return JSON.stringify(geometry);
-}
-
-const transportRoutes: NewTransportRoute[] = ferryRoutesArtifact.routes.map((route) => {
-  const id = stringValue(route, 'id');
-  const geoJson = lineGeoJson(route.geometry);
-  if (!id || !geoJson) throw new Error(`Ferry route ${id ?? 'unknown'} has invalid GeoJSON`);
-  return {
-    id,
-    name: stringValue(route, 'name'),
+const transportRoutes = [...baseline.transportRoutes];
+const routeIds = new Set(transportRoutes.map((route) => route.id));
+const rtlFerryRouteIds = new Set<string>();
+for (const route of osmMarine.routes) {
+  if (!route.passenger_eligible || routeIds.has(route.id)) continue;
+  transportRoutes.push({
+    id: route.id,
+    name: route.name,
     routeType: 'ferry',
-    geoJson,
-    source: stringValue(route, 'source') ?? 'OpenStreetMap',
-    sourceObjectId: stringValue(route, 'sourceRelationId') ?? id,
-    modeled: route.modeled !== false
-  };
-});
-
-for (const route of busRoutesArtifact.routes) {
-  const id = stringValue(route, 'id');
-  const geoJson = lineGeoJson(route.geometry);
-  if (!id || !geoJson) throw new Error(`Bus route ${id ?? 'unknown'} has invalid GeoJSON`);
+    geoJson: JSON.stringify(route.geometry),
+    source: route.source,
+    sourceObjectId: route.source_object_id,
+    modeled: route.modeled
+  } as NewTransportRoute);
+  routeIds.add(route.id);
+}
+for (const route of rtlFerry.routes) {
+  const id = `rtl:ferry:${route.route_code}`;
+  rtlFerryRouteIds.add(id);
+  if (routeIds.has(id)) continue;
   transportRoutes.push({
     id,
-    name: stringValue(route, 'name'),
-    routeType: 'bus',
-    geoJson,
-    source: stringValue(route, 'source') ?? 'OpenStreetMap',
-    sourceObjectId: stringValue(route, 'source_object_id') ?? id,
-    modeled: route.modeled !== false
-  });
+    name: route.route_name,
+    routeType: 'ferry',
+    geoJson: JSON.stringify({ type: 'LineString', coordinates: [] }),
+    source: 'RTL',
+    sourceObjectId: String(route.route_id),
+    modeled: false
+  } as NewTransportRoute);
+  routeIds.add(id);
 }
 
-const busConnections: NewTransportConnection[] = [];
-if (rtlBusArtifact.routes.length > 0) {
-  const stopIslandById = new Map(
-    rtlBusArtifact.stops
-      .map((stop) => [stringValue(stop, 'id'), stringValue(stop, 'island_id')] as const)
-      .filter((entry): entry is readonly [string, string] => entry[0] !== null && entry[1] !== null)
-  );
-  for (const route of rtlBusArtifact.routes) {
-    const routeId = stringValue(route, 'id');
-    const stopIds = Array.isArray(route.stop_ids)
-      ? route.stop_ids.filter((id): id is string => typeof id === 'string')
-      : [];
-    if (!routeId || stopIds.length < 2) continue;
-    const islandSequence = stopIds.map((stopId) => stopIslandById.get(`rtl:bus-stop:${stopId}`) ?? null);
-    for (let index = 1; index < islandSequence.length; index += 1) {
-      const fromIslandId = islandSequence[index - 1];
-      const toIslandId = islandSequence[index];
-      if (!fromIslandId || !toIslandId) continue;
-      busConnections.push({
-        id: `bus:${routeId}:${index}`,
-        routeId,
-        fromIslandId,
-        toIslandId,
-        connectionType: 'bus',
-        directionality: 'forward',
-        sequence: index,
-        distanceM: null,
-        geoJson: null,
-        source: 'RTL',
-        sourceObjectId: stringValue(route, 'code') ?? routeId,
-        modeled: false
-      });
-    }
-  }
-}
-
-const routeIds = new Set(transportRoutes.map((route) => route.id));
-const marineNodes = new Map(
-  marineArtifact.nodes
-    .map((node) => [stringValue(node, 'id'), stringValue(node, 'island_id')] as const)
-    .filter((entry): entry is readonly [string, string] => entry[0] !== null && entry[1] !== null)
-);
-const ferryConnectionByPair = new Map<string, NewTransportConnection>();
-for (const edge of marineArtifact.edges) {
-  const fromNodeId = stringValue(edge, 'from_id');
-  const toNodeId = stringValue(edge, 'to_id');
-  const fromIslandId = fromNodeId ? marineNodes.get(fromNodeId) : null;
-  const toIslandId = toNodeId ? marineNodes.get(toNodeId) : null;
-  const sourceObjectId = stringValue(edge, 'source_relation_id');
-  if (!fromIslandId || !toIslandId || fromIslandId === toIslandId || !sourceObjectId) continue;
-  const key = `${sourceObjectId}|${fromIslandId}|${toIslandId}`;
-  const distanceM = typeof edge.distance_m === 'number' ? edge.distance_m : null;
-  const existing = ferryConnectionByPair.get(key);
-  if (existing && (existing.distanceM ?? Number.MAX_SAFE_INTEGER) <= (distanceM ?? Number.MAX_SAFE_INTEGER)) continue;
-  ferryConnectionByPair.set(key, {
-    id: `ferry:${sourceObjectId}:${fromIslandId}:${toIslandId}`,
-    routeId: routeIds.has(sourceObjectId) ? sourceObjectId : null,
-    fromIslandId,
-    toIslandId,
-    connectionType: 'ferry',
-    directionality: 'forward',
-    sequence: null,
-    distanceM,
-    geoJson: lineGeoJson(edge.geometry),
-    source: stringValue(edge, 'source') ?? 'OpenStreetMap',
-    sourceObjectId: stringValue(edge, 'id') ?? sourceObjectId,
-    modeled: true
-  });
-}
-
-const landConnections: NewTransportConnection[] = connectionArtifact.connections.map((connection) => {
-  const id = stringValue(connection, 'id');
-  const fromIslandId = stringValue(connection, 'from_island_id');
-  const toIslandId = stringValue(connection, 'to_island_id');
-  const connectionType = stringValue(connection, 'connection_type');
-  const geoJson = lineGeoJson(connection.geometry);
-  if (!id || !fromIslandId || !toIslandId || !connectionType || !geoJson) {
-    throw new Error(`Transport connection is missing required data: ${JSON.stringify(connection)}`);
-  }
-  if (!islandIds.has(fromIslandId) || !islandIds.has(toIslandId)) {
-    throw new Error(`Transport connection ${id} references an unknown island`);
-  }
-  return {
-    id,
+const transportConnections = [...baseline.transportConnections];
+const connectionIds = new Set(transportConnections.map((connection) => connection.id));
+const rtlFerryStopByName = new Map(rtlFerry.islands.map((stop) => [stop.rtl_stop_name, stop]));
+const baselineIslandIds = new Set(baseline.islands.map((island) => island.id));
+let rtlFerrySkippedSegments = 0;
+for (const connection of osmConnections) {
+  if (connectionIds.has(connection.id)) continue;
+  transportConnections.push({
+    id: connection.id,
     routeId: null,
-    fromIslandId,
-    toIslandId,
-    connectionType,
-    directionality: stringValue(connection, 'directionality') ?? 'bidirectional',
-    sequence: typeof connection.sequence === 'number' ? connection.sequence : null,
-    distanceM: typeof connection.distance_m === 'number' ? connection.distance_m : null,
-    geoJson,
-    source: stringValue(connection, 'source') ?? 'OpenStreetMap',
-    sourceObjectId: stringValue(connection, 'source_object_id') ?? id,
-    modeled: connection.modeled !== false
-  };
-});
-const transportConnections = [...ferryConnectionByPair.values(), ...landConnections];
+    fromIslandId: connection.from_island_id,
+    toIslandId: connection.to_island_id,
+    connectionType: connection.connection_type,
+    directionality: connection.directionality,
+    sequence: connection.sequence,
+    distanceM: connection.distance_m,
+    geoJson: JSON.stringify(connection.geometry),
+    source: connection.source,
+    sourceObjectId: connection.source_object_id,
+    modeled: connection.modeled,
+    scoreEligible: true
+  });
+  connectionIds.add(connection.id);
+}
+for (const route of osmMarine.routes) {
+  if (!route.passenger_eligible || !routeIds.has(route.id)) continue;
+  const sequence = routeIslandSequence(route, islandShapes);
+  for (let index = 1; index < sequence.length; index += 1) {
+    const from = sequence[index - 1];
+    const to = sequence[index];
+    if (from.islandId === to.islandId) continue;
+    const id = `osm:ferry:${route.id}:${index}:${from.islandId}:${to.islandId}`;
+    if (connectionIds.has(id)) continue;
+    transportConnections.push({
+      id,
+      routeId: route.id,
+      fromIslandId: from.islandId,
+      toIslandId: to.islandId,
+      connectionType: 'ferry',
+      directionality: 'bidirectional',
+      sequence: index,
+      distanceM: distanceM(from.point, to.point),
+      geoJson: JSON.stringify(route.geometry),
+      source: route.source,
+      sourceObjectId: route.source_object_id,
+      modeled: route.modeled,
+      scoreEligible: true
+    });
+    connectionIds.add(id);
+  }
+}
+for (const route of rtlFerry.routes) {
+  const routeId = `rtl:ferry:${route.route_code}`;
+  if (!rtlFerryRouteIds.has(routeId)) continue;
+  const islandSequence = route.stop_names.map((stopName) => {
+    const stop = rtlFerryStopByName.get(stopName);
+    return stop?.reconciliation_status === 'matched_exact_atoll_name' ? stop.official_island_id : null;
+  });
+  for (let index = 1; index < islandSequence.length; index += 1) {
+    const fromIslandId = islandSequence[index - 1];
+    const toIslandId = islandSequence[index];
+    if (!fromIslandId || !toIslandId || fromIslandId === toIslandId) {
+      rtlFerrySkippedSegments += 1;
+      continue;
+    }
+    if (!baselineIslandIds.has(fromIslandId) || !baselineIslandIds.has(toIslandId)) {
+      rtlFerrySkippedSegments += 1;
+      continue;
+    }
+    const id = `rtl:ferry:${route.route_code}:${index}:${fromIslandId}:${toIslandId}`;
+    if (connectionIds.has(id)) continue;
+    transportConnections.push({
+      id,
+      routeId,
+      fromIslandId,
+      toIslandId,
+      connectionType: 'ferry',
+      directionality: 'bidirectional',
+      sequence: index,
+      distanceM: null,
+      geoJson: null,
+      source: 'RTL',
+      sourceObjectId: `${route.route_id}:${route.route_code}:${index}`,
+      modeled: false,
+      scoreEligible: false
+    });
+    connectionIds.add(id);
+  }
+}
 
 await db.transaction(async (tx) => {
-  await tx
-    .delete(Population)
-    .where(inArray(Population.ageCategory, ['resident_population', 'median_age', 'population_density']));
+  await tx.delete(TransportConnection);
+  await tx.delete(TransportRoute);
+  await tx.delete(Service);
+  await tx.delete(Population);
+  await tx.delete(Island);
+  await tx.delete(Atoll);
 
-  await insertChunks(atolls, async (chunk) => {
-    await tx
-      .insert(Atoll)
-      .values(chunk)
-      .onConflictDoUpdate({ target: Atoll.id, set: { name: sql`excluded.name` } });
-  });
-
-  await insertChunks(islands, async (chunk) => {
-    await tx
-      .insert(Island)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: Island.id,
-        set: {
-          name: sql`excluded.name`,
-          islandType: sql`excluded.island_type`,
-          latitude: sql`excluded.latitude`,
-          longitude: sql`excluded.longitude`,
-          landAreaKm2: sql`excluded.land_area_km2`,
-          geoJson: sql`excluded.geo_json`,
-          atollId: sql`excluded.atoll_id`
-        }
-      });
-  });
-
-  await insertChunks(populations, async (chunk) => {
-    await tx
-      .insert(Population)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [Population.islandId, Population.ageCategory],
-        set: { amount: sql`excluded.amount` }
-      });
-  });
-
-  if (rtlBusArtifact.stops.length > 0) {
-    await tx.delete(Service).where(eq(Service.subtype, 'bus_stop'));
-  }
-  if (rtlBusArtifact.routes.length > 0) {
-    await tx.delete(TransportConnection).where(eq(TransportConnection.connectionType, 'bus'));
-  }
-
-  await insertChunks(servicesWithPreservedMappings, async (chunk) => {
-    await tx
-      .insert(Service)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: Service.id,
-        set: {
-          islandId: sql`excluded.island_id`,
-          serviceType: sql`excluded.service_type`,
-          subtype: sql`excluded.subtype`,
-          name: sql`excluded.name`,
-          latitude: sql`excluded.latitude`,
-          longitude: sql`excluded.longitude`
-        }
-      });
-  });
-
-  await insertChunks(transportRoutes, async (chunk) => {
-    await tx
-      .insert(TransportRoute)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: TransportRoute.id,
-        set: {
-          name: sql`excluded.name`,
-          routeType: sql`excluded.route_type`,
-          geoJson: sql`excluded.geo_json`,
-          source: sql`excluded.source`,
-          sourceObjectId: sql`excluded.source_object_id`,
-          modeled: sql`excluded.modeled`
-        }
-      });
-  });
-
-  await insertChunks(transportConnections, async (chunk) => {
-    await tx
-      .insert(TransportConnection)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: TransportConnection.id,
-        set: {
-          routeId: sql`excluded.route_id`,
-          fromIslandId: sql`excluded.from_island_id`,
-          toIslandId: sql`excluded.to_island_id`,
-          connectionType: sql`excluded.connection_type`,
-          directionality: sql`excluded.directionality`,
-          sequence: sql`excluded.sequence`,
-          distanceM: sql`excluded.distance_m`,
-          geoJson: sql`excluded.geo_json`,
-          source: sql`excluded.source`,
-          sourceObjectId: sql`excluded.source_object_id`,
-          modeled: sql`excluded.modeled`
-        }
-      });
-  });
-
-  await insertChunks(busConnections, async (chunk) => {
-    await tx
-      .insert(TransportConnection)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: TransportConnection.id,
-        set: {
-          routeId: sql`excluded.route_id`,
-          fromIslandId: sql`excluded.from_island_id`,
-          toIslandId: sql`excluded.to_island_id`,
-          connectionType: sql`excluded.connection_type`,
-          directionality: sql`excluded.directionality`,
-          sequence: sql`excluded.sequence`,
-          source: sql`excluded.source`,
-          sourceObjectId: sql`excluded.source_object_id`,
-          modeled: sql`excluded.modeled`
-        }
-      });
-  });
+  await insertChunks(baseline.atolls, async (chunk) => tx.insert(Atoll).values(chunk));
+  await insertChunks(baseline.islands, async (chunk) => tx.insert(Island).values(chunk));
+  await insertChunks(baseline.population, async (chunk) => tx.insert(Population).values(chunk));
+  await insertChunks(services, async (chunk) => tx.insert(Service).values(chunk));
+  await insertChunks(transportRoutes, async (chunk) => tx.insert(TransportRoute).values(chunk));
+  await insertChunks(transportConnections, async (chunk) => tx.insert(TransportConnection).values(chunk));
 });
 
 console.log(
   JSON.stringify(
     {
-      normalizedRoot,
+      baseline: baselinePath,
       inserted: {
-        atolls: atolls.length,
-        islands: islands.length,
-        populations: populations.length,
-        populationIndicatorRows: populationIndicatorRows.length,
+        atolls: baseline.atolls.length,
+        islands: baseline.islands.length,
+        population: baseline.population.length,
         services: services.length,
-        confirmedReviewedServiceMappings: reviewedServiceMappings.size,
         transportRoutes: transportRoutes.length,
         transportConnections: transportConnections.length,
-        busConnections: busConnections.length,
-        landConnections: landConnections.length
+        rtlFerryRoutes: rtlFerryRouteIds.size,
+        rtlFerryConnections: transportConnections.filter((connection) => connection.source === 'RTL').length,
+        rtlFerrySkippedSegments
       },
-      population: {
-        ageBreakdownAvailable: false,
-        ageBandIndicatorsAvailable: populationIndicatorRows.length > 0,
-        fallbackTotalRows: populations.filter((record) => record.ageCategory === 'total').length,
-        unavailableAgeRecords: unavailableAgeRecords,
-        loadedAgeCategories: [...new Set(populations.map((record) => record.ageCategory))]
+      servicePatch: {
+        patchedExisting: patchedServiceIds.size,
+        addedMissing: addedServiceIds.length,
+        unmappedOsmServices: unmappedOsmServices.length
+      },
+      marineCoverage: {
+        inhabitedIslands: coverageRows.length,
+        baseline: coverageRows.filter((row) => row.evidence === 'baseline').length,
+        explicitOsm: coverageRows.filter((row) => row.evidence === 'explicit_osm').length,
+        expandedOsm: coverageRows.filter((row) => row.evidence === 'expanded_osm').length,
+        inferredFerryEndpoint: coverageRows.filter((row) => row.evidence === 'inferred_ferry_endpoint').length,
+        missing: missingMarineCoverage.length,
+        missingAllowed: !requireMarineCoverage
       }
     },
     null,

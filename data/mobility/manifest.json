@@ -1,0 +1,18 @@
+{
+  "rtlFerries": {
+    "path": "transport/rtl-ferry-coverage.json",
+    "sourcePath": "external-reference-snapshot",
+    "sourceUrl": "https://bo.rtl.mv:4455/maldives/api/booking/v1/ferries/backofficeinfo",
+    "copiedAt": "2026-10-20T08:32:52.247Z",
+    "sourceRetrievedAt": "2026-10-20T08:32:52.247Z",
+    "sourceChecksum": "1883c3a1e0a50bdffec01a7e0da76a37f722e9109ce67e0ce447a34d644b8c61",
+    "schemaVersion": "rtl_ferry_coverage.v1",
+    "artifactVersion": "rtl-ferry-coverage-2026-10-20",
+    "parserVersion": "rtl-ferry-refresh-v1",
+    "recordCount": 47,
+    "knownLimitations": [
+      "Live PDF metadata was not parsed; schedule metadata was retained from the reference snapshot where available."
+    ],
+    "usedByMvp": true
+  }
+}

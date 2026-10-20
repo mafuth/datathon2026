@@ -245,6 +245,14 @@ from being counted twice.
 6. Mark the component `partial` when age-specific demand, coordinates, or
    capability evidence is missing.
 
+Health capability rules used by the demand allocator:
+
+- `maternal_child` demand may use a local health centre, clinic, or hospital.
+- `chronic_elderly` demand requires a hospital; a health centre or clinic does
+  not satisfy elderly care.
+- Aggregate transport demand keeps child and elderly health cohorts separate so
+  elderly residents without a local hospital generate outbound travel demand.
+
 The initial quality values should be versioned configuration, not hidden
 constants:
 
@@ -336,6 +344,39 @@ must be versioned configuration.
 External demand is the demand arriving from other islands for a destination's
 health or education services.
 
+Service demand must also include the destination island's own age-based demand.
+The local demand mapping is versioned configuration. For the current population
+artifact, hospital emergency demand uses children plus elderly residents because
+there is no baby-specific population row. Education demand uses children,
+adolescents, and youth for the corresponding education levels.
+
+Aggregate health and education demand must count each configured age cohort once.
+The aggregate health load is children plus elderly residents. The aggregate
+education load is children plus adolescents plus youth. Preschool and primary
+education both use the child cohort, and secondary and higher-secondary
+education both use the adolescent cohort, so those service rows must not be
+added together again. The detailed per-service rows remain available for route
+and access scoring.
+
+```text
+aggregate_health_demand = children + elderly
+aggregate_education_demand = children + adolescents + youth
+```
+
+```text
+local_service_demand(destination) =
+  sum(configured age-group population for the service)
+
+service_demand(destination) =
+  local_service_demand(destination)
+  + inbound_service_demand(destination)
+
+service_demand_percent = min(
+  100,
+  100 × service_demand / max(1, destination_resident_population)
+)
+```
+
 ```text
 external_demand(destination) =
   sum(population_need routed to destination from other islands)
@@ -343,14 +384,41 @@ external_demand(destination) =
 external_demand_pressure =
   external_demand / max(1, destination_resident_population)
 
+service_demand_pressure =
+  service_demand / max(1, destination_resident_population)
+
 external_demand_factor = max(
   minimum_external_demand_factor,
-  1 - external_demand_impact × external_demand_pressure
+  1 - external_demand_impact × service_demand_pressure
 )
 ```
 
 The external demand factor is applied to destination health or education route
-access. It is not applied to the origin population separately.
+access using combined local and inbound pressure. Inbound-only pressure remains
+available as a diagnostic value. The percentage shown in analytics is capped at
+100%, but raw demand values are retained.
+
+Inbound demand uses the same unique-cohort rule. A source island contributes its
+children, elderly, adolescents, and youth cohorts once to the selected demand
+destination; repeated service rows do not create repeated inbound population.
+
+Outbound demand is retained at the origin:
+
+```text
+outbound_service_demand(origin) =
+  sum(origin population need without a suitable local service)
+
+outbound_demand_percent = min(
+  100,
+  100 × outbound_service_demand / max(1, origin_resident_population)
+)
+```
+
+Outbound demand represents the need to leave the origin, even when no eligible
+connection or destination is available. A missing external route also marks the
+need `unserved`; it must not erase the outbound demand signal. A second standalone
+outbound penalty must not be applied because it would count the same route burden
+twice.
 
 The first implementation should use this as a clearly labelled demand proxy
 because the current database has no service capacity table. Once capacity is
@@ -365,6 +433,40 @@ capacity_pressure = external_and_local_demand / validated_service_capacity
 Airports, ferry terminals, and land gateways are demand hubs. They may be
 used by residents of the local island and by residents travelling from other
 islands. Hub presence alone is therefore not a complete transport score.
+
+Transport demand uses the configured working-age, student, and elderly
+population cohorts. Each source cohort is allocated once across the stops and
+routes that serve it. If an island reaches several stops, its cohort demand is
+split across those stops rather than copied into every stop. RTL bus route-stop
+membership identifies which connected islands contribute to each stop.
+
+For a stop:
+
+```text
+stop_demand =
+  local_cohort_demand
+  + connected_island_cohort_demand
+  + health_and_education_transfer_demand
+```
+
+Missing local care adds demand to the relevant marine or air departure and
+arrival hubs. The same transfer is not copied to unrelated stops.
+
+```text
+stop_load_ratio = stop_demand / estimated_stop_capacity
+stop_score = 100 × max(
+  minimum_transport_stop_factor,
+  1 - transport_demand_impact × stop_load_ratio
+)
+
+island_average_transport_load = average(stop_load_ratio)
+island_transport_score = average(stop_score)
+```
+
+The island transport score continues to combine land, marine, and air scores,
+but each mode score now comes from the average of its stop scores. Stop
+capacity is a configured proxy because measured passenger capacity is not
+available, so the result remains `partial`.
 
 For each hub:
 
@@ -543,8 +645,10 @@ type IslandScoreResult = {
     marine: ScoreComponent;
     air: ScoreComponent;
     hubImpacts: HubDemandImpact[];
+    demand: TransportDemandResult;
   };
   crowdedness: CrowdednessResult;
+  demand: DemandSummary;
   externalDemand: ExternalDemandResult;
   airportAccess: AirportAccess;
   limitations: string[];
@@ -573,12 +677,99 @@ type CrowdednessResult = {
 type ExternalDemandResult = {
   inboundHealthDemand: number | null;
   inboundEducationDemand: number | null;
+  localHealthDemand: number | null;
+  localEducationDemand: number | null;
+  outboundHealthDemand: number | null;
+  outboundEducationDemand: number | null;
   healthPressure: number | null;
   educationPressure: number | null;
+  inboundHealthPressure: number | null;
+  inboundEducationPressure: number | null;
   healthFactor: number | null;
   educationFactor: number | null;
   status: ScoreStatus;
   limitations: string[];
+};
+
+type DemandMetric = {
+  local: number;
+  inbound: number;
+  outbound: number;
+  unserved: number;
+  combined: number;
+  demandPercent: number | null;
+  outboundPercent: number | null;
+};
+
+type InboundDemandSource = {
+  originIslandId: string;
+  health: number;
+  education: number;
+  total: number;
+};
+
+type DemandSummary = {
+  population: number | null;
+  health: DemandMetric;
+  education: DemandMetric;
+  healthCareDemand: {
+    children: DemandMetric | null;
+    elderly: DemandMetric | null;
+  };
+  healthByNeed: Record<string, DemandMetric>;
+  educationByNeed: Record<string, DemandMetric>;
+  inboundSources: InboundDemandSource[];
+};
+
+type TransportDemandStop = {
+  stopId: string;
+  stopName: string | null;
+  mode: 'land' | 'marine' | 'air';
+  connectedIslandIds: string[];
+  localDemand: number;
+  connectedDemand: number;
+  workingDemand: number;
+  studentDemand: number;
+  elderlyDemand: number;
+  careTransferDemand: number;
+  totalDemand: number;
+  capacity: number;
+  loadRatio: number;
+  score: number;
+};
+
+type TransportDemandResult = {
+  workingDemand: number;
+  studentDemand: number;
+  elderlyDemand: number;
+  careTransferDemand: number;
+  totalDemand: number;
+  averageLoad: number | null;
+  score: number | null;
+  modes: {
+    land: {
+      stopCount: number;
+      totalDemand: number;
+      careTransferDemand: number;
+      averageLoad: number | null;
+      score: number | null;
+    };
+    marine: {
+      stopCount: number;
+      totalDemand: number;
+      careTransferDemand: number;
+      averageLoad: number | null;
+      score: number | null;
+    };
+    air: {
+      stopCount: number;
+      totalDemand: number;
+      careTransferDemand: number;
+      averageLoad: number | null;
+      score: number | null;
+    };
+  };
+  stops: TransportDemandStop[];
 };
 
 type HubDemandImpact = {
@@ -586,6 +777,7 @@ type HubDemandImpact = {
   hubType: 'airport' | 'ferry_terminal' | 'land_gateway' | 'transfer';
   localDemand: number | null;
   incomingDemand: number | null;
+  outboundDemand: number | null;
   transferDemand: number | null;
   totalDemand: number | null;
   capacity: number | null;
@@ -607,6 +799,7 @@ type NationalScoreResult = {
     air: ScoreComponent;
   };
   crowdedness: ScoreComponent;
+  demand: DemandSummary;
   externalDemand: ScoreComponent;
   islandCount: number;
   scoredIslandCount: number;

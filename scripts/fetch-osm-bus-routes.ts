@@ -1,6 +1,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import { queryOverpass } from '../src/lib/server/mobility/osm-overpass';
+
 type Position = [number, number];
 type OsmElement = {
   id?: unknown;
@@ -12,38 +14,8 @@ type OsmElement = {
 
 const outputRoot = resolve(process.env.MOBILITY_ROUTE_OUTPUT_ROOT ?? 'data/mobility/normalized');
 const query = '[out:json][timeout:90];relation["type"="route"]["route"="bus"](-1,72,8,74);out body;>;out geom;';
-const endpoints = [
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
-  'https://overpass-api.de/api/interpreter'
-];
-
-let payload: { elements?: OsmElement[] } | null = null;
-let lastError = 'No Overpass endpoint was attempted';
-for (const endpoint of endpoints) {
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/x-www-form-urlencoded',
-        'user-agent': 'MobilitySandboxMV/1.0 OSM bus route import'
-      },
-      body: new URLSearchParams({ data: query }),
-      signal: AbortSignal.timeout(120_000)
-    });
-    if (!response.ok) {
-      lastError = `${endpoint} returned HTTP ${response.status}`;
-      continue;
-    }
-    payload = (await response.json()) as { elements?: OsmElement[] };
-    break;
-  } catch (error) {
-    lastError = `${endpoint} failed: ${error instanceof Error ? error.message : String(error)}`;
-  }
-}
-if (!payload) throw new Error(`All Overpass endpoints failed: ${lastError}`);
-
-const elements = payload.elements ?? [];
+const result = await queryOverpass<{ elements?: OsmElement[] }>(query, 120);
+const elements = result.data.elements ?? [];
 const ways = new Map<number, Position[]>();
 for (const element of elements) {
   if (element.type !== 'way' || typeof element.id !== 'number') continue;
@@ -84,6 +56,23 @@ const routes = elements.flatMap((relation) => {
 mkdirSync(outputRoot, { recursive: true });
 writeFileSync(
   resolve(outputRoot, 'bus-routes.json'),
-  JSON.stringify({ schema_version: 'normalized-transport-routes-v1', source: 'OpenStreetMap', query, routes }, null, 2)
+  JSON.stringify(
+    {
+      schema_version: 'normalized-transport-routes-v1',
+      source: 'OpenStreetMap',
+      generated_at: new Date().toISOString(),
+      endpoint: result.endpoint,
+      query,
+      routes
+    },
+    null,
+    2
+  )
 );
-console.log(JSON.stringify({ output: resolve(outputRoot, 'bus-routes.json'), routes: routes.length }, null, 2));
+console.log(
+  JSON.stringify(
+    { output: resolve(outputRoot, 'bus-routes.json'), routes: routes.length, endpoint: result.endpoint },
+    null,
+    2
+  )
+);

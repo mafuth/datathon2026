@@ -1,12 +1,116 @@
-import type { IslandScoreResult, NationalScoreResult, ScoreComponent, ScoreStatus } from './types';
+import type {
+  DemandMetric,
+  DemandSummary,
+  InboundDemandSource,
+  IslandScoreResult,
+  NationalScoreResult,
+  ScoreComponent,
+  ScoreStatus
+} from './types';
 
 import { loadScoringSnapshot } from './database-input';
+import { buildDemandAllocation } from './demand-allocation';
 import { getIslandScore } from './island-score';
 
 function average(values: Array<number | null>): number | null {
   const numeric = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
   if (numeric.length === 0) return null;
   return Number((numeric.reduce((sum, value) => sum + value, 0) / numeric.length).toFixed(2));
+}
+
+function sum(values: number[]): number {
+  return Number(values.reduce((total, value) => total + value, 0).toFixed(2));
+}
+
+function aggregateDemandMetric(
+  results: IslandScoreResult[],
+  selector: (result: IslandScoreResult) => DemandMetric
+): DemandMetric {
+  const metrics = results.map(selector);
+  const local = sum(metrics.map((metric) => metric.local));
+  const inbound = sum(metrics.map((metric) => metric.inbound));
+  const outbound = sum(metrics.map((metric) => metric.outbound));
+  const unserved = sum(metrics.map((metric) => metric.unserved));
+  const population = sum(results.map((result) => result.demand.population ?? 0));
+  return {
+    local,
+    inbound,
+    outbound,
+    unserved,
+    combined: sum([local, inbound]),
+    demandPercent: population > 0 ? Number(Math.min(1, (local + inbound) / population).toFixed(2)) : null,
+    outboundPercent: population > 0 ? Number(Math.min(1, outbound / population).toFixed(2)) : null
+  };
+}
+
+function aggregateDemandByNeed(
+  results: IslandScoreResult[],
+  category: 'health' | 'education'
+): Record<string, DemandMetric> {
+  const keys = new Set(
+    results.flatMap((result) =>
+      Object.keys(category === 'health' ? result.demand.healthByNeed : result.demand.educationByNeed)
+    )
+  );
+  return Object.fromEntries(
+    [...keys].map((key) => [
+      key,
+      aggregateDemandMetric(
+        results,
+        (result) =>
+          (category === 'health' ? result.demand.healthByNeed : result.demand.educationByNeed)[key] ?? {
+            local: 0,
+            inbound: 0,
+            outbound: 0,
+            unserved: 0,
+            combined: 0,
+            demandPercent: null,
+            outboundPercent: null
+          }
+      )
+    ])
+  );
+}
+
+function aggregateDemand(results: IslandScoreResult[]): DemandSummary {
+  const populationValues = results
+    .map((result) => result.demand.population)
+    .filter((value): value is number => value !== null);
+  const population = populationValues.length === 0 ? null : sum(populationValues);
+  return {
+    population,
+    health: aggregateDemandMetric(results, (result) => result.demand.health),
+    education: aggregateDemandMetric(results, (result) => result.demand.education),
+    healthByNeed: aggregateDemandByNeed(results, 'health'),
+    educationByNeed: aggregateDemandByNeed(results, 'education'),
+    inboundSources: aggregateInboundSources(results)
+  };
+}
+
+function aggregateInboundSources(results: IslandScoreResult[]): InboundDemandSource[] {
+  const sources = new Map<string, InboundDemandSource>();
+  for (const result of results) {
+    for (const source of result.demand.inboundSources) {
+      const current = sources.get(source.originIslandId) ?? {
+        originIslandId: source.originIslandId,
+        health: 0,
+        education: 0,
+        total: 0
+      };
+      current.health += source.health;
+      current.education += source.education;
+      current.total += source.total;
+      sources.set(source.originIslandId, current);
+    }
+  }
+  return [...sources.values()]
+    .map((source) => ({
+      ...source,
+      health: sum([source.health]),
+      education: sum([source.education]),
+      total: sum([source.total])
+    }))
+    .sort((left, right) => right.total - left.total || left.originIslandId.localeCompare(right.originIslandId));
 }
 
 function aggregateComponents(components: ScoreComponent[]): ScoreComponent {
@@ -88,8 +192,11 @@ function externalDemandComponent(results: IslandScoreResult[]): ScoreComponent {
 
 export async function getNationalScore(): Promise<NationalScoreResult> {
   const snapshot = await loadScoringSnapshot();
+  const demandAllocations = buildDemandAllocation(snapshot);
   const inhabitedIslands = snapshot.islands.filter((island) => island.islandType === 'inhabited');
-  const scores = await Promise.all(inhabitedIslands.map((island) => getIslandScore(island.id, snapshot)));
+  const scores = await Promise.all(
+    inhabitedIslands.map((island) => getIslandScore(island.id, snapshot, demandAllocations))
+  );
   const numericScores = scores.filter((result) => result.overall.score !== null);
   const health = aggregateComponent(numericScores, (result) => result.health);
   const education = aggregateComponent(numericScores, (result) => result.education);
@@ -113,6 +220,7 @@ export async function getNationalScore(): Promise<NationalScoreResult> {
     education,
     transport: { ...transport, land, marine, air },
     crowdedness: aggregateCrowdedness(numericScores),
+    demand: aggregateDemand(scores),
     externalDemand: externalDemandComponent(numericScores),
     islandCount: snapshot.islands.length,
     inhabitedIslandCount: inhabitedIslands.length,

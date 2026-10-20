@@ -5,11 +5,13 @@ export type AnalyticsRankingInput = {
   education: number | null;
   transport: number | null;
   demand: number;
+  outboundDemand?: number;
   pressure: number;
 };
 
 export type AnalyticsRankings = {
   demand: string[];
+  outbound: string[];
   underserved: string[];
   overall: string[];
   health: string[];
@@ -32,6 +34,13 @@ export function buildAnalyticsRankings(islands: AnalyticsRankingInput[]): Analyt
     demand: islands
       .filter((island) => island.demand > 0)
       .sort((left, right) => right.demand - left.demand || left.id.localeCompare(right.id))
+      .slice(0, 3)
+      .map((island) => island.id),
+    outbound: islands
+      .filter((island) => (island.outboundDemand ?? 0) > 0)
+      .sort(
+        (left, right) => (right.outboundDemand ?? 0) - (left.outboundDemand ?? 0) || left.id.localeCompare(right.id)
+      )
       .slice(0, 3)
       .map((island) => island.id),
     underserved: islands

@@ -1,0 +1,1344 @@
+{
+  "schema_version": "osm-marine-coverage-v1",
+  "generated_at": "2026-10-20T08:35:48.568Z",
+  "search_policy": {
+    "area_multiplier": 100,
+    "linear_multiplier": 10,
+    "max_distance_degrees": 1.5
+  },
+  "baseline": "D:\\datathon\\new\\data\\mobility\\normalized\\current-db-baseline.json",
+  "marine_artifact": "D:\\datathon\\new\\data\\mobility\\normalized\\osm-marine.json",
+  "summary": {
+    "inhabited_islands": 189,
+    "baseline": 1,
+    "explicit_osm": 165,
+    "expanded_osm": 22,
+    "inferred_ferry_endpoint": 1,
+    "missing": 0
+  },
+  "islands": [
+    {
+      "islandId": "island:1",
+      "islandName": "Maalhos",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:8584458546",
+      "routeId": null
+    },
+    {
+      "islandId": "island:5",
+      "islandName": "Mathiveri",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4174899477",
+      "routeId": null
+    },
+    {
+      "islandId": "island:8",
+      "islandName": "Rasdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1487261272",
+      "routeId": null
+    },
+    {
+      "islandId": "island:9",
+      "islandName": "Feridhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1504737644",
+      "routeId": null
+    },
+    {
+      "islandId": "island:15",
+      "islandName": "Bodufolhudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:8584373027",
+      "routeId": null
+    },
+    {
+      "islandId": "island:16",
+      "islandName": "Thoddoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:6297804585",
+      "routeId": null
+    },
+    {
+      "islandId": "island:23",
+      "islandName": "Himandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1060672058",
+      "routeId": null
+    },
+    {
+      "islandId": "island:25",
+      "islandName": "Ukulhas",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:8581040433",
+      "routeId": null
+    },
+    {
+      "islandId": "island:47",
+      "islandName": "Omadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:150655848",
+      "routeId": null
+    },
+    {
+      "islandId": "island:54",
+      "islandName": "Mandhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:264055066:island:54",
+      "routeId": null
+    },
+    {
+      "islandId": "island:60",
+      "islandName": "Dhan'gethi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9551437208",
+      "routeId": null
+    },
+    {
+      "islandId": "island:66",
+      "islandName": "Dhidhdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9555754854",
+      "routeId": null
+    },
+    {
+      "islandId": "island:68",
+      "islandName": "Fenfushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1245355938",
+      "routeId": null
+    },
+    {
+      "islandId": "island:74",
+      "islandName": "Kun'burudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1061624189",
+      "routeId": null
+    },
+    {
+      "islandId": "island:78",
+      "islandName": "Dhigurah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9551484441",
+      "routeId": null
+    },
+    {
+      "islandId": "island:90",
+      "islandName": "Hangnaameedhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:150655815",
+      "routeId": null
+    },
+    {
+      "islandId": "island:133",
+      "islandName": "Kudarikilu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:2682002497",
+      "routeId": null
+    },
+    {
+      "islandId": "island:146",
+      "islandName": "Kendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:2682000010",
+      "routeId": null
+    },
+    {
+      "islandId": "island:168",
+      "islandName": "Kamadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:2681845891",
+      "routeId": null
+    },
+    {
+      "islandId": "island:174",
+      "islandName": "Kihaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:262393432",
+      "routeId": null
+    },
+    {
+      "islandId": "island:185",
+      "islandName": "Dhonfan",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9180047750",
+      "routeId": null
+    },
+    {
+      "islandId": "island:188",
+      "islandName": "Dharavandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4017107722",
+      "routeId": null
+    },
+    {
+      "islandId": "island:190",
+      "islandName": "Maalhos",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:262533471",
+      "routeId": null
+    },
+    {
+      "islandId": "island:193",
+      "islandName": "Eydhafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12194849713",
+      "routeId": null
+    },
+    {
+      "islandId": "island:200",
+      "islandName": "Hithaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4017107882",
+      "routeId": null
+    },
+    {
+      "islandId": "island:205",
+      "islandName": "Thulhaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:976947883",
+      "routeId": null
+    },
+    {
+      "islandId": "island:219",
+      "islandName": "Goidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:749863991",
+      "routeId": null
+    },
+    {
+      "islandId": "island:221",
+      "islandName": "Fehendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:747478248",
+      "routeId": null
+    },
+    {
+      "islandId": "island:227",
+      "islandName": "Fulhadhoo",
+      "evidence": "baseline",
+      "serviceId": "osm:node:9810442325",
+      "routeId": null
+    },
+    {
+      "islandId": "island:245",
+      "islandName": "Ban'didhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1677801380",
+      "routeId": null
+    },
+    {
+      "islandId": "island:251",
+      "islandName": "Maaen'boodhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:677448187",
+      "routeId": null
+    },
+    {
+      "islandId": "island:254",
+      "islandName": "Rin'budhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1314123726",
+      "routeId": null
+    },
+    {
+      "islandId": "island:260",
+      "islandName": "Kudahuvadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:13970158785",
+      "routeId": null
+    },
+    {
+      "islandId": "island:267",
+      "islandName": "Hulhudheli",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:602745198",
+      "routeId": null
+    },
+    {
+      "islandId": "island:282",
+      "islandName": "Meedhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:327589149:island:282",
+      "routeId": null
+    },
+    {
+      "islandId": "island:315",
+      "islandName": "Nilandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1291155578",
+      "routeId": null
+    },
+    {
+      "islandId": "island:316",
+      "islandName": "Dharan'boodhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:602740362",
+      "routeId": null
+    },
+    {
+      "islandId": "island:317",
+      "islandName": "Magoodhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:602740362:island:317",
+      "routeId": null
+    },
+    {
+      "islandId": "island:318",
+      "islandName": "Bileiydhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:601406777",
+      "routeId": null
+    },
+    {
+      "islandId": "island:329",
+      "islandName": "Feeali",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:601406778",
+      "routeId": null
+    },
+    {
+      "islandId": "island:368",
+      "islandName": "Dhevvadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11240819502",
+      "routeId": null
+    },
+    {
+      "islandId": "island:369",
+      "islandName": "Kon'dey",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:482810130:island:369",
+      "routeId": null
+    },
+    {
+      "islandId": "island:385",
+      "islandName": "Kolamaafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11252754728",
+      "routeId": null
+    },
+    {
+      "islandId": "island:387",
+      "islandName": "Dhaandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11241023187",
+      "routeId": null
+    },
+    {
+      "islandId": "island:399",
+      "islandName": "Kan'duhulhudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1128064165",
+      "routeId": null
+    },
+    {
+      "islandId": "island:412",
+      "islandName": "Maamendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11241059933",
+      "routeId": null
+    },
+    {
+      "islandId": "island:413",
+      "islandName": "Nilandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11241023193",
+      "routeId": null
+    },
+    {
+      "islandId": "island:415",
+      "islandName": "Gemanafushi",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1128064166:island:415",
+      "routeId": null
+    },
+    {
+      "islandId": "island:429",
+      "islandName": "Vilin'gili",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9034908817",
+      "routeId": null
+    },
+    {
+      "islandId": "island:458",
+      "islandName": "Gadhdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1510356591",
+      "routeId": null
+    },
+    {
+      "islandId": "island:470",
+      "islandName": "Thinadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11203234496",
+      "routeId": null
+    },
+    {
+      "islandId": "island:483",
+      "islandName": "Hoan'dehdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11226944354",
+      "routeId": null
+    },
+    {
+      "islandId": "island:510",
+      "islandName": "Vaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11203207051",
+      "routeId": null
+    },
+    {
+      "islandId": "island:545",
+      "islandName": "Nadellaa",
+      "evidence": "inferred_ferry_endpoint",
+      "serviceId": "osm:inferred:ferry-endpoint:osm:way:1211816320:island:545",
+      "routeId": "osm:way:1211816320"
+    },
+    {
+      "islandId": "island:550",
+      "islandName": "Fiyoaree",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11203284756",
+      "routeId": null
+    },
+    {
+      "islandId": "island:584",
+      "islandName": "Rathafandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11226824399",
+      "routeId": null
+    },
+    {
+      "islandId": "island:595",
+      "islandName": "Faresmaathodaa",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11203284750",
+      "routeId": null
+    },
+    {
+      "islandId": "island:607",
+      "islandName": "Madaveli",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11226944360",
+      "routeId": null
+    },
+    {
+      "islandId": "island:611",
+      "islandName": "Vashafaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:482309772",
+      "routeId": null
+    },
+    {
+      "islandId": "island:612",
+      "islandName": "Hoarafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:750104529",
+      "routeId": null
+    },
+    {
+      "islandId": "island:618",
+      "islandName": "Uligan",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1287079689",
+      "routeId": null
+    },
+    {
+      "islandId": "island:620",
+      "islandName": "Utheemu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1414366239",
+      "routeId": null
+    },
+    {
+      "islandId": "island:624",
+      "islandName": "Kelaa",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:485068206",
+      "routeId": null
+    },
+    {
+      "islandId": "island:625",
+      "islandName": "Dhidhdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4810572366",
+      "routeId": null
+    },
+    {
+      "islandId": "island:628",
+      "islandName": "Maarandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:751612554",
+      "routeId": null
+    },
+    {
+      "islandId": "island:629",
+      "islandName": "Muraidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:176647592",
+      "routeId": null
+    },
+    {
+      "islandId": "island:634",
+      "islandName": "Molhadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1466425059",
+      "routeId": null
+    },
+    {
+      "islandId": "island:635",
+      "islandName": "Ihavandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4753300252",
+      "routeId": null
+    },
+    {
+      "islandId": "island:637",
+      "islandName": "Thuraakunu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1466425064",
+      "routeId": null
+    },
+    {
+      "islandId": "island:639",
+      "islandName": "Thakandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1873460321",
+      "routeId": null
+    },
+    {
+      "islandId": "island:640",
+      "islandName": "Baarah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:733090532",
+      "routeId": null
+    },
+    {
+      "islandId": "island:641",
+      "islandName": "Filladhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:750425456",
+      "routeId": null
+    },
+    {
+      "islandId": "island:653",
+      "islandName": "Finey",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12213471752",
+      "routeId": null
+    },
+    {
+      "islandId": "island:655",
+      "islandName": "Naivaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137312075",
+      "routeId": null
+    },
+    {
+      "islandId": "island:661",
+      "islandName": "Nellaidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137312052",
+      "routeId": null
+    },
+    {
+      "islandId": "island:662",
+      "islandName": "Hirimaradhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12213471758",
+      "routeId": null
+    },
+    {
+      "islandId": "island:664",
+      "islandName": "Kurin'bi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137312045",
+      "routeId": null
+    },
+    {
+      "islandId": "island:670",
+      "islandName": "Kumundhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:14141815746",
+      "routeId": null
+    },
+    {
+      "islandId": "island:672",
+      "islandName": "Neykurendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12141460603",
+      "routeId": null
+    },
+    {
+      "islandId": "island:673",
+      "islandName": "Vaikaradhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:7611923298",
+      "routeId": null
+    },
+    {
+      "islandId": "island:676",
+      "islandName": "Makunudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9985506242",
+      "routeId": null
+    },
+    {
+      "islandId": "island:680",
+      "islandName": "Kulhudhuffushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:7611921583",
+      "routeId": null
+    },
+    {
+      "islandId": "island:681",
+      "islandName": "Nolhivaran",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12141484973",
+      "routeId": null
+    },
+    {
+      "islandId": "island:682",
+      "islandName": "Nolhivaranfaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:181022376",
+      "routeId": null
+    },
+    {
+      "islandId": "island:684",
+      "islandName": "Hanimaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12141484979",
+      "routeId": null
+    },
+    {
+      "islandId": "island:691",
+      "islandName": "Mundoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:364673756",
+      "routeId": null
+    },
+    {
+      "islandId": "island:692",
+      "islandName": "Gan",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:150463842",
+      "routeId": null
+    },
+    {
+      "islandId": "island:697",
+      "islandName": "Hithadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1224009752",
+      "routeId": null
+    },
+    {
+      "islandId": "island:699",
+      "islandName": "Kunahandhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1224009752:island:699",
+      "routeId": null
+    },
+    {
+      "islandId": "island:702",
+      "islandName": "Maamendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:210861940",
+      "routeId": null
+    },
+    {
+      "islandId": "island:704",
+      "islandName": "Fonadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:364976762",
+      "routeId": null
+    },
+    {
+      "islandId": "island:717",
+      "islandName": "Maavah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1636324217",
+      "routeId": null
+    },
+    {
+      "islandId": "island:720",
+      "islandName": "Maabaidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1636438954",
+      "routeId": null
+    },
+    {
+      "islandId": "island:723",
+      "islandName": "Isdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:150618649",
+      "routeId": null
+    },
+    {
+      "islandId": "island:746",
+      "islandName": "Kalaidhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:150618670:island:746",
+      "routeId": null
+    },
+    {
+      "islandId": "island:753",
+      "islandName": "Dhan'bidhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:150618670:island:753",
+      "routeId": null
+    },
+    {
+      "islandId": "island:777",
+      "islandName": "Naifaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11266723812",
+      "routeId": null
+    },
+    {
+      "islandId": "island:791",
+      "islandName": "Hinnavaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11266635097",
+      "routeId": null
+    },
+    {
+      "islandId": "island:798",
+      "islandName": "Kurendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11266774244",
+      "routeId": null
+    },
+    {
+      "islandId": "island:799",
+      "islandName": "Olhuvelifushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:11266817662",
+      "routeId": null
+    },
+    {
+      "islandId": "island:859",
+      "islandName": "Dhiggaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:306538693",
+      "routeId": null
+    },
+    {
+      "islandId": "island:868",
+      "islandName": "Muli",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:142247489",
+      "routeId": null
+    },
+    {
+      "islandId": "island:879",
+      "islandName": "Naalaafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1466413376",
+      "routeId": null
+    },
+    {
+      "islandId": "island:895",
+      "islandName": "Maduvvari",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:306538693:island:895",
+      "routeId": null
+    },
+    {
+      "islandId": "island:896",
+      "islandName": "Veyvah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1466413355",
+      "routeId": null
+    },
+    {
+      "islandId": "island:904",
+      "islandName": "Kolhufushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1466413379",
+      "routeId": null
+    },
+    {
+      "islandId": "island:906",
+      "islandName": "Mulah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1466413358",
+      "routeId": null
+    },
+    {
+      "islandId": "island:907",
+      "islandName": "Raiymandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:976016961",
+      "routeId": null
+    },
+    {
+      "islandId": "island:933",
+      "islandName": "Landhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137213715",
+      "routeId": null
+    },
+    {
+      "islandId": "island:934",
+      "islandName": "Maalhendhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137213727",
+      "routeId": null
+    },
+    {
+      "islandId": "island:941",
+      "islandName": "Fodhdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137003324",
+      "routeId": null
+    },
+    {
+      "islandId": "island:944",
+      "islandName": "Kudafari",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12136926071",
+      "routeId": null
+    },
+    {
+      "islandId": "island:945",
+      "islandName": "Manadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12136111012",
+      "routeId": null
+    },
+    {
+      "islandId": "island:948",
+      "islandName": "Velidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:976949186",
+      "routeId": null
+    },
+    {
+      "islandId": "island:949",
+      "islandName": "Lhohi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12136926063",
+      "routeId": null
+    },
+    {
+      "islandId": "island:952",
+      "islandName": "Maafaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12136111009",
+      "routeId": null
+    },
+    {
+      "islandId": "island:966",
+      "islandName": "Ken'dhikulhudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137213739",
+      "routeId": null
+    },
+    {
+      "islandId": "island:970",
+      "islandName": "Magoodhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137003307",
+      "routeId": null
+    },
+    {
+      "islandId": "island:972",
+      "islandName": "Hen'badhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12137213780",
+      "routeId": null
+    },
+    {
+      "islandId": "island:979",
+      "islandName": "Miladhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12136926057",
+      "routeId": null
+    },
+    {
+      "islandId": "island:988",
+      "islandName": "Holhudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:12136950081",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1012",
+      "islandName": "Maduvvari",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:849714408",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1027",
+      "islandName": "Rasmaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1305031367",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1045",
+      "islandName": "An'golhitheemu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4016346372",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1046",
+      "islandName": "Maakurathu",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1330340074:island:1046",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1047",
+      "islandName": "Innamaadhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1305031368:island:1047",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1048",
+      "islandName": "Kinolhas",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1046174220",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1055",
+      "islandName": "Alifushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1873459946",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1057",
+      "islandName": "Rasgetheemu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4016346389",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1062",
+      "islandName": "Hulhudhuffaaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:398900470",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1063",
+      "islandName": "Meedhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:1586656845",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1066",
+      "islandName": "Dhuvaafaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1330340074",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1070",
+      "islandName": "Fainu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:13586575553",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1073",
+      "islandName": "Vaadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:176864624",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1075",
+      "islandName": "Un'goofaaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:495827561",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1120",
+      "islandName": "In'guraidhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1122697277:island:1120",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1129",
+      "islandName": "Feydhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:5161421923",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1130",
+      "islandName": "Maradhoofeydhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:923540631",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1131",
+      "islandName": "Maradhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:650534373",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1152",
+      "islandName": "Hithadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9823532989",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1162",
+      "islandName": "Milandhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:755986265",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1163",
+      "islandName": "Narudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:755987460",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1166",
+      "islandName": "Foakaidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1125732642",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1169",
+      "islandName": "Goidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1125732679",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1171",
+      "islandName": "Funadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1094364890",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1173",
+      "islandName": "Lhaimagu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:761457918",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1174",
+      "islandName": "Noomaraa",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1125732664:island:1174",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1175",
+      "islandName": "Bileiyfahi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1066262905",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1176",
+      "islandName": "Kan'ditheemu",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:759001101",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1177",
+      "islandName": "Feydhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1125732664",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1178",
+      "islandName": "Maroshi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:761463772",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1181",
+      "islandName": "Maaun'goodhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:764190470",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1189",
+      "islandName": "Feevah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:1125732640",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1192",
+      "islandName": "Komandoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:2472966038",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1212",
+      "islandName": "Vandhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:616114841:island:1212",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1218",
+      "islandName": "Kan'doodhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:616114841:island:1218",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1222",
+      "islandName": "Buruni",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:150772593",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1229",
+      "islandName": "Vilufushi",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1150819602:island:1229",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1234",
+      "islandName": "Hirilandhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:616114841:island:1234",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1242",
+      "islandName": "Omadhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:616114841:island:1242",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1249",
+      "islandName": "Veymandoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:616114841",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1252",
+      "islandName": "Thimarafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:970563263",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1254",
+      "islandName": "Gaadhiffushi",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:970563263:island:1254",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1274",
+      "islandName": "Guraidhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:node:3645465870:island:1274",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1275",
+      "islandName": "Dhiyamigili",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:node:10700687515:island:1275",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1280",
+      "islandName": "Kin'bidhoo",
+      "evidence": "expanded_osm",
+      "serviceId": "osm:inferred:expanded:osm:way:1037074526:island:1280",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1281",
+      "islandName": "Madifushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:10700687515",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1286",
+      "islandName": "Fulidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:663869893",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1290",
+      "islandName": "Thinadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:9810400642",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1291",
+      "islandName": "Felidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:462682240",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1292",
+      "islandName": "Keyodhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:462682238",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1302",
+      "islandName": "Rakeedhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:7151744385",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1334",
+      "islandName": "Fuvahmulah",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:2328077722",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1338",
+      "islandName": "Kaashidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:5369192288",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1339",
+      "islandName": "Gaafaru",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:941025093",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1358",
+      "islandName": "Dhiffushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:7850468063",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1364",
+      "islandName": "Thulusdhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:738636602",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1372",
+      "islandName": "Huraa",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:6359990907",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1380",
+      "islandName": "Hinmafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:208525439",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1382",
+      "islandName": "Vilin'gili",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4462445840",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1427",
+      "islandName": "Guraidhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:5833834250",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1431",
+      "islandName": "Maafushi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:208526613",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1442",
+      "islandName": "Hulhumalé",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:3063811489",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1443",
+      "islandName": "Malé",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:530265268",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1464",
+      "islandName": "Gulhi",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:380915302",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1531",
+      "islandName": "Mahibadhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:way:150750960",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1552",
+      "islandName": "Maamigili",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:4444066405",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1559",
+      "islandName": "Addu Meedhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:5161450470",
+      "routeId": null
+    },
+    {
+      "islandId": "island:1560",
+      "islandName": "Addu Hulhudhoo",
+      "evidence": "explicit_osm",
+      "serviceId": "osm:node:6467711019",
+      "routeId": null
+    }
+  ]
+}

@@ -1,22 +1,11 @@
+import type { RtlRouteResponseEntry } from '../src/lib/server/mobility/rtl-bus-routes';
+
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import { flattenRtlRouteDetails } from '../src/lib/server/mobility/rtl-bus-routes';
+
 type Coordinate = [number, number];
-type RouteStop = {
-  id?: unknown;
-  code?: unknown;
-  order?: unknown;
-  name?: unknown;
-  latitude?: unknown;
-  longitude?: unknown;
-};
-type RouteDetails = {
-  id?: unknown;
-  code?: unknown;
-  name?: unknown;
-  routeNumber?: unknown;
-  busRouteStopList?: RouteStop[];
-};
 type Ring = Coordinate[];
 type IslandShape = {
   id: string;
@@ -31,12 +20,26 @@ type IslandShape = {
 const baseUrl = 'https://bo.rtl.mv:4455/maldives/api';
 const outputRoot = resolve(process.env.MOBILITY_ROUTE_OUTPUT_ROOT ?? 'data/mobility/normalized');
 const rawRoot = resolve(process.env.MOBILITY_RAW_OUTPUT_ROOT ?? 'data/mobility/raw/rtl');
-const islands = JSON.parse(
+const baseline = JSON.parse(
   readFileSync(
-    resolve(process.env.MOBILITY_NORMALIZED_DATA_ROOT ?? 'old/data/mobility/normalized', 'islands.geojson'),
+    resolve(process.env.MOBILITY_BASELINE_PATH ?? 'data/mobility/normalized/current-db-baseline.json'),
     'utf8'
   )
 ) as {
+  islands: Array<{
+    id: string;
+    latitude: number;
+    longitude: number;
+    geoJson: string;
+  }>;
+};
+const islands = {
+  features: baseline.islands.map((island) => ({
+    id: island.id,
+    geometry: JSON.parse(island.geoJson),
+    properties: { centroid: [island.longitude, island.latitude] }
+  }))
+} as {
   features: Array<{
     id?: unknown;
     geometry?: { type?: unknown; coordinates?: unknown };
@@ -132,8 +135,15 @@ async function getJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-const detailsResponse = await getJson<{ routeResponse?: RouteDetails[] }>('/booking/v2/bus/routedetails');
-const routeDetails = detailsResponse.routeResponse ?? [];
+const detailsResponse = await getJson<{
+  routeResponse?: RtlRouteResponseEntry[];
+  atollRouteResponse?: RtlRouteResponseEntry[];
+}>('/booking/v2/bus/routedetails');
+
+const routeDetails = flattenRtlRouteDetails([
+  ...(detailsResponse.routeResponse ?? []),
+  ...(detailsResponse.atollRouteResponse ?? [])
+]);
 const routes: Array<Record<string, unknown>> = [];
 const stops = new Map<string, Record<string, unknown>>();
 const rawRoadShapes: Array<{ routeCode: string; response: unknown }> = [];

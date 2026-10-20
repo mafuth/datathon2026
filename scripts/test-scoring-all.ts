@@ -48,12 +48,34 @@ function assertIslandResult(result: IslandScoreResult): void {
   assert(Array.isArray(result.health.breakdown), `${result.islandId} health breakdown is not an array`);
   assert(Array.isArray(result.education.breakdown), `${result.islandId} education breakdown is not an array`);
   assert(Array.isArray(result.transport.hubImpacts), `${result.islandId} hub impacts is not an array`);
+  assert(Array.isArray(result.transport.demand.stops), `${result.islandId} transport demand stops is not an array`);
+  assertScore(result.transport.demand.score, `${result.islandId}.transport demand score`);
+  assert(
+    result.transport.demand.averageLoad === null || result.transport.demand.averageLoad >= 0,
+    `${result.islandId}.transport average load is invalid`
+  );
+  assert(Array.isArray(result.demand.inboundSources), `${result.islandId} inbound demand sources is not an array`);
+  for (const metric of [result.demand.health, result.demand.education]) {
+    assert(
+      metric.demandPercent === null || (metric.demandPercent >= 0 && metric.demandPercent <= 1),
+      `${result.islandId} demand percent is invalid`
+    );
+    assert(
+      metric.outboundPercent === null || (metric.outboundPercent >= 0 && metric.outboundPercent <= 1),
+      `${result.islandId} outbound demand percent is invalid`
+    );
+  }
   for (const hub of result.transport.hubImpacts) {
     assertScore(hub.factor === null ? null : hub.factor * 100, `${result.islandId}.${hub.hubId}.factor`);
     assertScore(hub.scoreImpact, `${result.islandId}.${hub.hubId}.scoreImpact`);
     assert(hub.totalDemand === null || hub.totalDemand >= 0, `${result.islandId}.${hub.hubId}.totalDemand is invalid`);
   }
-  if (result.airportAccess.source === 'direct_land_connection') {
+  for (const stop of result.transport.demand.stops) {
+    assertScore(stop.score, `${result.islandId}.${stop.stopId}.transport stop score`);
+    assert(stop.totalDemand >= 0, `${result.islandId}.${stop.stopId}.transport stop demand is invalid`);
+    assert(stop.loadRatio >= 0, `${result.islandId}.${stop.stopId}.transport stop load is invalid`);
+  }
+  if (result.airportAccess.source === 'land_connection') {
     assert(result.airportAccess.airportIslandId, `${result.islandId} inherited airport has no source island`);
     assert(result.airportAccess.available, `${result.islandId} inherited airport is not available`);
   }
@@ -96,7 +118,7 @@ const representativeIds = [
   inhabited[0]?.id,
   inhabited.find((island) => island.landAreaKm2 !== null)?.id,
   national.scores.find((result) => result.transport.hubImpacts.length > 0)?.islandId,
-  national.scores.find((result) => result.airportAccess.source === 'direct_land_connection')?.islandId,
+  national.scores.find((result) => result.airportAccess.source === 'land_connection')?.islandId,
   uninhabited[0]?.id
 ].filter((id): id is string => Boolean(id));
 for (const islandId of new Set(representativeIds)) assertIslandResult(await getIslandScore(islandId));
@@ -112,8 +134,7 @@ const counts = {
     .length,
   withHubPressure: national.scores.filter((result) => result.transport.hubImpacts.length > 0).length,
   withOwnAirport: national.scores.filter((result) => result.airportAccess.source === 'own_airport').length,
-  withInheritedAirport: national.scores.filter((result) => result.airportAccess.source === 'direct_land_connection')
-    .length,
+  withInheritedAirport: national.scores.filter((result) => result.airportAccess.source === 'land_connection').length,
   islandsWithPopulation: inhabited.filter((island) => population.some((row) => row.islandId === island.id)).length,
   islandsWithoutPopulation: inhabited.filter((island) => !population.some((row) => row.islandId === island.id)).length,
   islandsWithLandArea: inhabited.filter((island) => island.landAreaKm2 !== null).length,

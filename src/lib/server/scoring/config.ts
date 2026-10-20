@@ -9,9 +9,17 @@ export const scoringConfig = {
   minimumCrowdingFactor: 0.4,
   externalDemandImpact: 0.2,
   minimumExternalDemandFactor: 0.5,
+  airConnectionFactor: 0.5,
   hubDemandImpact: 0.2,
   transferDemandShare: 0.25,
   minimumHubFactor: 0.5,
+  transportDemandImpact: 0.2,
+  minimumTransportStopFactor: 0.5,
+  transportStopCapacityProxyByMode: {
+    land: 1.5,
+    marine: 2,
+    air: 3
+  },
   hubCapacityProxyByType: {
     airport: 2,
     ferry_terminal: 1.5,

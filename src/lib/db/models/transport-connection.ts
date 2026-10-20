@@ -22,7 +22,8 @@ export const TransportConnection = sqliteTable(
     geoJson: text(),
     source: text().notNull(),
     sourceObjectId: text().notNull(),
-    modeled: integer({ mode: 'boolean' }).notNull().default(true)
+    modeled: integer({ mode: 'boolean' }).notNull().default(true),
+    scoreEligible: integer({ mode: 'boolean' }).notNull().default(true)
   },
   (table) => [
     index('transport_connection_route_id_index').on(table.routeId),

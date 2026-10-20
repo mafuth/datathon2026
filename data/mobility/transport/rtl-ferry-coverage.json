@@ -1,0 +1,5393 @@
+{
+  "schema_version": "rtl_ferry_coverage.v1",
+  "operator": "Road Development Corporation (RTL) / MTCC ferry service",
+  "retrieved_at": "2026-10-20T08:32:52.247Z",
+  "access_class": "open_json_and_open_pdf_export",
+  "source": {
+    "backoffice_info_url": "https://bo.rtl.mv:4455/maldives/api/booking/v1/ferries/backofficeinfo",
+    "route_catalogue_url": "https://bo.rtl.mv:4455/maldives/api/booking/v1/ferryTrip/allRoutes?zoneCode={zoneCode}",
+    "route_schedule_url": "https://bo.rtl.mv:4455/maldives/api/booking/v1/ferryTrip/schedules/{routeId}",
+    "zone_schedule_pdf_url": "https://bo.rtl.mv:4455/maldives/api/booking/v2/ferryTrip/allSchedules/{zoneCode}",
+    "operator_site": "https://www.rtl.mv/"
+  },
+  "coverage": {
+    "zone_count": 5,
+    "route_count": 47,
+    "covered_island_count": 124,
+    "matched_official_island_count": 109,
+    "unmatched_stop_count": 15,
+    "ambiguous_stop_count": 0
+  },
+  "zones": [
+    {
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "route_count": 14
+    },
+    {
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "route_count": 10
+    },
+    {
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "route_count": 14
+    },
+    {
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "route_count": 8
+    },
+    {
+      "zone_code": "106",
+      "zone_name": "Zone 6",
+      "route_count": 1
+    }
+  ],
+  "islands": [
+    {
+      "rtl_stop_name": "R.Innamaadhoo",
+      "rtl_stop_code": "195",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.547325,
+      "longitude": 73.043974,
+      "official_island_id": "island:1047",
+      "official_island_name": "Innamaadhoo",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Ungoofaaru",
+      "rtl_stop_code": "192",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.667634,
+      "longitude": 73.027272,
+      "official_island_id": "island:1075",
+      "official_island_name": "Un'goofaaru",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Ifuru",
+      "rtl_stop_code": "191",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.704396,
+      "longitude": 73.022304,
+      "official_island_id": "island:1061",
+      "official_island_name": "Ifuru",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Lh.Naifaru",
+      "rtl_stop_code": "145",
+      "atoll_code": "LH",
+      "atoll_name": "Lhaviyani",
+      "latitude": 5.44125,
+      "longitude": 73.36816,
+      "official_island_id": "island:777",
+      "official_island_name": "Naifaru",
+      "official_atoll": "Lhaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Lh.Madivaru",
+      "rtl_stop_code": "147",
+      "atoll_code": "LH",
+      "atoll_name": "Lhaviyani",
+      "latitude": 5.45594,
+      "longitude": 73.36911,
+      "official_island_id": "island:792",
+      "official_island_name": "Madivaru",
+      "official_atoll": "Lhaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Lh.Hinnavaru",
+      "rtl_stop_code": "143",
+      "atoll_code": "LH",
+      "atoll_name": "Lhaviyani",
+      "latitude": 5.49101,
+      "longitude": 73.41312,
+      "official_island_id": "island:791",
+      "official_island_name": "Hinnavaru",
+      "official_atoll": "Lhaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Lh.Felivaru",
+      "rtl_stop_code": "142",
+      "atoll_code": "LH",
+      "atoll_name": "Lhaviyani",
+      "latitude": 5.47676,
+      "longitude": 73.38672,
+      "official_island_id": "island:778",
+      "official_island_name": "Felivaru",
+      "official_atoll": "Lhaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Dhuvaafaru",
+      "rtl_stop_code": "193",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.626308,
+      "longitude": 73.03914,
+      "official_island_id": "island:1066",
+      "official_island_name": "Dhuvaafaru",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "N.Manadhoo",
+      "rtl_stop_code": "179",
+      "atoll_code": "N",
+      "atoll_name": "Noonu",
+      "latitude": 5.76687,
+      "longitude": 73.4136,
+      "official_island_id": "island:945",
+      "official_island_name": "Manadhoo",
+      "official_atoll": "Noonu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "N.Maafaru",
+      "rtl_stop_code": "177",
+      "atoll_code": "N",
+      "atoll_name": "Noonu",
+      "latitude": 5.8248,
+      "longitude": 73.4762,
+      "official_island_id": "island:952",
+      "official_island_name": "Maafaru",
+      "official_atoll": "Noonu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "N.Landhoo",
+      "rtl_stop_code": "176",
+      "atoll_code": "N",
+      "atoll_name": "Noonu",
+      "latitude": 5.8811,
+      "longitude": 73.4666,
+      "official_island_id": "island:933",
+      "official_island_name": "Landhoo",
+      "official_atoll": "Noonu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "N.Maalhendhoo",
+      "rtl_stop_code": "175",
+      "atoll_code": "N",
+      "atoll_name": "Noonu",
+      "latitude": 5.903,
+      "longitude": 73.4556,
+      "official_island_id": "island:934",
+      "official_island_name": "Maalhendhoo",
+      "official_atoll": "Noonu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "N.Kendhikulhudhoo",
+      "rtl_stop_code": "174",
+      "atoll_code": "N",
+      "atoll_name": "Noonu",
+      "latitude": 5.9433,
+      "longitude": 73.4224,
+      "official_island_id": "island:966",
+      "official_island_name": "Ken'dhikulhudhoo",
+      "official_atoll": "Noonu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "N.Henbadhoo",
+      "rtl_stop_code": "173",
+      "atoll_code": "N",
+      "atoll_name": "Noonu",
+      "latitude": 5.9673,
+      "longitude": 73.3937,
+      "official_island_id": "island:972",
+      "official_island_name": "Hen'badhoo",
+      "official_atoll": "Noonu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Maakurathu",
+      "rtl_stop_code": "194",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.608988,
+      "longitude": 73.04223,
+      "official_island_id": "island:1046",
+      "official_island_name": "Maakurathu",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Rasmaadhoo",
+      "rtl_stop_code": "201",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.56368,
+      "longitude": 73.040284,
+      "official_island_id": "island:1027",
+      "official_island_name": "Rasmaadhoo",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Lh.Kurendhoo",
+      "rtl_stop_code": "144",
+      "atoll_code": "LH",
+      "atoll_name": "Lhaviyani",
+      "latitude": 5.33507,
+      "longitude": 73.46135,
+      "official_island_id": "island:798",
+      "official_island_name": "Kurendhoo",
+      "official_atoll": "Lhaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Lh.Olhuvelifushi",
+      "rtl_stop_code": "146",
+      "atoll_code": "LH",
+      "atoll_name": "Lhaviyani",
+      "latitude": 5.28015,
+      "longitude": 73.60721,
+      "official_island_id": "island:799",
+      "official_island_name": "Olhuvelifushi",
+      "official_atoll": "Lhaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Maduvvari",
+      "rtl_stop_code": "200",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.484026,
+      "longitude": 72.895191,
+      "official_island_id": "island:1012",
+      "official_island_name": "Maduvvari",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Meedhoo",
+      "rtl_stop_code": "199",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.45773,
+      "longitude": 72.958531,
+      "official_island_id": "island:1063",
+      "official_island_name": "Meedhoo",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Kinolhas",
+      "rtl_stop_code": "198",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.450079,
+      "longitude": 73.031214,
+      "official_island_id": "island:1048",
+      "official_island_name": "Kinolhas",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Fainu",
+      "rtl_stop_code": "197",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.465691,
+      "longitude": 73.036902,
+      "official_island_id": "island:1070",
+      "official_island_name": "Fainu",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Inguraidhoo",
+      "rtl_stop_code": "196",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.477979,
+      "longitude": 73.040368,
+      "official_island_id": "island:1120",
+      "official_island_name": "In'guraidhoo",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Eydhafushi",
+      "rtl_stop_code": "209",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.104212748,
+      "longitude": 73.07224655,
+      "official_island_id": "island:193",
+      "official_island_name": "Eydhafushi",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Maalhos",
+      "rtl_stop_code": "208",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.134668358,
+      "longitude": 73.10516218,
+      "official_island_id": "island:190",
+      "official_island_name": "Maalhos",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Dharavandhoo",
+      "rtl_stop_code": "207",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.159260786,
+      "longitude": 73.1340855,
+      "official_island_id": "island:188",
+      "official_island_name": "Dharavandhoo",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Dhonfanu",
+      "rtl_stop_code": "206",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.189286299,
+      "longitude": 73.12291814,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Baa",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "B.Kihaadhoo",
+      "rtl_stop_code": "205",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.2175932102088,
+      "longitude": 73.1231063524342,
+      "official_island_id": "island:174",
+      "official_island_name": "Kihaadhoo",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Kamadhoo",
+      "rtl_stop_code": "204",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.284034837,
+      "longitude": 73.13864076,
+      "official_island_id": "island:168",
+      "official_island_name": "Kamadhoo",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Kudarikilu",
+      "rtl_stop_code": "203",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.30043818397083,
+      "longitude": 73.0685398611952,
+      "official_island_id": "island:133",
+      "official_island_name": "Kudarikilu",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "B.Kendhoo",
+      "rtl_stop_code": "202",
+      "atoll_code": "B",
+      "atoll_name": "Baa",
+      "latitude": 5.2770444253082,
+      "longitude": 73.0085072248893,
+      "official_island_id": "island:146",
+      "official_island_name": "Kendhoo",
+      "official_atoll": "Baa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Hulhudhuffaaru",
+      "rtl_stop_code": "190",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.7647,
+      "longitude": 73.009601,
+      "official_island_id": "island:1062",
+      "official_island_name": "Hulhudhuffaaru",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Angolhitheem",
+      "rtl_stop_code": "189",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.796844,
+      "longitude": 73.00674,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Raa",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "R.Rasgetheem",
+      "rtl_stop_code": "188",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.806807,
+      "longitude": 73.00069,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Raa",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "R.Vaadhoo",
+      "rtl_stop_code": "187",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.858621,
+      "longitude": 72.992895,
+      "official_island_id": "island:1073",
+      "official_island_name": "Vaadhoo",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "R.Alifushi",
+      "rtl_stop_code": "186",
+      "atoll_code": "R",
+      "atoll_name": "Raa",
+      "latitude": 5.970225,
+      "longitude": 72.950972,
+      "official_island_id": "island:1055",
+      "official_island_name": "Alifushi",
+      "official_atoll": "Raa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Isdhoo",
+      "rtl_stop_code": "239",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 2.128012413628667,
+      "longitude": 73.58056006872737,
+      "official_island_id": "island:723",
+      "official_island_name": "Isdhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Kalaidhoo",
+      "rtl_stop_code": "240",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 2.111312141758371,
+      "longitude": 73.55430186677349,
+      "official_island_id": "island:746",
+      "official_island_name": "Kalaidhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Dhanbidhoo",
+      "rtl_stop_code": "241",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 2.0973772320498836,
+      "longitude": 73.54450871993176,
+      "official_island_id": "island:753",
+      "official_island_name": "Dhan'bidhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Maabaidhoo",
+      "rtl_stop_code": "242",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 2.0265446550754276,
+      "longitude": 73.53086115801669,
+      "official_island_id": "island:720",
+      "official_island_name": "Maabaidhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Mundoo",
+      "rtl_stop_code": "243",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 2.0147438243746447,
+      "longitude": 73.532983335306,
+      "official_island_id": "island:691",
+      "official_island_name": "Mundoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Gan",
+      "rtl_stop_code": "244",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 1.9340976963815828,
+      "longitude": 73.53919019794427,
+      "official_island_id": "island:692",
+      "official_island_name": "Gan",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Fonadhoo",
+      "rtl_stop_code": "245",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 1.834911409462132,
+      "longitude": 73.50004343106903,
+      "official_island_id": "island:704",
+      "official_island_name": "Fonadhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Thimarafushi",
+      "rtl_stop_code": "222",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.2095364,
+      "longitude": 73.1488721,
+      "official_island_id": "island:1252",
+      "official_island_name": "Thimarafushi",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Veymandoo",
+      "rtl_stop_code": "215",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.187433,
+      "longitude": 73.095456,
+      "official_island_id": "island:1249",
+      "official_island_name": "Veymandoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "F.Nilandhoo",
+      "rtl_stop_code": "232",
+      "atoll_code": "F",
+      "atoll_name": "Faafu",
+      "latitude": 3.0589107193687597,
+      "longitude": 72.89183780194227,
+      "official_island_id": "island:315",
+      "official_island_name": "Nilandhoo",
+      "official_atoll": "Faafu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "F.Dharanboodhoo",
+      "rtl_stop_code": "231",
+      "atoll_code": "F",
+      "atoll_name": "Faafu",
+      "latitude": 3.064715227289682,
+      "longitude": 72.92446928070522,
+      "official_island_id": "island:316",
+      "official_island_name": "Dharan'boodhoo",
+      "official_atoll": "Faafu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "F.Magoodhoo",
+      "rtl_stop_code": "230",
+      "atoll_code": "F",
+      "atoll_name": "Faafu",
+      "latitude": 3.0817364703291394,
+      "longitude": 72.96455576096936,
+      "official_island_id": "island:317",
+      "official_island_name": "Magoodhoo",
+      "official_atoll": "Faafu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "F.Bilehdhoo",
+      "rtl_stop_code": "229",
+      "atoll_code": "F",
+      "atoll_name": "Faafu",
+      "latitude": 3.117481319883007,
+      "longitude": 72.9817422757136,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Faafu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "F.Feeali",
+      "rtl_stop_code": "228",
+      "atoll_code": "F",
+      "atoll_name": "Faafu",
+      "latitude": 3.269093,
+      "longitude": 73.000161,
+      "official_island_id": "island:329",
+      "official_island_name": "Feeali",
+      "official_atoll": "Faafu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Guraidhoo",
+      "rtl_stop_code": "220",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.325307,
+      "longitude": 73.317408,
+      "official_island_id": "island:1274",
+      "official_island_name": "Guraidhoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Dhiyamigili",
+      "rtl_stop_code": "219",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.3404327,
+      "longitude": 73.3380868,
+      "official_island_id": "island:1275",
+      "official_island_name": "Dhiyamigili",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Madifushi",
+      "rtl_stop_code": "218",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.3572816,
+      "longitude": 73.3558915,
+      "official_island_id": "island:1281",
+      "official_island_name": "Madifushi",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Vilufushi",
+      "rtl_stop_code": "217",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.5023026,
+      "longitude": 73.3092133,
+      "official_island_id": "island:1229",
+      "official_island_name": "Vilufushi",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Buruni",
+      "rtl_stop_code": "216",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.558735,
+      "longitude": 73.105947,
+      "official_island_id": "island:1222",
+      "official_island_name": "Buruni",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Gaadhiffushi",
+      "rtl_stop_code": "221",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.2529997,
+      "longitude": 73.2132718,
+      "official_island_id": "island:1254",
+      "official_island_name": "Gaadhiffushi",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Maavah",
+      "rtl_stop_code": "249",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 1.8836320825522166,
+      "longitude": 73.24646592154085,
+      "official_island_id": "island:717",
+      "official_island_name": "Maavah",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Kunahandhoo",
+      "rtl_stop_code": "248",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 1.7875198624427862,
+      "longitude": 73.36907013007256,
+      "official_island_id": "island:699",
+      "official_island_name": "Kunahandhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Hithadhoo",
+      "rtl_stop_code": "247",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 1.8016757216767834,
+      "longitude": 73.39028753836837,
+      "official_island_id": "island:697",
+      "official_island_name": "Hithadhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "L.Maamendhoo",
+      "rtl_stop_code": "246",
+      "atoll_code": "L",
+      "atoll_name": "Laamu",
+      "latitude": 1.8210605439782335,
+      "longitude": 73.38863467452538,
+      "official_island_id": "island:702",
+      "official_island_name": "Maamendhoo",
+      "official_atoll": "Laamu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Kinbidhoo",
+      "rtl_stop_code": "223",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.1680434,
+      "longitude": 73.0649388,
+      "official_island_id": "island:1280",
+      "official_island_name": "Kin'bidhoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Omadhoo",
+      "rtl_stop_code": "224",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.168128243662314,
+      "longitude": 73.02508733676069,
+      "official_island_id": "island:1242",
+      "official_island_name": "Omadhoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Hirilandhoo",
+      "rtl_stop_code": "225",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.2697103,
+      "longitude": 72.9319343,
+      "official_island_id": "island:1234",
+      "official_island_name": "Hirilandhoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Vandhoo",
+      "rtl_stop_code": "226",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.2916189,
+      "longitude": 72.9418779,
+      "official_island_id": "island:1212",
+      "official_island_name": "Vandhoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Th.Kandoodhoo",
+      "rtl_stop_code": "227",
+      "atoll_code": "TH",
+      "atoll_name": "Thaa",
+      "latitude": 2.3204953,
+      "longitude": 72.9169733,
+      "official_island_id": "island:1218",
+      "official_island_name": "Kan'doodhoo",
+      "official_atoll": "Thaa",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Dh.Meedhoo",
+      "rtl_stop_code": "233",
+      "atoll_code": "DH",
+      "atoll_name": "Dhaalu",
+      "latitude": 2.99719969594014,
+      "longitude": 73.00470362044682,
+      "official_island_id": "island:282",
+      "official_island_name": "Meedhoo",
+      "official_atoll": "Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Dh.Bandidhoo",
+      "rtl_stop_code": "234",
+      "atoll_code": "DH",
+      "atoll_name": "Dhaalu",
+      "latitude": 2.9376439045609564,
+      "longitude": 72.98793134484558,
+      "official_island_id": "island:245",
+      "official_island_name": "Ban'didhoo",
+      "official_atoll": "Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Dh.Rinbudhoo",
+      "rtl_stop_code": "238",
+      "atoll_code": "DH",
+      "atoll_name": "Dhaalu",
+      "latitude": 2.922952528686733,
+      "longitude": 72.89520050827863,
+      "official_island_id": "island:254",
+      "official_island_name": "Rin'budhoo",
+      "official_atoll": "Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Dh.Hulhudheli",
+      "rtl_stop_code": "237",
+      "atoll_code": "DH",
+      "atoll_name": "Dhaalu",
+      "latitude": 2.8598283558021707,
+      "longitude": 72.84796761765487,
+      "official_island_id": "island:267",
+      "official_island_name": "Hulhudheli",
+      "official_atoll": "Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Dh.Maaenboodhoo",
+      "rtl_stop_code": "235",
+      "atoll_code": "DH",
+      "atoll_name": "Dhaalu",
+      "latitude": 2.6977007033975124,
+      "longitude": 72.96219485564573,
+      "official_island_id": "island:251",
+      "official_island_name": "Maaen'boodhoo",
+      "official_atoll": "Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Dh.Kudahuvadhoo",
+      "rtl_stop_code": "236",
+      "atoll_code": "DH",
+      "atoll_name": "Dhaalu",
+      "latitude": 2.67535131666504,
+      "longitude": 72.89480177481614,
+      "official_island_id": "island:260",
+      "official_island_name": "Kudahuvadhoo",
+      "official_atoll": "Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Vaikaradhoo",
+      "rtl_stop_code": "108",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.55259,
+      "longitude": 72.95171,
+      "official_island_id": "island:673",
+      "official_island_name": "Vaikaradhoo",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Makunudhoo",
+      "rtl_stop_code": "114",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.41142,
+      "longitude": 72.70349,
+      "official_island_id": "island:676",
+      "official_island_name": "Makunudhoo",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Kumundhoo",
+      "rtl_stop_code": "110",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.5689,
+      "longitude": 73.04944,
+      "official_island_id": "island:670",
+      "official_island_name": "Kumundhoo",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Kulhudhuffushi",
+      "rtl_stop_code": "104",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.61791,
+      "longitude": 73.0647,
+      "official_island_id": "island:680",
+      "official_island_name": "Kulhudhuffushi",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Hanimaadhoo",
+      "rtl_stop_code": "103",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.76686,
+      "longitude": 73.17379,
+      "official_island_id": "island:684",
+      "official_island_name": "Hanimaadhoo",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Nolhivaranfaru",
+      "rtl_stop_code": "111",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.70666,
+      "longitude": 73.11883,
+      "official_island_id": "island:682",
+      "official_island_name": "Nolhivaranfaru",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Nolhivaram",
+      "rtl_stop_code": "112",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.66363,
+      "longitude": 73.08724,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Ha.Thuraakunu",
+      "rtl_stop_code": "125",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 7.10328,
+      "longitude": 72.90084,
+      "official_island_id": "island:637",
+      "official_island_name": "Thuraakunu",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Uligamu",
+      "rtl_stop_code": "124",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 7.08414,
+      "longitude": 72.92395,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Ha.Molhadhoo",
+      "rtl_stop_code": "121",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 7.01394,
+      "longitude": 72.99497,
+      "official_island_id": "island:634",
+      "official_island_name": "Molhadhoo",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Hoarafushi",
+      "rtl_stop_code": "118",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.98168,
+      "longitude": 72.89843,
+      "official_island_id": "island:612",
+      "official_island_name": "Hoarafushi",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Ihavandhoo",
+      "rtl_stop_code": "113",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.94948,
+      "longitude": 72.92802,
+      "official_island_id": "island:635",
+      "official_island_name": "Ihavandhoo",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Dhihdhoo",
+      "rtl_stop_code": "116",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.8881,
+      "longitude": 73.11511,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Sh.Noomaraa",
+      "rtl_stop_code": "141",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.432525,
+      "longitude": 73.070402,
+      "official_island_id": "island:1174",
+      "official_island_name": "Noomaraa",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Sh.Feydhoo",
+      "rtl_stop_code": "131",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.360381,
+      "longitude": 73.053146,
+      "official_island_id": "island:1177",
+      "official_island_name": "Feydhoo",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Sh.Bileyfahi",
+      "rtl_stop_code": "128",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.336084,
+      "longitude": 72.976305,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Sh.Goidhoo",
+      "rtl_stop_code": "133",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.42742,
+      "longitude": 72.93185,
+      "official_island_id": "island:1169",
+      "official_island_name": "Goidhoo",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Sh.Kan'ditheemu",
+      "rtl_stop_code": "134",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.44352,
+      "longitude": 72.91629,
+      "official_island_id": "island:1176",
+      "official_island_name": "Kan'ditheemu",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Hirimaradhoo",
+      "rtl_stop_code": "101",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.72494,
+      "longitude": 73.02631,
+      "official_island_id": "island:662",
+      "official_island_name": "Hirimaradhoo",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Finey",
+      "rtl_stop_code": "102",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.74586,
+      "longitude": 73.05732,
+      "official_island_id": "island:653",
+      "official_island_name": "Finey",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Vashafaru",
+      "rtl_stop_code": "127",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.89618,
+      "longitude": 73.16241,
+      "official_island_id": "island:611",
+      "official_island_name": "Vashafaru",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Baarah",
+      "rtl_stop_code": "115",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.81929,
+      "longitude": 73.21018,
+      "official_island_id": "island:640",
+      "official_island_name": "Baarah",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Filladhoo",
+      "rtl_stop_code": "117",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.87867,
+      "longitude": 73.2212,
+      "official_island_id": "island:641",
+      "official_island_name": "Filladhoo",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Kelaa",
+      "rtl_stop_code": "119",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.96197,
+      "longitude": 73.21077,
+      "official_island_id": "island:624",
+      "official_island_name": "Kelaa",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Maarandhoo",
+      "rtl_stop_code": "120",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.85066,
+      "longitude": 72.98527,
+      "official_island_id": "island:628",
+      "official_island_name": "Maarandhoo",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Thakandhoo",
+      "rtl_stop_code": "123",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.8448,
+      "longitude": 72.99291,
+      "official_island_id": "island:639",
+      "official_island_name": "Thakandhoo",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Utheemu",
+      "rtl_stop_code": "126",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.83149,
+      "longitude": 73.11205,
+      "official_island_id": "island:620",
+      "official_island_name": "Utheemu",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ha.Muraidhoo",
+      "rtl_stop_code": "122",
+      "atoll_code": "HA",
+      "atoll_name": "Haa Alifu",
+      "latitude": 6.83852,
+      "longitude": 73.16981,
+      "official_island_id": "island:629",
+      "official_island_name": "Muraidhoo",
+      "official_atoll": "Haa Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Sh.Funadhoo",
+      "rtl_stop_code": "129",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.14896,
+      "longitude": 73.28789,
+      "official_island_id": "island:1171",
+      "official_island_name": "Funadhoo",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Sh.Feevah",
+      "rtl_stop_code": "130",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.349,
+      "longitude": 73.20527,
+      "official_island_id": "island:1189",
+      "official_island_name": "Feevah",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Sh.Maroshi",
+      "rtl_stop_code": "138",
+      "atoll_code": "SH",
+      "atoll_name": "Shaviyani",
+      "latitude": 6.20735,
+      "longitude": 73.06076,
+      "official_island_id": "island:1178",
+      "official_island_name": "Maroshi",
+      "official_atoll": "Shaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Hdh.Neykurendhoo",
+      "rtl_stop_code": "109",
+      "atoll_code": "HDH",
+      "atoll_name": "Haa Dhaalu",
+      "latitude": 6.54838,
+      "longitude": 72.98294,
+      "official_island_id": "island:672",
+      "official_island_name": "Neykurendhoo",
+      "official_atoll": "Haa Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Kondey",
+      "rtl_stop_code": "162",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.49746595068398575,
+      "longitude": 73.54599208124313,
+      "official_island_id": "island:369",
+      "official_island_name": "Kon'dey",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Gemanafushi",
+      "rtl_stop_code": "161",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.44250070478161607,
+      "longitude": 73.56654226878612,
+      "official_island_id": "island:415",
+      "official_island_name": "Gemanafushi",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Kanduhulhudhoo",
+      "rtl_stop_code": "160",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.351667,
+      "longitude": 73.538393,
+      "official_island_id": "island:399",
+      "official_island_name": "Kan'duhulhudhoo",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Gdh.Maavarulu",
+      "rtl_stop_code": "159",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.3391604414110076,
+      "longitude": 73.50919049617418,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Gdh.Gahdhoo",
+      "rtl_stop_code": "158",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.29044,
+      "longitude": 73.454982,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Gdh.Vaadhoo",
+      "rtl_stop_code": "157",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.23194,
+      "longitude": 73.272506,
+      "official_island_id": "island:510",
+      "official_island_name": "Vaadhoo",
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Gdh.Faresmaathoda",
+      "rtl_stop_code": "156",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.202087,
+      "longitude": 73.187821,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Gdh.Nadella",
+      "rtl_stop_code": "154",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.292733,
+      "longitude": 73.044494,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Gdh.Rathafandhoo",
+      "rtl_stop_code": "153",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.254408,
+      "longitude": 73.105485,
+      "official_island_id": "island:584",
+      "official_island_name": "Rathafandhoo",
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Gdh.Fiyori",
+      "rtl_stop_code": "155",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.224792,
+      "longitude": 73.137913,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Gdh.Thinadhoo",
+      "rtl_stop_code": "149",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.525797,
+      "longitude": 72.997885,
+      "official_island_id": "island:470",
+      "official_island_name": "Thinadhoo",
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Gdh.Kaadehdhoo",
+      "rtl_stop_code": "150",
+      "atoll_code": "GDH",
+      "atoll_name": "Gaafu Dhaalu",
+      "latitude": 0.489627,
+      "longitude": 72.998725,
+      "official_island_id": "island:478",
+      "official_island_name": "Kaadehdhoo",
+      "official_atoll": "Gaafu Dhaalu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Dhevvadhoo",
+      "rtl_stop_code": "166",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.557625636263859,
+      "longitude": 73.23997500638464,
+      "official_island_id": "island:368",
+      "official_island_name": "Dhevvadhoo",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Dhaandhoo",
+      "rtl_stop_code": "168",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.6197670819139716,
+      "longitude": 73.4612167558625,
+      "official_island_id": "island:387",
+      "official_island_name": "Dhaandhoo",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Nilandhoo",
+      "rtl_stop_code": "169",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.6338315571626555,
+      "longitude": 73.44587791315939,
+      "official_island_id": "island:413",
+      "official_island_name": "Nilandhoo",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Maamendhoo",
+      "rtl_stop_code": "163",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.7159762741579466,
+      "longitude": 73.43711947209606,
+      "official_island_id": "island:412",
+      "official_island_name": "Maamendhoo",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Kooddoo",
+      "rtl_stop_code": "165",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.7331208641947223,
+      "longitude": 73.43085927756488,
+      "official_island_id": "island:370",
+      "official_island_name": "Kooddoo",
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "Ga.Villingili",
+      "rtl_stop_code": "164",
+      "atoll_code": "GA",
+      "atoll_name": "Gaafu Alifu",
+      "latitude": 0.7513756402288727,
+      "longitude": 73.43353257370646,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Gaafu Alifu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "Gn.Fuvahmulah",
+      "rtl_stop_code": "170",
+      "atoll_code": "GN",
+      "atoll_name": "Gnaviyani",
+      "latitude": -0.30782,
+      "longitude": 73.44048,
+      "official_island_id": "island:1334",
+      "official_island_name": "Fuvahmulah",
+      "official_atoll": "Gnaviyani",
+      "reconciliation_status": "matched_exact_atoll_name"
+    },
+    {
+      "rtl_stop_name": "S.Hulhumeedhoo",
+      "rtl_stop_code": "171",
+      "atoll_code": "S",
+      "atoll_name": "Seenu",
+      "latitude": -0.58953,
+      "longitude": 73.2214,
+      "official_island_id": null,
+      "official_island_name": null,
+      "official_atoll": "Seenu",
+      "reconciliation_status": "unmatched"
+    },
+    {
+      "rtl_stop_name": "S.Feydhoo",
+      "rtl_stop_code": "172",
+      "atoll_code": "S",
+      "atoll_name": "Seenu",
+      "latitude": -0.68119,
+      "longitude": 73.13771,
+      "official_island_id": "island:1129",
+      "official_island_name": "Feydhoo",
+      "official_atoll": "Seenu",
+      "reconciliation_status": "matched_exact_atoll_name"
+    }
+  ],
+  "routes": [
+    {
+      "route_id": 253,
+      "route_code": "Z2R15",
+      "route_name": "R.Innamaadhoo - R.Ungoofaaru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#0f8f2b",
+      "origin_stop": "R.Innamaadhoo",
+      "destination_stop": "R.Ungoofaaru",
+      "stop_names": ["R.Innamaadhoo", "R.Ungoofaaru"],
+      "stop_names_dv": ["ރ.އިންނަމާދޫ", "ރ.އުނގޫފާރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Innamaadhoo",
+              "dvstopName": "ރ.އިންނަމާދޫ",
+              "timing": "16:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "16:20:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 250,
+      "route_code": "Z2R13",
+      "route_name": "R.Ungoofaaru - R.Ifuru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#9420ce",
+      "origin_stop": "R.Ungoofaaru",
+      "destination_stop": "R.Ifuru",
+      "stop_names": ["R.Ungoofaaru", "R.Ifuru"],
+      "stop_names_dv": ["ރ.އުނގޫފާރު", "ރ.އިފުރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "09:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "09:35:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "09:40:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "09:45:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "14:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "14:05:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "14:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "14:20:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 220,
+      "route_code": "Z2R8",
+      "route_name": "LH.Naifaru - LH.Hinnavaru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#e425e6",
+      "origin_stop": "Lh.Naifaru",
+      "destination_stop": "Lh.Hinnavaru",
+      "stop_names": ["Lh.Naifaru", "Lh.Madivaru", "Lh.Hinnavaru"],
+      "stop_names_dv": ["ޅ.ނައިފަރު", "ޅ.މަޑިވަރު", "ޅ.ހިންނަވަރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Lh.Hinnavaru",
+              "dvstopName": "ޅ.ހިންނަވަރު",
+              "timing": "09:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Lh.Madivaru",
+              "dvstopName": "ޅ.މަޑިވަރު",
+              "timing": "09:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Lh.Naifaru",
+              "dvstopName": "ޅ.ނައިފަރު",
+              "timing": "08:05:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Lh.Naifaru",
+              "dvstopName": "ޅ.ނައިފަރު",
+              "timing": "11:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Lh.Madivaru",
+              "dvstopName": "ޅ.މަޑިވަރު",
+              "timing": "11:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "Lh.Hinnavaru",
+              "dvstopName": "ޅ.ހިންނަވަރު",
+              "timing": "11:35:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "Lh.Hinnavaru",
+              "dvstopName": "ޅ.ހިންނަވަރު",
+              "timing": "11:40:00",
+              "order": 1
+            },
+            {
+              "stopName": "Lh.Madivaru",
+              "dvstopName": "ޅ.މަޑިވަރު",
+              "timing": "11:50:00",
+              "order": 2
+            },
+            {
+              "stopName": "Lh.Naifaru",
+              "dvstopName": "ޅ.ނައިފަރު",
+              "timing": "12:00:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 252,
+      "route_code": "Z2R14",
+      "route_name": "R.Ungoofaaru - R.Innamaadhoo",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#c82273",
+      "origin_stop": "R.Ungoofaaru",
+      "destination_stop": "R.Innamaadhoo",
+      "stop_names": ["R.Ungoofaaru", "R.Ifuru", "R.Innamaadhoo"],
+      "stop_names_dv": ["ރ.އުނގޫފާރު", "ރ.އިފުރު", "ރ.އިންނަމާދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "07:55:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "08:00:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Innamaadhoo",
+              "dvstopName": "ރ.އިންނަމާދޫ",
+              "timing": "08:35:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 221,
+      "route_code": "Z2R9",
+      "route_name": "LH.Naifaru - LH.Hinnavaru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#afac17",
+      "origin_stop": "Lh.Naifaru",
+      "destination_stop": "Lh.Hinnavaru",
+      "stop_names": ["Lh.Naifaru", "Lh.Madivaru", "Lh.Felivaru", "Lh.Hinnavaru"],
+      "stop_names_dv": ["ޅ.ނައިފަރު", "ޅ.މަޑިވަރު", "ޅ.ފެލިވަރު", "ޅ.ހިންނަވަރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "Lh.Naifaru",
+              "dvstopName": "ޅ.ނައިފަރު",
+              "timing": "16:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "Lh.Madivaru",
+              "dvstopName": "ޅ.މަޑިވަރު",
+              "timing": "16:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Lh.Felivaru",
+              "dvstopName": "ޅ.ފެލިވަރު",
+              "timing": "16:25:00",
+              "order": 3
+            },
+            {
+              "stopName": "Lh.Hinnavaru",
+              "dvstopName": "ޅ.ހިންނަވަރު",
+              "timing": "16:35:00",
+              "order": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 273,
+      "route_code": "Z2UBC",
+      "route_name": "R.Ungoofaaru - R.Dhuvaafaru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#5e5fff",
+      "origin_stop": "R.Ungoofaaru",
+      "destination_stop": "R.Dhuvaafaru",
+      "stop_names": ["R.Ungoofaaru", "R.Dhuvaafaru"],
+      "stop_names_dv": ["ރ.އުނގޫފާރު", "ރ.ދުވާފަރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "08:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "08:10:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "08:20:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "08:30:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "12:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "12:10:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "12:20:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "12:30:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "16:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "16:10:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "16:20:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "16:30:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 225,
+      "route_code": "Z2R1",
+      "route_name": "N.Manadhoo - N.Henbadhoo",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#ee0404",
+      "origin_stop": "N.Manadhoo",
+      "destination_stop": "N.Henbadhoo",
+      "stop_names": ["N.Manadhoo", "N.Maafaru", "N.Landhoo", "N.Maalhendhoo", "N.Kendhikulhudhoo", "N.Henbadhoo"],
+      "stop_names_dv": ["ނ.މަނަދޫ", "ނ.މާފަރު", "ނ.ލަންދޫ", "ނ.މާޅެންދޫ", "ނ.ކެނދިކުޅުދޫ", "ނ.ހެނބަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "N.Henbadhoo",
+              "dvstopName": "ނ.ހެނބަދޫ",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "N.Kendhikulhudhoo",
+              "dvstopName": "ނ.ކެނދިކުޅުދޫ",
+              "timing": "07:10:00",
+              "order": 2
+            },
+            {
+              "stopName": "N.Maalhendhoo",
+              "dvstopName": "ނ.މާޅެންދޫ",
+              "timing": "07:25:00",
+              "order": 3
+            },
+            {
+              "stopName": "N.Landhoo",
+              "dvstopName": "ނ.ލަންދޫ",
+              "timing": "07:35:00",
+              "order": 4
+            },
+            {
+              "stopName": "N.Maafaru",
+              "dvstopName": "ނ.މާފަރު",
+              "timing": "07:55:00",
+              "order": 5
+            },
+            {
+              "stopName": "N.Manadhoo",
+              "dvstopName": "ނ.މަނަދޫ",
+              "timing": "08:15:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "N.Manadhoo",
+              "dvstopName": "ނ.މަނަދޫ",
+              "timing": "16:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "N.Maafaru",
+              "dvstopName": "ނ.މާފަރު",
+              "timing": "16:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "N.Landhoo",
+              "dvstopName": "ނ.ލަންދޫ",
+              "timing": "16:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "N.Maalhendhoo",
+              "dvstopName": "ނ.މާޅެންދޫ",
+              "timing": "16:45:00",
+              "order": 4
+            },
+            {
+              "stopName": "N.Kendhikulhudhoo",
+              "dvstopName": "ނ.ކެނދިކުޅުދޫ",
+              "timing": "17:00:00",
+              "order": 5
+            },
+            {
+              "stopName": "N.Henbadhoo",
+              "dvstopName": "ނ.ހެނބަދޫ",
+              "timing": "17:15:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 249,
+      "route_code": "Z2R12",
+      "route_name": "R.Ungoofaaru - R.Innmaadhoo",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#2728bd",
+      "origin_stop": "R.Ungoofaaru",
+      "destination_stop": "R.Innamaadhoo",
+      "stop_names": ["R.Ungoofaaru", "R.Dhuvaafaru", "R.Maakurathu", "R.Rasmaadhoo", "R.Innamaadhoo"],
+      "stop_names_dv": ["ރ.އުނގޫފާރު", "ރ.ދުވާފަރު", "ރ.މާކުރަތު", "ރ.ރަސްމާދޫ", "ރ.އިންނަމާދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Innamaadhoo",
+              "dvstopName": "ރ.އިންނަމާދޫ",
+              "timing": "08:40:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Rasmaadhoo",
+              "dvstopName": "ރ.ރަސްމާދޫ",
+              "timing": "08:45:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Maakurathu",
+              "dvstopName": "ރ.މާކުރަތު",
+              "timing": "09:00:00",
+              "order": 3
+            },
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "09:10:00",
+              "order": 4
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "09:25:00",
+              "order": 5
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "15:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Dhuvaafaru",
+              "dvstopName": "ރ.ދުވާފަރު",
+              "timing": "15:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Maakurathu",
+              "dvstopName": "ރ.މާކުރަތު",
+              "timing": "15:30:00",
+              "order": 3
+            },
+            {
+              "stopName": "R.Rasmaadhoo",
+              "dvstopName": "ރ.ރަސްމާދޫ",
+              "timing": "15:45:00",
+              "order": 4
+            },
+            {
+              "stopName": "R.Innamaadhoo",
+              "dvstopName": "ރ.އިންނަމާދޫ",
+              "timing": "15:55:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 218,
+      "route_code": "Z2R7",
+      "route_name": "LH.Hinnavaru - LH.Olhuvelifushi",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#2dda2b",
+      "origin_stop": "Lh.Hinnavaru",
+      "destination_stop": "Lh.Olhuvelifushi",
+      "stop_names": ["Lh.Hinnavaru", "Lh.Felivaru", "Lh.Madivaru", "Lh.Naifaru", "Lh.Kurendhoo", "Lh.Olhuvelifushi"],
+      "stop_names_dv": ["ޅ.ހިންނަވަރު", "ޅ.ފެލިވަރު", "ޅ.މަޑިވަރު", "ޅ.ނައިފަރު", "ޅ.ކުރެންދޫ", "ޅ.އޮޅުވެލިފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Lh.Hinnavaru",
+              "dvstopName": "ޅ.ހިންނަވަރު",
+              "timing": "16:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Lh.Felivaru",
+              "dvstopName": "ޅ.ފެލިވަރު",
+              "timing": "16:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Lh.Madivaru",
+              "dvstopName": "ޅ.މަޑިވަރު",
+              "timing": "16:45:00",
+              "order": 3
+            },
+            {
+              "stopName": "Lh.Naifaru",
+              "dvstopName": "ޅ.ނައިފަރު",
+              "timing": "16:55:00",
+              "order": 4
+            },
+            {
+              "stopName": "Lh.Kurendhoo",
+              "dvstopName": "ޅ.ކުރެންދޫ",
+              "timing": "17:25:00",
+              "order": 5
+            },
+            {
+              "stopName": "Lh.Olhuvelifushi",
+              "dvstopName": "ޅ.އޮޅުވެލިފުށި",
+              "timing": "17:55:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 246,
+      "route_code": "Z2R11",
+      "route_name": "R.Maduvvari - R.Ungoofaaru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#d21919",
+      "origin_stop": "R.Maduvvari",
+      "destination_stop": "R.Ungoofaaru",
+      "stop_names": ["R.Maduvvari", "R.Meedhoo", "R.Kinolhas", "R.Fainu", "R.Inguraidhoo", "R.Ungoofaaru"],
+      "stop_names_dv": ["ރ.މަޑުއްވަރި", "ރ.މީދޫ", "ރ.ކިނޮޅަސް", "ރ.ފައިނު", "ރ.އިނގުރައިދޫ", "ރ.އުނގޫފާރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Maduvvari",
+              "dvstopName": "ރ.މަޑުއްވަރި",
+              "timing": "06:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Meedhoo",
+              "dvstopName": "ރ.މީދޫ",
+              "timing": "06:30:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Kinolhas",
+              "dvstopName": "ރ.ކިނޮޅަސް",
+              "timing": "06:45:00",
+              "order": 3
+            },
+            {
+              "stopName": "R.Fainu",
+              "dvstopName": "ރ.ފައިނު",
+              "timing": "06:55:00",
+              "order": 4
+            },
+            {
+              "stopName": "R.Inguraidhoo",
+              "dvstopName": "ރ.އިނގުރައިދޫ",
+              "timing": "07:05:00",
+              "order": 5
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "07:40:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 September 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "16:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Inguraidhoo",
+              "dvstopName": "ރ.އިނގުރައިދޫ",
+              "timing": "17:00:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Fainu",
+              "dvstopName": "ރ.ފައިނު",
+              "timing": "17:10:00",
+              "order": 3
+            },
+            {
+              "stopName": "R.Kinolhas",
+              "dvstopName": "ރ.ކިނޮޅަސް",
+              "timing": "17:20:00",
+              "order": 4
+            },
+            {
+              "stopName": "R.Meedhoo",
+              "dvstopName": "ރ.މީދޫ",
+              "timing": "17:35:00",
+              "order": 5
+            },
+            {
+              "stopName": "R.Maduvvari",
+              "dvstopName": "ރ.މަޑުއްވަރި",
+              "timing": "17:55:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 231,
+      "route_code": "Z2R4",
+      "route_name": "N.Maafaru - N.Manadhoo",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#f50397",
+      "origin_stop": "N.Maafaru",
+      "destination_stop": "N.Manadhoo",
+      "stop_names": ["N.Maafaru", "N.Manadhoo"],
+      "stop_names_dv": ["ނ.މާފަރު", "ނ.މަނަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "N.Manadhoo",
+              "dvstopName": "ނ.މަނަދޫ",
+              "timing": "11:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "N.Maafaru",
+              "dvstopName": "ނ.މާފަރު",
+              "timing": "11:30:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "N.Maafaru",
+              "dvstopName": "ނ.މާފަރު",
+              "timing": "13:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "N.Manadhoo",
+              "dvstopName": "ނ.މަނަދޫ",
+              "timing": "13:45:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 217,
+      "route_code": "Z2R6",
+      "route_name": "LH.Olhuvelifushi - LH.Hinnavaru",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#e21414",
+      "origin_stop": "Lh.Olhuvelifushi",
+      "destination_stop": "Lh.Hinnavaru",
+      "stop_names": ["Lh.Olhuvelifushi", "Lh.Kurendhoo", "Lh.Naifaru", "Lh.Madivaru", "Lh.Hinnavaru"],
+      "stop_names_dv": ["ޅ.އޮޅުވެލިފުށި", "ޅ.ކުރެންދޫ", "ޅ.ނައިފަރު", "ޅ.މަޑިވަރު", "ޅ.ހިންނަވަރު"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Lh.Olhuvelifushi",
+              "dvstopName": "ޅ.އޮޅުވެލިފުށި",
+              "timing": "06:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Lh.Kurendhoo",
+              "dvstopName": "ޅ.ކުރެންދޫ",
+              "timing": "06:55:00",
+              "order": 2
+            },
+            {
+              "stopName": "Lh.Naifaru",
+              "dvstopName": "ޅ.ނައިފަރު",
+              "timing": "07:25:00",
+              "order": 3
+            },
+            {
+              "stopName": "Lh.Madivaru",
+              "dvstopName": "ޅ.މަޑިވަރު",
+              "timing": "07:35:00",
+              "order": 4
+            },
+            {
+              "stopName": "Lh.Hinnavaru",
+              "dvstopName": "ޅ.ހިންނަވަރު",
+              "timing": "07:50:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 255,
+      "route_code": "Z2R16",
+      "route_name": "B.Eydhfushi - B.Kendhoo",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#e83a3a",
+      "origin_stop": "B.Eydhafushi",
+      "destination_stop": "B.Kendhoo",
+      "stop_names": [
+        "B.Eydhafushi",
+        "B.Maalhos",
+        "B.Dharavandhoo",
+        "B.Dhonfanu",
+        "B.Kihaadhoo",
+        "B.Kamadhoo",
+        "B.Kudarikilu",
+        "B.Kendhoo"
+      ],
+      "stop_names_dv": [
+        "ބ.އޭދަފުށި",
+        "ބ.މާޅޮސް",
+        "ބ.ދަރަވަންދޫ",
+        "ބ.ދޮންފަނު",
+        "ބ.ކިހާދޫ",
+        "ބ.ކަމަދޫ",
+        "ބ.ކުޑަރިކިލު",
+        "ބ.ކެންދޫ"
+      ],
+      "schedule_entries": [
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "B.Kendhoo",
+              "dvstopName": "ބ.ކެންދޫ",
+              "timing": "06:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "B.Kudarikilu",
+              "dvstopName": "ބ.ކުޑަރިކިލު",
+              "timing": "06:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "B.Kamadhoo",
+              "dvstopName": "ބ.ކަމަދޫ",
+              "timing": "06:45:00",
+              "order": 3
+            },
+            {
+              "stopName": "B.Kihaadhoo",
+              "dvstopName": "ބ.ކިހާދޫ",
+              "timing": "07:05:00",
+              "order": 4
+            },
+            {
+              "stopName": "B.Dhonfanu",
+              "dvstopName": "ބ.ދޮންފަނު",
+              "timing": "07:15:00",
+              "order": 5
+            },
+            {
+              "stopName": "B.Dharavandhoo",
+              "dvstopName": "ބ.ދަރަވަންދޫ",
+              "timing": "07:30:00",
+              "order": 6
+            },
+            {
+              "stopName": "B.Maalhos",
+              "dvstopName": "ބ.މާޅޮސް",
+              "timing": "07:45:00",
+              "order": 7
+            },
+            {
+              "stopName": "B.Eydhafushi",
+              "dvstopName": "ބ.އޭދަފުށި",
+              "timing": "08:00:00",
+              "order": 8
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "B.Eydhafushi",
+              "dvstopName": "ބ.އޭދަފުށި",
+              "timing": "15:45:00",
+              "order": 1
+            },
+            {
+              "stopName": "B.Maalhos",
+              "dvstopName": "ބ.މާޅޮސް",
+              "timing": "15:55:00",
+              "order": 2
+            },
+            {
+              "stopName": "B.Dharavandhoo",
+              "dvstopName": "ބ.ދަރަވަންދޫ",
+              "timing": "16:10:00",
+              "order": 3
+            },
+            {
+              "stopName": "B.Dhonfanu",
+              "dvstopName": "ބ.ދޮންފަނު",
+              "timing": "16:25:00",
+              "order": 4
+            },
+            {
+              "stopName": "B.Kihaadhoo",
+              "dvstopName": "ބ.ކިހާދޫ",
+              "timing": "16:35:00",
+              "order": 5
+            },
+            {
+              "stopName": "B.Kamadhoo",
+              "dvstopName": "ބ.ކަމަދޫ",
+              "timing": "16:55:00",
+              "order": 6
+            },
+            {
+              "stopName": "B.Kudarikilu",
+              "dvstopName": "ބ.ކުޑަރިކިލު",
+              "timing": "17:15:00",
+              "order": 7
+            },
+            {
+              "stopName": "B.Kendhoo",
+              "dvstopName": "ބ.ކެންދޫ",
+              "timing": "17:30:00",
+              "order": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 245,
+      "route_code": "Z2R10",
+      "route_name": "R.Ungoofaaru - R.Alifushi",
+      "zone_code": "102",
+      "zone_name": "Zone 2",
+      "color": "#3bb6b9",
+      "origin_stop": "R.Ungoofaaru",
+      "destination_stop": "R.Alifushi",
+      "stop_names": [
+        "R.Ungoofaaru",
+        "R.Ifuru",
+        "R.Hulhudhuffaaru",
+        "R.Angolhitheem",
+        "R.Rasgetheem",
+        "R.Vaadhoo",
+        "R.Alifushi"
+      ],
+      "stop_names_dv": [
+        "ރ.އުނގޫފާރު",
+        "ރ.އިފުރު",
+        "ރ.ހުޅުދުއްފާރު",
+        "ރ.އަނގޮޅިތީމު",
+        "ރ.ރަސްގެތީމު",
+        "ރ.ވާދޫ",
+        "ރ.އަލިފުށި"
+      ],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Alifushi",
+              "dvstopName": "ރ.އަލިފުށި",
+              "timing": "06:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Vaadhoo",
+              "dvstopName": "ރ.ވާދޫ",
+              "timing": "06:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Rasgetheem",
+              "dvstopName": "ރ.ރަސްގެތީމު",
+              "timing": "06:55:00",
+              "order": 3
+            },
+            {
+              "stopName": "R.Angolhitheem",
+              "dvstopName": "ރ.އަނގޮޅިތީމު",
+              "timing": "07:05:00",
+              "order": 4
+            },
+            {
+              "stopName": "R.Hulhudhuffaaru",
+              "dvstopName": "ރ.ހުޅުދުއްފާރު",
+              "timing": "07:20:00",
+              "order": 5
+            },
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "07:35:00",
+              "order": 6
+            },
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "07:45:00",
+              "order": 7
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "R.Ungoofaaru",
+              "dvstopName": "ރ.އުނގޫފާރު",
+              "timing": "16:25:00",
+              "order": 1
+            },
+            {
+              "stopName": "R.Ifuru",
+              "dvstopName": "ރ.އިފުރު",
+              "timing": "16:30:00",
+              "order": 2
+            },
+            {
+              "stopName": "R.Hulhudhuffaaru",
+              "dvstopName": "ރ.ހުޅުދުއްފާރު",
+              "timing": "16:45:00",
+              "order": 3
+            },
+            {
+              "stopName": "R.Angolhitheem",
+              "dvstopName": "ރ.އަނގޮޅިތީމު",
+              "timing": "17:00:00",
+              "order": 4
+            },
+            {
+              "stopName": "R.Rasgetheem",
+              "dvstopName": "ރ.ރަސްގެތީމު",
+              "timing": "17:10:00",
+              "order": 5
+            },
+            {
+              "stopName": "R.Vaadhoo",
+              "dvstopName": "ރ.ވާދޫ",
+              "timing": "17:25:00",
+              "order": 6
+            },
+            {
+              "stopName": "R.Alifushi",
+              "dvstopName": "ރ.އަލިފުށި",
+              "timing": "17:55:00",
+              "order": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 290,
+      "route_code": "Z4R16",
+      "route_name": "L. Isdhoo - L. Fonadhoo",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#479aa9",
+      "origin_stop": "L.Isdhoo",
+      "destination_stop": "L.Fonadhoo",
+      "stop_names": ["L.Isdhoo", "L.Kalaidhoo", "L.Dhanbidhoo", "L.Maabaidhoo", "L.Mundoo", "L.Gan", "L.Fonadhoo"],
+      "stop_names_dv": ["ލ.އިސްދޫ", "ލ.ކަލައިދޫ", "ލ.ދަނބިދޫ", "ލ.މާބައިދޫ", "ލ.މުންޑޫ", "ލ.ގަން", "ލ.ފޮނަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 June 2026",
+          "stop_timings": [
+            {
+              "stopName": "L.Isdhoo",
+              "dvstopName": "ލ.އިސްދޫ",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "L.Kalaidhoo",
+              "dvstopName": "ލ.ކަލައިދޫ",
+              "timing": "07:05:00",
+              "order": 2
+            },
+            {
+              "stopName": "L.Dhanbidhoo",
+              "dvstopName": "ލ.ދަނބިދޫ",
+              "timing": "07:15:00",
+              "order": 3
+            },
+            {
+              "stopName": "L.Maabaidhoo",
+              "dvstopName": "ލ.މާބައިދޫ",
+              "timing": "07:30:00",
+              "order": 4
+            },
+            {
+              "stopName": "L.Mundoo",
+              "dvstopName": "ލ.މުންޑޫ",
+              "timing": "07:40:00",
+              "order": 5
+            },
+            {
+              "stopName": "L.Gan",
+              "dvstopName": "ލ.ގަން",
+              "timing": "08:00:00",
+              "order": 6
+            },
+            {
+              "stopName": "L.Fonadhoo",
+              "dvstopName": "ލ.ފޮނަދޫ",
+              "timing": "08:25:00",
+              "order": 7
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 June 2026",
+          "stop_timings": [
+            {
+              "stopName": "L.Fonadhoo",
+              "dvstopName": "ލ.ފޮނަދޫ",
+              "timing": "15:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "L.Gan",
+              "dvstopName": "ލ.ގަން",
+              "timing": "15:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "L.Mundoo",
+              "dvstopName": "ލ.މުންޑޫ",
+              "timing": "15:40:00",
+              "order": 3
+            },
+            {
+              "stopName": "L.Maabaidhoo",
+              "dvstopName": "ލ.މާބައިދޫ",
+              "timing": "15:50:00",
+              "order": 4
+            },
+            {
+              "stopName": "L.Dhanbidhoo",
+              "dvstopName": "ލ.ދަނބިދޫ",
+              "timing": "16:05:00",
+              "order": 5
+            },
+            {
+              "stopName": "L.Kalaidhoo",
+              "dvstopName": "ލ.ކަލައިދޫ",
+              "timing": "16:15:00",
+              "order": 6
+            },
+            {
+              "stopName": "L.Isdhoo",
+              "dvstopName": "ލ.އިސްދޫ",
+              "timing": "16:25:00",
+              "order": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 267,
+      "route_code": "Z4R4",
+      "route_name": "Th. Thimarafushi - Th. Veymandoo",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#cd9828",
+      "origin_stop": "Th.Thimarafushi",
+      "destination_stop": "Th.Veymandoo",
+      "stop_names": ["Th.Thimarafushi", "Th.Veymandoo"],
+      "stop_names_dv": ["ތ.ތިމަރަފުށި", "ތ.ވޭމަންޑޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "08:35:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Thimarafushi",
+              "dvstopName": "ތ.ތިމަރަފުށި",
+              "timing": "08:45:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Th.Thimarafushi",
+              "dvstopName": "ތ.ތިމަރަފުށި",
+              "timing": "10:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "10:40:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 279,
+      "route_code": "Z4R7",
+      "route_name": "F. Nilandhoo - F. Feeali",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#7a659b",
+      "origin_stop": "F.Nilandhoo",
+      "destination_stop": "F.Feeali",
+      "stop_names": ["F.Nilandhoo", "F.Dharanboodhoo", "F.Magoodhoo", "F.Bilehdhoo", "F.Feeali"],
+      "stop_names_dv": ["ފ.ނިލަންދޫ", "ފ.ދަރަނބޫދޫ", "ފ.މަގޫދޫ", "ފ.ބިލެތްދޫ", "ފ.ފީއަލި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "F.Feeali",
+              "dvstopName": "ފ.ފީއަލި",
+              "timing": "06:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "F.Bilehdhoo",
+              "dvstopName": "ފ.ބިލެތްދޫ",
+              "timing": "06:55:00",
+              "order": 2
+            },
+            {
+              "stopName": "F.Magoodhoo",
+              "dvstopName": "ފ.މަގޫދޫ",
+              "timing": "07:10:00",
+              "order": 3
+            },
+            {
+              "stopName": "F.Dharanboodhoo",
+              "dvstopName": "ފ.ދަރަނބޫދޫ",
+              "timing": "07:25:00",
+              "order": 4
+            },
+            {
+              "stopName": "F.Nilandhoo",
+              "dvstopName": "ފ.ނިލަންދޫ",
+              "timing": "07:35:00",
+              "order": 5
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "F.Nilandhoo",
+              "dvstopName": "ފ.ނިލަންދޫ",
+              "timing": "16:35:00",
+              "order": 1
+            },
+            {
+              "stopName": "F.Dharanboodhoo",
+              "dvstopName": "ފ.ދަރަނބޫދޫ",
+              "timing": "16:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "F.Magoodhoo",
+              "dvstopName": "ފ.މަގޫދޫ",
+              "timing": "16:55:00",
+              "order": 3
+            },
+            {
+              "stopName": "F.Bilehdhoo",
+              "dvstopName": "ފ.ބިލެތްދޫ",
+              "timing": "17:10:00",
+              "order": 4
+            },
+            {
+              "stopName": "F.Feeali",
+              "dvstopName": "ފ.ފީއަލި",
+              "timing": "17:40:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 261,
+      "route_code": "Z4R1",
+      "route_name": "Th. Veymandoo - Th. Buruni",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#8dc625",
+      "origin_stop": "Th.Veymandoo",
+      "destination_stop": "Th.Buruni",
+      "stop_names": ["Th.Veymandoo", "Th.Guraidhoo", "Th.Dhiyamigili", "Th.Madifushi", "Th.Vilufushi", "Th.Buruni"],
+      "stop_names_dv": ["ތ.ވޭމަންޑޫ", "ތ.ގުރައިދޫ", "ތ.ދިޔަމިގިލި", "ތ.މަޑިފުށި", "ތ.ވިލުފުށި", "ތ.ބުރުނި"],
+      "schedule_entries": [
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Th.Buruni",
+              "dvstopName": "ތ.ބުރުނި",
+              "timing": "06:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Vilufushi",
+              "dvstopName": "ތ.ވިލުފުށި",
+              "timing": "06:50:00",
+              "order": 2
+            },
+            {
+              "stopName": "Th.Madifushi",
+              "dvstopName": "ތ.މަޑިފުށި",
+              "timing": "07:20:00",
+              "order": 3
+            },
+            {
+              "stopName": "Th.Dhiyamigili",
+              "dvstopName": "ތ.ދިޔަމިގިލި",
+              "timing": "07:30:00",
+              "order": 4
+            },
+            {
+              "stopName": "Th.Guraidhoo",
+              "dvstopName": "ތ.ގުރައިދޫ",
+              "timing": "07:40:00",
+              "order": 5
+            },
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "08:30:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "14:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Guraidhoo",
+              "dvstopName": "ތ.ގުރައިދޫ",
+              "timing": "15:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Th.Dhiyamigili",
+              "dvstopName": "ތ.ދިޔަމިގިލި",
+              "timing": "15:25:00",
+              "order": 3
+            },
+            {
+              "stopName": "Th.Madifushi",
+              "dvstopName": "ތ.މަޑިފުށި",
+              "timing": "15:35:00",
+              "order": 4
+            },
+            {
+              "stopName": "Th.Vilufushi",
+              "dvstopName": "ތ.ވިލުފުށި",
+              "timing": "16:05:00",
+              "order": 5
+            },
+            {
+              "stopName": "Th.Buruni",
+              "dvstopName": "ތ.ބުރުނި",
+              "timing": "16:45:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 265,
+      "route_code": "Z4R3",
+      "route_name": "Th. Veymandoo - Th. Gaadhiffushi",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#aa24c8",
+      "origin_stop": "Th.Veymandoo",
+      "destination_stop": "Th.Gaadhiffushi",
+      "stop_names": ["Th.Veymandoo", "Th.Thimarafushi", "Th.Gaadhiffushi"],
+      "stop_names_dv": ["ތ.ވޭމަންޑޫ", "ތ.ތިމަރަފުށި", "ތ.ގާދިއަފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "06 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Th.Gaadhiffushi",
+              "dvstopName": "ތ.ގާދިއަފުށި",
+              "timing": "08:25:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Thimarafushi",
+              "dvstopName": "ތ.ތިމަރަފުށި",
+              "timing": "08:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "08:55:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "06 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "13:25:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Thimarafushi",
+              "dvstopName": "ތ.ތިމަރަފުށި",
+              "timing": "13:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Th.Gaadhiffushi",
+              "dvstopName": "ތ.ގާދިއަފުށި",
+              "timing": "13:55:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 292,
+      "route_code": "Z4R17",
+      "route_name": "L. Maavah - L. Gan",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#aa48da",
+      "origin_stop": "L.Maavah",
+      "destination_stop": "L.Gan",
+      "stop_names": ["L.Maavah", "L.Kunahandhoo", "L.Hithadhoo", "L.Maamendhoo", "L.Fonadhoo", "L.Gan"],
+      "stop_names_dv": ["ލ.މާވަށް", "ލ.ކުނަހަންދޫ", "ލ.ހިތަދޫ", "ލ.މާމެންދޫ", "ލ.ފޮނަދޫ", "ލ.ގަން"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 June 2026",
+          "stop_timings": [
+            {
+              "stopName": "L.Maavah",
+              "dvstopName": "ލ.މާވަށް",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "L.Kunahandhoo",
+              "dvstopName": "ލ.ކުނަހަންދޫ",
+              "timing": "07:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "L.Hithadhoo",
+              "dvstopName": "ލ.ހިތަދޫ",
+              "timing": "07:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "L.Maamendhoo",
+              "dvstopName": "ލ.މާމެންދޫ",
+              "timing": "07:45:00",
+              "order": 4
+            },
+            {
+              "stopName": "L.Fonadhoo",
+              "dvstopName": "ލ.ފޮނަދޫ",
+              "timing": "08:15:00",
+              "order": 5
+            },
+            {
+              "stopName": "L.Gan",
+              "dvstopName": "ލ.ގަން",
+              "timing": "08:40:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 June 2026",
+          "stop_timings": [
+            {
+              "stopName": "L.Gan",
+              "dvstopName": "ލ.ގަން",
+              "timing": "15:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "L.Fonadhoo",
+              "dvstopName": "ލ.ފޮނަދޫ",
+              "timing": "15:30:00",
+              "order": 2
+            },
+            {
+              "stopName": "L.Maamendhoo",
+              "dvstopName": "ލ.މާމެންދޫ",
+              "timing": "16:00:00",
+              "order": 3
+            },
+            {
+              "stopName": "L.Hithadhoo",
+              "dvstopName": "ލ.ހިތަދޫ",
+              "timing": "16:10:00",
+              "order": 4
+            },
+            {
+              "stopName": "L.Kunahandhoo",
+              "dvstopName": "ލ.ކުނަހަންދޫ",
+              "timing": "16:20:00",
+              "order": 5
+            },
+            {
+              "stopName": "L.Maavah",
+              "dvstopName": "ލ.މާވަށް",
+              "timing": "16:50:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 269,
+      "route_code": "Z4R5",
+      "route_name": "Th. Gaadhiffushi - Th. Veymandoo",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#e50b4b",
+      "origin_stop": "Th.Gaadhiffushi",
+      "destination_stop": "Th.Veymandoo",
+      "stop_names": ["Th.Gaadhiffushi", "Th.Veymandoo"],
+      "stop_names_dv": ["ތ.ގާދިއަފުށި", "ތ.ވޭމަންޑޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "06 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "07:55:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Gaadhiffushi",
+              "dvstopName": "ތ.ގާދިއަފުށި",
+              "timing": "08:20:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "06 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Th.Gaadhiffushi",
+              "dvstopName": "ތ.ގާދިއަފުށި",
+              "timing": "14:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "14:15:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 263,
+      "route_code": "Z4R2",
+      "route_name": "Th. Veymandoo - Th. Kandoodhoo",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#1cb689",
+      "origin_stop": "Th.Veymandoo",
+      "destination_stop": "Th.Kandoodhoo",
+      "stop_names": ["Th.Veymandoo", "Th.Kinbidhoo", "Th.Omadhoo", "Th.Hirilandhoo", "Th.Vandhoo", "Th.Kandoodhoo"],
+      "stop_names_dv": ["ތ.ވޭމަންޑޫ", "ތ.ކިނބިދޫ", "ތ.އޮމަދޫ", "ތ.ހިރިލަނދޫ", "ތ.ވަންދޫ", "ތ.ކަންޑޫދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Th.Kandoodhoo",
+              "dvstopName": "ތ.ކަންޑޫދޫ",
+              "timing": "06:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Vandhoo",
+              "dvstopName": "ތ.ވަންދޫ",
+              "timing": "06:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "Th.Hirilandhoo",
+              "dvstopName": "ތ.ހިރިލަނދޫ",
+              "timing": "06:55:00",
+              "order": 3
+            },
+            {
+              "stopName": "Th.Omadhoo",
+              "dvstopName": "ތ.އޮމަދޫ",
+              "timing": "07:25:00",
+              "order": 4
+            },
+            {
+              "stopName": "Th.Kinbidhoo",
+              "dvstopName": "ތ.ކިނބިދޫ",
+              "timing": "07:40:00",
+              "order": 5
+            },
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "07:50:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Th.Veymandoo",
+              "dvstopName": "ތ.ވޭމަންޑޫ",
+              "timing": "14:35:00",
+              "order": 1
+            },
+            {
+              "stopName": "Th.Kinbidhoo",
+              "dvstopName": "ތ.ކިނބިދޫ",
+              "timing": "14:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "Th.Omadhoo",
+              "dvstopName": "ތ.އޮމަދޫ",
+              "timing": "14:55:00",
+              "order": 3
+            },
+            {
+              "stopName": "Th.Hirilandhoo",
+              "dvstopName": "ތ.ހިރިލަނދޫ",
+              "timing": "15:25:00",
+              "order": 4
+            },
+            {
+              "stopName": "Th.Vandhoo",
+              "dvstopName": "ތ.ވަންދޫ",
+              "timing": "15:40:00",
+              "order": 5
+            },
+            {
+              "stopName": "Th.Kandoodhoo",
+              "dvstopName": "ތ.ކަންޑޫދޫ",
+              "timing": "15:55:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 280,
+      "route_code": "Z4H1",
+      "route_name": "F. Nilandhoo - Dh. Meedhoo",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#762929",
+      "origin_stop": "F.Nilandhoo",
+      "destination_stop": "Dh.Meedhoo",
+      "stop_names": ["F.Nilandhoo", "Dh.Meedhoo"],
+      "stop_names_dv": ["ފ.ނިލަންދޫ", "ދ.މީދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "F.Nilandhoo",
+              "dvstopName": "ފ.ނިލަންދޫ",
+              "timing": "07:40:00",
+              "order": 1
+            },
+            {
+              "stopName": "Dh.Meedhoo",
+              "dvstopName": "ދ.މީދޫ",
+              "timing": "08:05:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Dh.Meedhoo",
+              "dvstopName": "ދ.މީދޫ",
+              "timing": "16:05:00",
+              "order": 1
+            },
+            {
+              "stopName": "F.Nilandhoo",
+              "dvstopName": "ފ.ނިލަންދޫ",
+              "timing": "16:30:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 288,
+      "route_code": "Z4R8A",
+      "route_name": "Dh. Meedhoo - Dh. Kudahuvadhoo",
+      "zone_code": "104",
+      "zone_name": "Zone 4",
+      "color": "#dff589",
+      "origin_stop": "Dh.Meedhoo",
+      "destination_stop": "Dh.Kudahuvadhoo",
+      "stop_names": [
+        "Dh.Meedhoo",
+        "Dh.Bandidhoo",
+        "Dh.Rinbudhoo",
+        "Dh.Hulhudheli",
+        "Dh.Maaenboodhoo",
+        "Dh.Kudahuvadhoo"
+      ],
+      "stop_names_dv": ["ދ.މީދޫ", "ދ.ބަނޑިދޫ", "ދ.ރިނބުދޫ", "ދ.ހުޅުދެލި", "ދ.މާއެނބޫދޫ", "ދ.ކުޑަހުވަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "WED,THU",
+          "effective_from": "13 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Dh.Meedhoo",
+              "dvstopName": "ދ.މީދޫ",
+              "timing": "08:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "Dh.Bandidhoo",
+              "dvstopName": "ދ.ބަނޑިދޫ",
+              "timing": "08:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "Dh.Rinbudhoo",
+              "dvstopName": "ދ.ރިނބުދޫ",
+              "timing": "08:45:00",
+              "order": 3
+            },
+            {
+              "stopName": "Dh.Hulhudheli",
+              "dvstopName": "ދ.ހުޅުދެލި",
+              "timing": "09:05:00",
+              "order": 4
+            },
+            {
+              "stopName": "Dh.Maaenboodhoo",
+              "dvstopName": "ދ.މާއެނބޫދޫ",
+              "timing": "09:45:00",
+              "order": 5
+            },
+            {
+              "stopName": "Dh.Kudahuvadhoo",
+              "dvstopName": "ދ.ކުޑަހުވަދޫ",
+              "timing": "10:05:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "17 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Dh.Kudahuvadhoo",
+              "dvstopName": "ދ.ކުޑަހުވަދޫ",
+              "timing": "14:05:00",
+              "order": 1
+            },
+            {
+              "stopName": "Dh.Maaenboodhoo",
+              "dvstopName": "ދ.މާއެނބޫދޫ",
+              "timing": "14:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "Dh.Hulhudheli",
+              "dvstopName": "ދ.ހުޅުދެލި",
+              "timing": "15:00:00",
+              "order": 3
+            },
+            {
+              "stopName": "Dh.Rinbudhoo",
+              "dvstopName": "ދ.ރިނބުދޫ",
+              "timing": "15:20:00",
+              "order": 4
+            },
+            {
+              "stopName": "Dh.Bandidhoo",
+              "dvstopName": "ދ.ބަނޑިދޫ",
+              "timing": "15:40:00",
+              "order": 5
+            },
+            {
+              "stopName": "Dh.Meedhoo",
+              "dvstopName": "ދ.މީދޫ",
+              "timing": "16:00:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 130,
+      "route_code": "R1V2",
+      "route_name": "Hdh.Vaikaradhoo - Hdh.Makunudhoo",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#f0f25e",
+      "origin_stop": "Hdh.Vaikaradhoo",
+      "destination_stop": "Hdh.Makunudhoo",
+      "stop_names": ["Hdh.Vaikaradhoo", "Hdh.Makunudhoo"],
+      "stop_names_dv": ["ހދ.ވައިކަރަދޫ", "ހދ.މަކުނުދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Vaikaradhoo",
+              "dvstopName": "ހދ.ވައިކަރަދޫ",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Makunudhoo",
+              "dvstopName": "ހދ.މަކުނުދޫ",
+              "timing": "06:50:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Makunudhoo",
+              "dvstopName": "ހދ.މަކުނުދޫ",
+              "timing": "16:35:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Vaikaradhoo",
+              "dvstopName": "ހދ.ވައިކަރަދޫ",
+              "timing": "17:25:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 182,
+      "route_code": "R1C6",
+      "route_name": "Hdh.Kumundhoo - Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#0af1e4",
+      "origin_stop": "Hdh.Kumundhoo",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": ["Hdh.Kumundhoo", "Hdh.Kulhudhuffushi"],
+      "stop_names_dv": ["ހދ.ކުމުންދޫ", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "07:55:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Kumundhoo",
+              "dvstopName": "ހދ.ކުމުންދޫ",
+              "timing": "08:10:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kumundhoo",
+              "dvstopName": "ހދ.ކުމުންދޫ",
+              "timing": "08:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "08:30:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "15:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Kumundhoo",
+              "dvstopName": "ހދ.ކުމުންދޫ",
+              "timing": "15:15:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kumundhoo",
+              "dvstopName": "ހދ.ކުމުންދޫ",
+              "timing": "15:20:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "15:35:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 99,
+      "route_code": "R1C7",
+      "route_name": "Hdh.Hanimaadhoo - Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#c56503",
+      "origin_stop": "Hdh.Hanimaadhoo",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": ["Hdh.Hanimaadhoo", "Hdh.Nolhivaranfaru", "Hdh.Nolhivaram", "Hdh.Kulhudhuffushi"],
+      "stop_names_dv": ["ހދ.ހަނިމާދޫ", "ހދ.ނޮޅިވަރަންފަރު", "ހދ.ނޮޅިވަރަމް", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Nolhivaranfaru",
+              "dvstopName": "ހދ.ނޮޅިވަރަންފަރު",
+              "timing": "07:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Nolhivaram",
+              "dvstopName": "ހދ.ނޮޅިވަރަމް",
+              "timing": "07:30:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "07:45:00",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "13:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Nolhivaram",
+              "dvstopName": "ހދ.ނޮޅިވަރަމް",
+              "timing": "13:10:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Nolhivaranfaru",
+              "dvstopName": "ހދ.ނޮޅިވަރަންފަރު",
+              "timing": "13:25:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "13:45:00",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "14:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Nolhivaranfaru",
+              "dvstopName": "ހދ.ނޮޅިވަރަންފަރު",
+              "timing": "14:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Nolhivaram",
+              "dvstopName": "ހދ.ނޮޅިވަރަމް",
+              "timing": "14:30:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "14:45:00",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "17:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Nolhivaram",
+              "dvstopName": "ހދ.ނޮޅިވަރަމް",
+              "timing": "17:10:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Nolhivaranfaru",
+              "dvstopName": "ހދ.ނޮޅިވަރަންފަރު",
+              "timing": "17:25:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "17:45:00",
+              "order": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 240,
+      "route_code": "S1C1",
+      "route_name": "Ha.Thuraakunu - Ha.Dhihdhoo",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#ab5f5f",
+      "origin_stop": "Ha.Thuraakunu",
+      "destination_stop": "Ha.Dhihdhoo",
+      "stop_names": ["Ha.Thuraakunu", "Ha.Uligamu", "Ha.Molhadhoo", "Ha.Hoarafushi", "Ha.Ihavandhoo", "Ha.Dhihdhoo"],
+      "stop_names_dv": ["ހއ.ތުރާކުނު", "ހއ.އުލިގަން", "ހއ.މޮޅަދޫ", "ހއ.ހޯރަފުށި", "ހއ.އިހަވަންދޫ", "ހއ.ދިއްދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Ha.Thuraakunu",
+              "dvstopName": "ހއ.ތުރާކުނު",
+              "timing": "06:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Uligamu",
+              "dvstopName": "ހއ.އުލިގަން",
+              "timing": "06:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ha.Molhadhoo",
+              "dvstopName": "ހއ.މޮޅަދޫ",
+              "timing": "07:00:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ha.Hoarafushi",
+              "dvstopName": "ހއ.ހޯރަފުށި",
+              "timing": "07:20:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ha.Ihavandhoo",
+              "dvstopName": "ހއ.އިހަވަންދޫ",
+              "timing": "07:35:00",
+              "order": 5
+            },
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "08:15:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "15:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Ihavandhoo",
+              "dvstopName": "ހއ.އިހަވަންދޫ",
+              "timing": "16:05:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ha.Hoarafushi",
+              "dvstopName": "ހއ.ހޯރަފުށި",
+              "timing": "16:20:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ha.Molhadhoo",
+              "dvstopName": "ހއ.މޮޅަދޫ",
+              "timing": "16:40:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ha.Uligamu",
+              "dvstopName": "ހއ.އުލިގަން",
+              "timing": "17:05:00",
+              "order": 5
+            },
+            {
+              "stopName": "Ha.Thuraakunu",
+              "dvstopName": "ހއ.ތުރާކުނު",
+              "timing": "17:15:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 163,
+      "route_code": "R1C9",
+      "route_name": "Hdh.Kulhudhuffushi - Hdh.Hanimaadhoo",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#20cb11",
+      "origin_stop": "Hdh.Kulhudhuffushi",
+      "destination_stop": "Hdh.Hanimaadhoo",
+      "stop_names": ["Hdh.Kulhudhuffushi", "Hdh.Hanimaadhoo"],
+      "stop_names_dv": ["ހދ.ކުޅުދުއްފުށި", "ހދ.ހަނިމާދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "09:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "09:45:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "11:45:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "12:15:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 128,
+      "route_code": "S1V1",
+      "route_name": "Ha.Dhihdhoo - Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#d39f7a",
+      "origin_stop": "Ha.Dhihdhoo",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": ["Ha.Dhihdhoo", "Hdh.Kulhudhuffushi"],
+      "stop_names_dv": ["ހއ.ދިއްދޫ", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "08:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "09:25:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "14:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "15:10:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 177,
+      "route_code": "S2C5",
+      "route_name": "Sh.Noomaraa - Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#67cc3e",
+      "origin_stop": "Sh.Noomaraa",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": [
+        "Sh.Noomaraa",
+        "Sh.Feydhoo",
+        "Sh.Bileyfahi",
+        "Sh.Goidhoo",
+        "Sh.Kan'ditheemu",
+        "Hdh.Kulhudhuffushi"
+      ],
+      "stop_names_dv": ["ށ.ނޫމަރާ", "ށ.ފޭދޫ", "ށ.ބިލެއްފަހި", "ށ.ގޮއިދޫ", "ށ.ކަނޑިތީމު", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Sh.Noomaraa",
+              "dvstopName": "ށ.ނޫމަރާ",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Sh.Feydhoo",
+              "dvstopName": "ށ.ފޭދޫ",
+              "timing": "06:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Sh.Bileyfahi",
+              "dvstopName": "ށ.ބިލެއްފަހި",
+              "timing": "06:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "Sh.Goidhoo",
+              "dvstopName": "ށ.ގޮއިދޫ",
+              "timing": "07:00:00",
+              "order": 4
+            },
+            {
+              "stopName": "Sh.Kan'ditheemu",
+              "dvstopName": "ށ.ކަނޑިތީމު",
+              "timing": "07:15:00",
+              "order": 5
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "08:00:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "15:45:00",
+              "order": 1
+            },
+            {
+              "stopName": "Sh.Kan'ditheemu",
+              "dvstopName": "ށ.ކަނޑިތީމު",
+              "timing": "16:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "Sh.Goidhoo",
+              "dvstopName": "ށ.ގޮއިދޫ",
+              "timing": "16:40:00",
+              "order": 3
+            },
+            {
+              "stopName": "Sh.Bileyfahi",
+              "dvstopName": "ށ.ބިލެއްފަހި",
+              "timing": "17:05:00",
+              "order": 4
+            },
+            {
+              "stopName": "Sh.Feydhoo",
+              "dvstopName": "ށ.ފޭދޫ",
+              "timing": "17:25:00",
+              "order": 5
+            },
+            {
+              "stopName": "Sh.Noomaraa",
+              "dvstopName": "ށ.ނޫމަރާ",
+              "timing": "17:45:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 124,
+      "route_code": "S1C6",
+      "route_name": "Ha.Dhihdhoo - Hdh.Hanimaadhoo",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#ab5757",
+      "origin_stop": "Ha.Dhihdhoo",
+      "destination_stop": "Hdh.Hanimaadhoo",
+      "stop_names": ["Ha.Dhihdhoo", "Hdh.Hanimaadhoo"],
+      "stop_names_dv": ["ހއ.ދިއްދޫ", "ހދ.ހަނިމާދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "11:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "11:25:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "14:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "14:55:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 93,
+      "route_code": "R1C4",
+      "route_name": "Hdh.Hirimaradhoo - Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#00c4ff",
+      "origin_stop": "Hdh.Hirimaradhoo",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": ["Hdh.Hirimaradhoo", "Hdh.Finey", "Hdh.Hanimaadhoo", "Hdh.Kulhudhuffushi"],
+      "stop_names_dv": ["ހދ.ހިރިމަރަދޫ", "ހދ.ފިނޭ", "ހދ.ހަނިމާދޫ", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Hirimaradhoo",
+              "dvstopName": "ހދ.ހިރިމަރަދޫ",
+              "timing": "08:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Finey",
+              "dvstopName": "ހދ.ފިނޭ",
+              "timing": "08:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "08:50:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "09:25:00",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "15:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Hanimaadhoo",
+              "dvstopName": "ހދ.ހަނިމާދޫ",
+              "timing": "15:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Finey",
+              "dvstopName": "ހދ.ފިނޭ",
+              "timing": "16:05:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Hirimaradhoo",
+              "dvstopName": "ހދ.ހިރިމަރަދޫ",
+              "timing": "16:20:00",
+              "order": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 214,
+      "route_code": "S1C5",
+      "route_name": "Ha.Dhihdhoo - Ha.Kelaa",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#6360ff",
+      "origin_stop": "Ha.Dhihdhoo",
+      "destination_stop": "Ha.Kelaa",
+      "stop_names": ["Ha.Dhihdhoo", "Ha.Vashafaru", "Ha.Baarah", "Ha.Filladhoo", "Ha.Kelaa"],
+      "stop_names_dv": ["ހއ.ދިއްދޫ", "ހއ.ވަށަފަރު", "ހއ.ބާރަށް", "ހއ.ފިއްލަދޫ", "ހއ.ކެލާ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ha.Kelaa",
+              "dvstopName": "ހއ.ކެލާ",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Filladhoo",
+              "dvstopName": "ހއ.ފިއްލަދޫ",
+              "timing": "07:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ha.Baarah",
+              "dvstopName": "ހއ.ބާރަށް",
+              "timing": "07:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ha.Vashafaru",
+              "dvstopName": "ހއ.ވަށަފަރު",
+              "timing": "07:55:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "08:10:00",
+              "order": 5
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "15:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Vashafaru",
+              "dvstopName": "ހއ.ވަށަފަރު",
+              "timing": "15:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ha.Baarah",
+              "dvstopName": "ހއ.ބާރަށް",
+              "timing": "15:45:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ha.Filladhoo",
+              "dvstopName": "ހއ.ފިއްލަދޫ",
+              "timing": "16:05:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ha.Kelaa",
+              "dvstopName": "ހއ.ކެލާ",
+              "timing": "16:25:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 215,
+      "route_code": "S1C3",
+      "route_name": "Ha.Maarandhoo - Ha.Dhihdhoo",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#f8ff00",
+      "origin_stop": "Ha.Maarandhoo",
+      "destination_stop": "Ha.Dhihdhoo",
+      "stop_names": ["Ha.Maarandhoo", "Ha.Thakandhoo", "Ha.Utheemu", "Ha.Muraidhoo", "Ha.Dhihdhoo"],
+      "stop_names_dv": ["ހއ.މާރަންދޫ", "ހއ.ތަކަންދޫ", "ހއ.އުތީމު", "ހއ.މުރައިދޫ", "ހއ.ދިއްދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ha.Maarandhoo",
+              "dvstopName": "ހއ.މާރަންދޫ",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Thakandhoo",
+              "dvstopName": "ހއ.ތަކަންދޫ",
+              "timing": "07:05:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ha.Utheemu",
+              "dvstopName": "ހއ.އުތީމު",
+              "timing": "07:40:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ha.Muraidhoo",
+              "dvstopName": "ހއ.މުރައިދޫ",
+              "timing": "07:55:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "08:15:00",
+              "order": 5
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ha.Dhihdhoo",
+              "dvstopName": "ހއ.ދިއްދޫ",
+              "timing": "15:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ha.Muraidhoo",
+              "dvstopName": "ހއ.މުރައިދޫ",
+              "timing": "15:45:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ha.Utheemu",
+              "dvstopName": "ހއ.އުތީމު",
+              "timing": "16:00:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ha.Thakandhoo",
+              "dvstopName": "ހއ.ތަކަންދޫ",
+              "timing": "16:35:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ha.Maarandhoo",
+              "dvstopName": "ހއ.މާރަންދޫ",
+              "timing": "16:45:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 274,
+      "route_code": "H2",
+      "route_name": "Sh.Funadhoo- Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#17d55a",
+      "origin_stop": "Sh.Funadhoo",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": ["Sh.Funadhoo", "Sh.Feevah", "Hdh.Kulhudhuffushi"],
+      "stop_names_dv": ["ށ.ފުނަދޫ", "ށ.ފީވައް", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Sh.Funadhoo",
+              "dvstopName": "ށ.ފުނަދޫ",
+              "timing": "08:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Sh.Feevah",
+              "dvstopName": "ށ.ފީވައް",
+              "timing": "08:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "09:35:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "14:15:00",
+              "order": 1
+            },
+            {
+              "stopName": "Sh.Feevah",
+              "dvstopName": "ށ.ފީވައް",
+              "timing": "15:10:00",
+              "order": 2
+            },
+            {
+              "stopName": "Sh.Funadhoo",
+              "dvstopName": "ށ.ފުނަދޫ",
+              "timing": "15:50:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 173,
+      "route_code": "S2C1",
+      "route_name": "Sh.Kan'ditheemu - Sh.Funadhoo",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#26e848",
+      "origin_stop": "Sh.Kan'ditheemu",
+      "destination_stop": "Sh.Funadhoo",
+      "stop_names": ["Sh.Kan'ditheemu", "Sh.Goidhoo", "Sh.Bileyfahi", "Sh.Maroshi", "Sh.Funadhoo"],
+      "stop_names_dv": ["ށ.ކަނޑިތީމު", "ށ.ގޮއިދޫ", "ށ.ބިލެއްފަހި", "ށ.މަރޮށި", "ށ.ފުނަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Sh.Kan'ditheemu",
+              "dvstopName": "ށ.ކަނޑިތީމު",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Sh.Goidhoo",
+              "dvstopName": "ށ.ގޮއިދޫ",
+              "timing": "06:11:00",
+              "order": 2
+            },
+            {
+              "stopName": "Sh.Bileyfahi",
+              "dvstopName": "ށ.ބިލެއްފަހި",
+              "timing": "06:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "Sh.Maroshi",
+              "dvstopName": "ށ.މަރޮށި",
+              "timing": "07:05:00",
+              "order": 4
+            },
+            {
+              "stopName": "Sh.Funadhoo",
+              "dvstopName": "ށ.ފުނަދޫ",
+              "timing": "07:50:00",
+              "order": 5
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Sh.Funadhoo",
+              "dvstopName": "ށ.ފުނަދޫ",
+              "timing": "15:55:00",
+              "order": 1
+            },
+            {
+              "stopName": "Sh.Maroshi",
+              "dvstopName": "ށ.މަރޮށި",
+              "timing": "16:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Sh.Bileyfahi",
+              "dvstopName": "ށ.ބިލެއްފަހި",
+              "timing": "17:05:00",
+              "order": 3
+            },
+            {
+              "stopName": "Sh.Goidhoo",
+              "dvstopName": "ށ.ގޮއިދޫ",
+              "timing": "17:30:00",
+              "order": 4
+            },
+            {
+              "stopName": "Sh.Kan'ditheemu",
+              "dvstopName": "ށ.ކަނޑިތީމު",
+              "timing": "17:45:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 169,
+      "route_code": "R1V1",
+      "route_name": "Hdh.Vaikaradhoo - Hdh.Kulhudhuffushi",
+      "zone_code": "101",
+      "zone_name": "Zone 1",
+      "color": "#2711c2",
+      "origin_stop": "Hdh.Makunudhoo",
+      "destination_stop": "Hdh.Kulhudhuffushi",
+      "stop_names": ["Hdh.Makunudhoo", "Hdh.Vaikaradhoo", "Hdh.Neykurendhoo", "Hdh.Kulhudhuffushi"],
+      "stop_names_dv": ["ހދ.މަކުނުދޫ", "ހދ.ވައިކަރަދޫ", "ހދ.ނޭކުރެންދޫ", "ހދ.ކުޅުދުއްފުށި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Makunudhoo",
+              "dvstopName": "ހދ.މަކުނުދޫ",
+              "timing": "06:55:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Vaikaradhoo",
+              "dvstopName": "ހދ.ވައިކަރަދޫ",
+              "timing": "07:45:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Neykurendhoo",
+              "dvstopName": "ހދ.ނޭކުރެންދޫ",
+              "timing": "08:00:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "08:25:00",
+              "order": 4
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Hdh.Kulhudhuffushi",
+              "dvstopName": "ހދ.ކުޅުދުއްފުށި",
+              "timing": "15:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Hdh.Neykurendhoo",
+              "dvstopName": "ހދ.ނޭކުރެންދޫ",
+              "timing": "15:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "Hdh.Vaikaradhoo",
+              "dvstopName": "ހދ.ވައިކަރަދޫ",
+              "timing": "15:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "Hdh.Makunudhoo",
+              "dvstopName": "ހދ.މަކުނުދޫ",
+              "timing": "16:30:00",
+              "order": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 189,
+      "route_code": "Z5R4",
+      "route_name": "Ga.Kondey - Gdh.Faresmaathoda",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#0e1f20",
+      "origin_stop": "Ga.Kondey",
+      "destination_stop": "Gdh.Faresmaathoda",
+      "stop_names": [
+        "Ga.Kondey",
+        "Ga.Gemanafushi",
+        "Ga.Kanduhulhudhoo",
+        "Gdh.Maavarulu",
+        "Gdh.Gahdhoo",
+        "Gdh.Vaadhoo",
+        "Gdh.Faresmaathoda"
+      ],
+      "stop_names_dv": [
+        "ގއ.ކޮނޑޭ",
+        "ގއ.ގެމަނަފުށި",
+        "ގއ.ކަނޑުހުޅުދޫ",
+        "ގދ.މާވަރުލޫ",
+        "ގދ.ގައްދޫ",
+        "ގދ.ވާދޫ",
+        "ގދ.ފަރެސްމާތޮޑާ"
+      ],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ga.Kondey",
+              "dvstopName": "ގއ.ކޮނޑޭ",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Gemanafushi",
+              "dvstopName": "ގއ.ގެމަނަފުށި",
+              "timing": "06:15:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ga.Kanduhulhudhoo",
+              "dvstopName": "ގއ.ކަނޑުހުޅުދޫ",
+              "timing": "06:40:00",
+              "order": 3
+            },
+            {
+              "stopName": "Gdh.Maavarulu",
+              "dvstopName": "ގދ.މާވަރުލޫ",
+              "timing": "06:55:00",
+              "order": 4
+            },
+            {
+              "stopName": "Gdh.Gahdhoo",
+              "dvstopName": "ގދ.ގައްދޫ",
+              "timing": "07:15:00",
+              "order": 5
+            },
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "07:55:00",
+              "order": 6
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "08:20:00",
+              "order": 7
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "15:35:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "15:55:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gdh.Gahdhoo",
+              "dvstopName": "ގދ.ގައްދޫ",
+              "timing": "16:35:00",
+              "order": 3
+            },
+            {
+              "stopName": "Gdh.Maavarulu",
+              "dvstopName": "ގދ.މާވަރުލޫ",
+              "timing": "16:55:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ga.Kanduhulhudhoo",
+              "dvstopName": "ގއ.ކަނޑުހުޅުދޫ",
+              "timing": "17:10:00",
+              "order": 5
+            },
+            {
+              "stopName": "Ga.Gemanafushi",
+              "dvstopName": "ގއ.ގެމަނަފުށި",
+              "timing": "17:35:00",
+              "order": 6
+            },
+            {
+              "stopName": "Ga.Kondey",
+              "dvstopName": "ގއ.ކޮނޑޭ",
+              "timing": "17:55:00",
+              "order": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 191,
+      "route_code": "Z5R5",
+      "route_name": "Gdh.Nadella - Gdh.Thinadhoo",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#419361",
+      "origin_stop": "Gdh.Nadella",
+      "destination_stop": "Gdh.Thinadhoo",
+      "stop_names": [
+        "Gdh.Nadella",
+        "Gdh.Rathafandhoo",
+        "Gdh.Fiyori",
+        "Gdh.Faresmaathoda",
+        "Gdh.Vaadhoo",
+        "Gdh.Thinadhoo"
+      ],
+      "stop_names_dv": ["ގދ.ނަޑެއްލާ", "ގދ.ރަތަފަންދޫ", "ގދ.ފިޔޯރީ", "ގދ.ފަރެސްމާތޮޑާ", "ގދ.ވާދޫ", "ގދ.ތިނަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 July 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Nadella",
+              "dvstopName": "ގދ.ނަޑެއްލާ",
+              "timing": "06:35:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Rathafandhoo",
+              "dvstopName": "ގދ.ރަތަފަންދޫ",
+              "timing": "06:55:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gdh.Fiyori",
+              "dvstopName": "ގދ.ފިޔޯރީ",
+              "timing": "07:15:00",
+              "order": 3
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "07:35:00",
+              "order": 4
+            },
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "07:55:00",
+              "order": 5
+            },
+            {
+              "stopName": "Gdh.Thinadhoo",
+              "dvstopName": "ގދ.ތިނަދޫ",
+              "timing": "09:10:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 July 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Thinadhoo",
+              "dvstopName": "ގދ.ތިނަދޫ",
+              "timing": "14:45:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "15:50:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "16:10:00",
+              "order": 3
+            },
+            {
+              "stopName": "Gdh.Fiyori",
+              "dvstopName": "ގދ.ފިޔޯރީ",
+              "timing": "16:30:00",
+              "order": 4
+            },
+            {
+              "stopName": "Gdh.Rathafandhoo",
+              "dvstopName": "ގދ.ރަތަފަންދޫ",
+              "timing": "16:50:00",
+              "order": 5
+            },
+            {
+              "stopName": "Gdh.Nadella",
+              "dvstopName": "ގދ.ނަޑެއްލާ",
+              "timing": "17:15:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 195,
+      "route_code": "Z5R7",
+      "route_name": "Gdh.Thinadhoo - Gdh.Kaadehdhoo",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#529b81",
+      "origin_stop": "Gdh.Thinadhoo",
+      "destination_stop": "Gdh.Kaadehdhoo",
+      "stop_names": ["Gdh.Thinadhoo", "Gdh.Kaadehdhoo"],
+      "stop_names_dv": ["ގދ.ތިނަދޫ", "ގދ.ކާޑެއްދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Thinadhoo",
+              "dvstopName": "ގދ.ތިނަދޫ",
+              "timing": "11:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Kaadehdhoo",
+              "dvstopName": "ގދ.ކާޑެއްދޫ",
+              "timing": "11:45:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Kaadehdhoo",
+              "dvstopName": "ގދ.ކާޑެއްދޫ",
+              "timing": "13:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Thinadhoo",
+              "dvstopName": "ގދ.ތިނަދޫ",
+              "timing": "13:45:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 185,
+      "route_code": "Z5R2",
+      "route_name": "Ga.Dhevvadhoo - Ga.Villingili",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#709b5a",
+      "origin_stop": "Ga.Dhevvadhoo",
+      "destination_stop": "Ga.Villingili",
+      "stop_names": ["Ga.Dhevvadhoo", "Ga.Dhaandhoo", "Ga.Nilandhoo", "Ga.Maamendhoo", "Ga.Kooddoo", "Ga.Villingili"],
+      "stop_names_dv": ["ގއ.ދެއްވަދޫ", "ގއ.ދާންދޫ", "ގއ.ނިލަންދޫ", "ގއ.މާމެންދޫ", "ގއ.ކޫއްޑޫ", "ގއ.ވިލިނގިލި"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 July 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ga.Dhevvadhoo",
+              "dvstopName": "ގއ.ދެއްވަދޫ",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Dhaandhoo",
+              "dvstopName": "ގއ.ދާންދޫ",
+              "timing": "06:35:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ga.Nilandhoo",
+              "dvstopName": "ގއ.ނިލަންދޫ",
+              "timing": "06:50:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ga.Maamendhoo",
+              "dvstopName": "ގއ.މާމެންދޫ",
+              "timing": "07:15:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ga.Kooddoo",
+              "dvstopName": "ގއ.ކޫއްޑޫ",
+              "timing": "07:30:00",
+              "order": 5
+            },
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "07:45:00",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 July 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "16:40:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Kooddoo",
+              "dvstopName": "ގއ.ކޫއްޑޫ",
+              "timing": "16:50:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ga.Maamendhoo",
+              "dvstopName": "ގއ.މާމެންދޫ",
+              "timing": "17:05:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ga.Nilandhoo",
+              "dvstopName": "ގއ.ނިލަންދޫ",
+              "timing": "17:30:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ga.Dhaandhoo",
+              "dvstopName": "ގއ.ދާންދޫ",
+              "timing": "17:45:00",
+              "order": 5
+            },
+            {
+              "stopName": "Ga.Dhevvadhoo",
+              "dvstopName": "ގއ.ދެއްވަދޫ",
+              "timing": "18:25:00",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 236,
+      "route_code": "Z5R3",
+      "route_name": "Ga.Kanduhulhudhoo - Ga.Villingili",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#0d62de",
+      "origin_stop": "Ga.Kanduhulhudhoo",
+      "destination_stop": "Ga.Villingili",
+      "stop_names": ["Ga.Kanduhulhudhoo", "Ga.Gemanafushi", "Ga.Kondey", "Ga.Kooddoo", "Ga.Villingili"],
+      "stop_names_dv": ["ގއ.ކަނޑުހުޅުދޫ", "ގއ.ގެމަނަފުށި", "ގއ.ކޮނޑޭ", "ގއ.ކޫއްޑޫ", "ގއ.ވިލިނގިލި"],
+      "schedule_entries": [
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Ga.Kanduhulhudhoo",
+              "dvstopName": "ގއ.ކަނޑުހުޅުދޫ",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Gemanafushi",
+              "dvstopName": "ގއ.ގެމަނަފުށި",
+              "timing": "06:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ga.Kondey",
+              "dvstopName": "ގއ.ކޮނޑޭ",
+              "timing": "06:40:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ga.Kooddoo",
+              "dvstopName": "ގއ.ކޫއްޑޫ",
+              "timing": "07:35:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "07:50:00",
+              "order": 5
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "16:45:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Kooddoo",
+              "dvstopName": "ގއ.ކޫއްޑޫ",
+              "timing": "16:55:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ga.Kondey",
+              "dvstopName": "ގއ.ކޮނޑޭ",
+              "timing": "17:50:00",
+              "order": 3
+            },
+            {
+              "stopName": "Ga.Gemanafushi",
+              "dvstopName": "ގއ.ގެމަނަފުށި",
+              "timing": "18:10:00",
+              "order": 4
+            },
+            {
+              "stopName": "Ga.Kanduhulhudhoo",
+              "dvstopName": "ގއ.ކަނޑުހުޅުދޫ",
+              "timing": "18:35:00",
+              "order": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 238,
+      "route_code": "Z5R10",
+      "route_name": "Gn.Fuvahmulah - Gdh.Vaadhoo",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#4f00ff",
+      "origin_stop": "Gn.Fuvahmulah",
+      "destination_stop": "Gdh.Vaadhoo",
+      "stop_names": ["Gn.Fuvahmulah", "Gdh.Faresmaathoda", "Gdh.Vaadhoo"],
+      "stop_names_dv": ["ޏ.ފުވައްމުލައް", "ގދ.ފަރެސްމާތޮޑާ", "ގދ.ވާދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "06:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "07:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "07:55:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "08:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "08:30:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "10:10:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "14:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "15:25:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "15:55:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Vaadhoo",
+              "dvstopName": "ގދ.ވާދޫ",
+              "timing": "16:10:00",
+              "order": 1
+            },
+            {
+              "stopName": "Gdh.Faresmaathoda",
+              "dvstopName": "ގދ.ފަރެސްމާތޮޑާ",
+              "timing": "16:30:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "18:10:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 183,
+      "route_code": "Z5R1",
+      "route_name": "Ga.Villingili - Gdh.Thinadhoo",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#39ad9c",
+      "origin_stop": "Ga.Villingili",
+      "destination_stop": "Gdh.Thinadhoo",
+      "stop_names": ["Ga.Villingili", "Ga.Dhevvadhoo", "Gdh.Thinadhoo"],
+      "stop_names_dv": ["ގއ.ވިލިނގިލި", "ގއ.ދެއްވަދޫ", "ގދ.ތިނަދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "08:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Dhevvadhoo",
+              "dvstopName": "ގއ.ދެއްވަދޫ",
+              "timing": "08:50:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gdh.Thinadhoo",
+              "dvstopName": "ގދ.ތިނަދޫ",
+              "timing": "09:35:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "28 March 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gdh.Thinadhoo",
+              "dvstopName": "ގދ.ތިނަދޫ",
+              "timing": "15:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Dhevvadhoo",
+              "dvstopName": "ގއ.ދެއްވަދޫ",
+              "timing": "15:40:00",
+              "order": 2
+            },
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "16:35:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 197,
+      "route_code": "Z5R8",
+      "route_name": "Ga.Villingili - Ga.Kooddoo",
+      "zone_code": "105",
+      "zone_name": "Zone 5",
+      "color": "#3d6c59",
+      "origin_stop": "Ga.Villingili",
+      "destination_stop": "Ga.Kooddoo",
+      "stop_names": ["Ga.Villingili", "Ga.Kooddoo"],
+      "stop_names_dv": ["ގއ.ވިލިނގިލި", "ގއ.ކޫއްޑޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "08:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Kooddoo",
+              "dvstopName": "ގއ.ކޫއްޑޫ",
+              "timing": "08:10:00",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 May 2026",
+          "stop_timings": [
+            {
+              "stopName": "Ga.Kooddoo",
+              "dvstopName": "ގއ.ކޫއްޑޫ",
+              "timing": "09:30:00",
+              "order": 1
+            },
+            {
+              "stopName": "Ga.Villingili",
+              "dvstopName": "ގއ.ވިލިނގިލި",
+              "timing": "09:40:00",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": 205,
+      "route_code": "Z6R2",
+      "route_name": "Gn.Fuvahmulah - S.Feydhoo",
+      "zone_code": "106",
+      "zone_name": "Zone 6",
+      "color": "#2c4fc7",
+      "origin_stop": "Gn.Fuvahmulah",
+      "destination_stop": "S.Feydhoo",
+      "stop_names": ["Gn.Fuvahmulah", "S.Hulhumeedhoo", "S.Feydhoo"],
+      "stop_names_dv": ["ޏ.ފުވައްމުލައް", "ސ.ހުޅުމީދޫ", "ސ.ފޭދޫ"],
+      "schedule_entries": [
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "07:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "S.Hulhumeedhoo",
+              "dvstopName": "ސ.ހުޅުމީދޫ",
+              "timing": "08:00:00",
+              "order": 2
+            },
+            {
+              "stopName": "S.Feydhoo",
+              "dvstopName": "ސ.ފޭދޫ",
+              "timing": "08:25:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": "SUN,MON,TUE,WED,THU,SAT",
+          "effective_from": "01 October 2026",
+          "stop_timings": [
+            {
+              "stopName": "S.Feydhoo",
+              "dvstopName": "ސ.ފޭދޫ",
+              "timing": "10:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "S.Hulhumeedhoo",
+              "dvstopName": "ސ.ހުޅުމީދޫ",
+              "timing": "10:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "11:25:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "11:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "S.Hulhumeedhoo",
+              "dvstopName": "ސ.ހުޅުމީދޫ",
+              "timing": "12:00:00",
+              "order": 2
+            },
+            {
+              "stopName": "S.Feydhoo",
+              "dvstopName": "ސ.ފޭދޫ",
+              "timing": "12:25:00",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "operating_days": null,
+          "effective_from": null,
+          "stop_timings": [
+            {
+              "stopName": "S.Feydhoo",
+              "dvstopName": "ސ.ފޭދޫ",
+              "timing": "16:00:00",
+              "order": 1
+            },
+            {
+              "stopName": "S.Hulhumeedhoo",
+              "dvstopName": "ސ.ހުޅުމީދޫ",
+              "timing": "16:20:00",
+              "order": 2
+            },
+            {
+              "stopName": "Gn.Fuvahmulah",
+              "dvstopName": "ޏ.ފުވައްމުލައް",
+              "timing": "17:25:00",
+              "order": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source_exports": [
+    {
+      "zone_code": "102",
+      "path": "raw/rtl-ferries/zone-102-schedule.pdf",
+      "source_url": "https://bo.rtl.mv:4455/maldives/api/booking/v2/ferryTrip/allSchedules/102",
+      "sha256": "a0e24dd78f630db5eedca7bb4218bdf2956763a440e21cec64f5407e9731e07b",
+      "bytes": 83401
+    },
+    {
+      "zone_code": "104",
+      "path": "raw/rtl-ferries/zone-104-schedule.pdf",
+      "source_url": "https://bo.rtl.mv:4455/maldives/api/booking/v2/ferryTrip/allSchedules/104",
+      "sha256": "03fa3c7a201f29cd63d41f759ea825d1e3d15347d7b3afdb47393db3c8694e87",
+      "bytes": 59259
+    },
+    {
+      "zone_code": "101",
+      "path": "raw/rtl-ferries/zone-101-schedule.pdf",
+      "source_url": "https://bo.rtl.mv:4455/maldives/api/booking/v2/ferryTrip/allSchedules/101",
+      "sha256": "ea7230b7838b2268f436959e43971c0f3b55ed6485bc2cc6f9a525784fc090d4",
+      "bytes": 75673
+    },
+    {
+      "zone_code": "105",
+      "path": "raw/rtl-ferries/zone-105-schedule.pdf",
+      "source_url": "https://bo.rtl.mv:4455/maldives/api/booking/v2/ferryTrip/allSchedules/105",
+      "sha256": "234dd2459fc94ad04d9e1829eb0fa4e2e6dfe681f76bdcd9ecc36cce8d86a9ff",
+      "bytes": 47970
+    },
+    {
+      "zone_code": "106",
+      "path": "raw/rtl-ferries/zone-106-schedule.pdf",
+      "source_url": "https://bo.rtl.mv:4455/maldives/api/booking/v2/ferryTrip/allSchedules/106",
+      "sha256": "5a2aa8a631ac288f57f1b204b0bf4811ea7480c1a8b52525747b730d423046c8",
+      "bytes": 7014
+    }
+  ],
+  "quality": {
+    "metadata_alignment_status": "reference_snapshot_or_missing",
+    "warnings": [
+      "Live PDF metadata was not parsed; schedule metadata was retained from the reference snapshot where available."
+    ],
+    "source_pdf_count": 5,
+    "schedule_entry_count": 104,
+    "schedule_stop_time_count": 409
+  }
+}

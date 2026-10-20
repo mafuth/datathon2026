@@ -1,8 +1,235 @@
 {
   "schema_version": "normalized-transport-connections-v1",
   "source": "OpenStreetMap",
-  "query": "[out:json][timeout:60];(way[\"bridge\"=\"yes\"](-1,72,8,74);way[\"bridge\"=\"viaduct\"](-1,72,8,74);way[\"man_made\"=\"causeway\"](-1,72,8,74););out tags geom;",
+  "generated_at": "2026-10-20T06:33:20.900Z",
+  "endpoint": "https://lz4.overpass-api.de/api/interpreter",
+  "query": "[out:json][timeout:120];(\n  way[\"bridge\"=\"yes\"](-1,72,8,74);\n  way[\"bridge\"=\"viaduct\"](-1,72,8,74);\n  way[\"man_made\"=\"causeway\"](-1,72,8,74);\n  way[\"highway\"][\"name\"~\"causeway\",i](-1,72,8,74);\n);out body geom;",
   "connections": [
+    {
+      "id": "osm:way:81459640",
+      "from_island_id": "island:692",
+      "to_island_id": "island:705",
+      "connection_type": "causeway",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 8204.814261971498,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5444153, 1.9426018],
+          [73.5444161, 1.9425145],
+          [73.544417, 1.9423993],
+          [73.5444176, 1.9418699],
+          [73.544415, 1.9412826],
+          [73.5444162, 1.9407476],
+          [73.5444164, 1.9406927],
+          [73.544406, 1.939501],
+          [73.5444042, 1.9386445],
+          [73.5444048, 1.9385533],
+          [73.5444087, 1.9384179],
+          [73.544409, 1.9379069],
+          [73.5444107, 1.9378576],
+          [73.5444087, 1.9376353],
+          [73.5444036, 1.9374151],
+          [73.5443899, 1.9368428],
+          [73.5443935, 1.9364118],
+          [73.544393, 1.9363652],
+          [73.5443942, 1.9358773],
+          [73.5443943, 1.9358263],
+          [73.5443829, 1.9356198],
+          [73.5443794, 1.9354001],
+          [73.5443848, 1.9348383],
+          [73.5443755, 1.9346768],
+          [73.5443841, 1.9344973],
+          [73.5443693, 1.9330642],
+          [73.544366, 1.9325905],
+          [73.5443592, 1.9314329],
+          [73.5443544, 1.9308215],
+          [73.5443477, 1.9302143],
+          [73.544355, 1.9295933],
+          [73.5443465, 1.929041],
+          [73.5443495, 1.928923],
+          [73.5443512, 1.9283252],
+          [73.5443424, 1.9277287],
+          [73.5443357, 1.926476],
+          [73.5443354, 1.9261788],
+          [73.5443351, 1.9258776],
+          [73.5443399, 1.9253683],
+          [73.5443297, 1.9241931],
+          [73.5443292, 1.9241002],
+          [73.5443213, 1.9230946],
+          [73.5443209, 1.9226352],
+          [73.5443152, 1.9221045],
+          [73.5443203, 1.9214396],
+          [73.5443149, 1.9207378],
+          [73.5439974, 1.9198784],
+          [73.5436644, 1.9189982],
+          [73.5436257, 1.9188894],
+          [73.5434053, 1.918291],
+          [73.5431042, 1.9175004],
+          [73.5430781, 1.9174317],
+          [73.5430431, 1.9173418],
+          [73.5428891, 1.9169131],
+          [73.5426712, 1.9163269],
+          [73.5425291, 1.915956],
+          [73.5423897, 1.9155665],
+          [73.5423648, 1.9154976],
+          [73.5423436, 1.915432],
+          [73.5421841, 1.9149986],
+          [73.5419158, 1.9142894],
+          [73.5417594, 1.9138595],
+          [73.5417283, 1.9137739],
+          [73.541484, 1.9131292],
+          [73.5413614, 1.9127834],
+          [73.5412147, 1.9124001],
+          [73.5410908, 1.9120665],
+          [73.5410574, 1.9119766],
+          [73.5409712, 1.911757],
+          [73.5408087, 1.9113287],
+          [73.5406528, 1.9108991],
+          [73.540555, 1.9106449],
+          [73.5404639, 1.9103894],
+          [73.5404488, 1.9103503],
+          [73.5403055, 1.9099725],
+          [73.5402397, 1.9098054],
+          [73.5400883, 1.9093881],
+          [73.539875, 1.908813],
+          [73.5396599, 1.9082328],
+          [73.5394362, 1.9076326],
+          [73.5393492, 1.9073952],
+          [73.539214, 1.9070261],
+          [73.5390275, 1.9065173],
+          [73.5387721, 1.9058418],
+          [73.5385241, 1.9051859],
+          [73.5385043, 1.905132],
+          [73.5383301, 1.9046585],
+          [73.5382969, 1.9045681],
+          [73.5382817, 1.9045264],
+          [73.5382511, 1.9044422],
+          [73.5381198, 1.90407],
+          [73.5379783, 1.9036691],
+          [73.5378622, 1.9033483],
+          [73.5376352, 1.9027354],
+          [73.5374944, 1.9023685],
+          [73.5372839, 1.9017743],
+          [73.5369949, 1.9009937],
+          [73.5369775, 1.9009468],
+          [73.5369337, 1.9008316],
+          [73.5367391, 1.9003651],
+          [73.5366776, 1.900225],
+          [73.5365572, 1.8999507],
+          [73.5363795, 1.8995784],
+          [73.5361636, 1.8991544],
+          [73.5359045, 1.8986457],
+          [73.5356568, 1.8980868],
+          [73.5354934, 1.8977312],
+          [73.5353025, 1.8973026],
+          [73.5350449, 1.8967338],
+          [73.5350261, 1.896688],
+          [73.534886, 1.8963853],
+          [73.5347894, 1.8961846],
+          [73.5347159, 1.8960307],
+          [73.5345749, 1.8957076],
+          [73.5344172, 1.8952985],
+          [73.5343489, 1.8950736],
+          [73.5342823, 1.8947765],
+          [73.5342323, 1.8945148],
+          [73.5341616, 1.8941768],
+          [73.5341124, 1.893941],
+          [73.5340283, 1.8935162],
+          [73.5338727, 1.8928177],
+          [73.5338476, 1.8927099],
+          [73.5337254, 1.8921849],
+          [73.5336876, 1.8920435],
+          [73.5336315, 1.891866],
+          [73.5335676, 1.8916925],
+          [73.5334724, 1.8914661],
+          [73.5333079, 1.8910933],
+          [73.5331369, 1.8906961],
+          [73.5329869, 1.8903741],
+          [73.5328555, 1.8900874],
+          [73.5326962, 1.8897226],
+          [73.5325236, 1.8893264],
+          [73.5323127, 1.8888633],
+          [73.5319256, 1.8880168],
+          [73.5318902, 1.8879394],
+          [73.5316364, 1.8873291],
+          [73.5312135, 1.8863603],
+          [73.5309166, 1.8857072],
+          [73.5306337, 1.8851046],
+          [73.5305094, 1.8848236],
+          [73.530351, 1.8844794],
+          [73.5302579, 1.8842772],
+          [73.5301204, 1.8839615],
+          [73.530048, 1.8838043],
+          [73.5299704, 1.8836497],
+          [73.5298378, 1.883397],
+          [73.5296974, 1.8831468],
+          [73.5295335, 1.8828845],
+          [73.5293644, 1.8826195],
+          [73.5291935, 1.8823699],
+          [73.5290178, 1.8821312],
+          [73.5288237, 1.8818897],
+          [73.5286956, 1.8817423],
+          [73.5285064, 1.8815311],
+          [73.5283106, 1.8813078],
+          [73.5282231, 1.881198],
+          [73.5281762, 1.881131],
+          [73.5281285, 1.8810497],
+          [73.5280971, 1.8809699],
+          [73.5280803, 1.8809119],
+          [73.5280687, 1.8808393],
+          [73.5280647, 1.8807938],
+          [73.5280699, 1.8807255],
+          [73.52808, 1.8806494],
+          [73.5280984, 1.8805858],
+          [73.5281293, 1.8805165],
+          [73.5281594, 1.8804592],
+          [73.5281856, 1.8804165],
+          [73.5282269, 1.8803579],
+          [73.5283382, 1.8802232],
+          [73.5285235, 1.8800336],
+          [73.528734, 1.8798108],
+          [73.5291586, 1.8793776],
+          [73.5295081, 1.8790251],
+          [73.5296248, 1.8788996],
+          [73.5296842, 1.8788215],
+          [73.5297316, 1.87874],
+          [73.5297622, 1.8786855],
+          [73.529788, 1.8786141],
+          [73.5298096, 1.8785271],
+          [73.5298181, 1.8784416],
+          [73.529817, 1.8783644],
+          [73.529801, 1.8782817],
+          [73.5297827, 1.8782086],
+          [73.5297048, 1.878028],
+          [73.5294904, 1.8775869],
+          [73.5292477, 1.8770876],
+          [73.5288417, 1.8762665],
+          [73.5285745, 1.8756885],
+          [73.5285253, 1.8755824],
+          [73.5284962, 1.8755188],
+          [73.5282358, 1.874954],
+          [73.5279539, 1.874374],
+          [73.5276053, 1.87362],
+          [73.5272642, 1.8729081],
+          [73.5268711, 1.8720789],
+          [73.5267074, 1.8717351],
+          [73.5266556, 1.8716307],
+          [73.5266124, 1.8715456],
+          [73.5265546, 1.8714438],
+          [73.5264901, 1.8713387],
+          [73.5264255, 1.8712551],
+          [73.5263402, 1.8711605],
+          [73.5262999, 1.8711207],
+          [73.526256, 1.871081]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:81459640",
+      "modeled": false,
+      "name": "Causeway (Sinaaee Magu)"
+    },
     {
       "id": "osm:way:150401745",
       "from_island_id": "island:1129",
@@ -144,6 +371,37 @@
       "source_object_id": "osm:way:151370066",
       "modeled": false,
       "name": null
+    },
+    {
+      "id": "osm:way:210861928",
+      "from_island_id": "island:706",
+      "to_island_id": "island:704",
+      "connection_type": "causeway",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 624.7963717213443,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5161808, 1.8527209],
+          [73.5159878, 1.8526054],
+          [73.5158114, 1.8525027],
+          [73.5145331, 1.8517557],
+          [73.5134276, 1.8511157],
+          [73.5128522, 1.8507791],
+          [73.5123222, 1.8504711],
+          [73.5121102, 1.8503439],
+          [73.5119213, 1.8502182],
+          [73.5117775, 1.8501137],
+          [73.5116352, 1.8499968],
+          [73.5115251, 1.8498993],
+          [73.5113939, 1.8497744]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:210861928",
+      "modeled": false,
+      "name": "Causeway"
     },
     {
       "id": "osm:way:318417247",
@@ -510,6 +768,31 @@
       "name": "Haadhoo-Bridge"
     },
     {
+      "id": "osm:way:1450811103",
+      "from_island_id": "island:607",
+      "to_island_id": "island:483",
+      "connection_type": "causeway",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 489.0619356275479,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [72.999186, 0.4545604],
+          [72.9998467, 0.4525412],
+          [72.9998941, 0.4524795],
+          [73.0004352, 0.4517767],
+          [73.0013202, 0.4509038],
+          [73.0013763, 0.4508459],
+          [73.0014427, 0.4507852]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1450811103",
+      "modeled": false,
+      "name": "Madaveli-Hoadedhdhoo Causeway"
+    },
+    {
       "id": "osm:way:1462731870",
       "from_island_id": "island:706",
       "to_island_id": "island:705",
@@ -533,466 +816,6 @@
       "source_object_id": "osm:way:1462731870",
       "modeled": false,
       "name": null
-    },
-    {
-      "id": "modeled:airport:island-649:hulhule",
-      "from_island_id": "island:649",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [72.8961103, 6.9708231],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrah",
-      "modeled": true,
-      "name": "Hoarafushi Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-680:hulhule",
-      "from_island_id": "island:680",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.0669582, 6.6312667],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrbk",
-      "modeled": true,
-      "name": "Kulhudhuffushi Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1171:hulhule",
-      "from_island_id": "island:1171",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.2877102, 6.1618243],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrcf",
-      "modeled": true,
-      "name": "Funadhoo Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-952:hulhule",
-      "from_island_id": "island:952",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.4685956, 5.8184196],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrda",
-      "modeled": true,
-      "name": "Maafaru Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1061:hulhule",
-      "from_island_id": "island:1061",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.0252199, 5.7076162],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrei",
-      "modeled": true,
-      "name": "Ifuru Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-792:hulhule",
-      "from_island_id": "island:792",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.3698816, 5.4582589],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrgd",
-      "modeled": true,
-      "name": "Madivaru Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-868:hulhule",
-      "from_island_id": "island:868",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.583034, 2.910826],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrkm",
-      "modeled": true,
-      "name": "Muli Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-188:hulhule",
-      "from_island_id": "island:188",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.130774, 5.156465],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmd",
-      "modeled": true,
-      "name": "Dharavandhoo Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1128:hulhule",
-      "from_island_id": "island:1128",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.1557259, -0.690811],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmg",
-      "modeled": true,
-      "name": "Gan International Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-684:hulhule",
-      "from_island_id": "island:684",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.1678184, 6.7452749],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmh",
-      "modeled": true,
-      "name": "Hanimaadhoo Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-370:hulhule",
-      "from_island_id": "island:370",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.4343885, 0.7328555],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmo",
-      "modeled": true,
-      "name": "Kooddoo Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1334:hulhule",
-      "from_island_id": "island:1334",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.4333699, -0.3090305],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmr",
-      "modeled": true,
-      "name": "Fuvahmulah Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-478:hulhule",
-      "from_island_id": "island:478",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [72.9959148, 0.4886475],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmt",
-      "modeled": true,
-      "name": "Kaadedhdhoo Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-260:hulhule",
-      "from_island_id": "island:260",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [72.8871628, 2.6670769],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmu",
-      "modeled": true,
-      "name": "Dhaalu Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1552:hulhule",
-      "from_island_id": "island:1552",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [72.836499, 3.4728835],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrmv",
-      "modeled": true,
-      "name": "Villa International Airport Maamigili to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1252:hulhule",
-      "from_island_id": "island:1252",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.1524596, 2.2124794],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrnt",
-      "modeled": true,
-      "name": "Thimarafushi Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-452:hulhule",
-      "from_island_id": "island:452",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.51234, 0.3384098],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrom",
-      "modeled": true,
-      "name": "Maavarulu Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-541:hulhule",
-      "from_island_id": "island:541",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.1949209, 0.1938949],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "airport:vrqf",
-      "modeled": true,
-      "name": "Faresmaathodaa Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-51:hulhule",
-      "from_island_id": "island:51",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.4901174, 3.6487298],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "osm:way:207073193",
-      "modeled": true,
-      "name": "Landing Dhiggiri to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-706:hulhule",
-      "from_island_id": "island:706",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.5207748, 1.8593773],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "osm:way:318417225",
-      "modeled": true,
-      "name": "Kadhdhoo Airport to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-10:hulhule",
-      "from_island_id": "island:10",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [72.8870973, 4.0751457],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "osm:way:364296622",
-      "modeled": true,
-      "name": "Landing Maayafushi to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-1442:hulhule",
-      "from_island_id": "island:1442",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.5361866, 4.1956433],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "osm:way:870478342",
-      "modeled": true,
-      "name": "Hulhumale Waterdrome to Hulhule Airport"
-    },
-    {
-      "id": "modeled:airport:island-165:hulhule",
-      "from_island_id": "island:165",
-      "to_island_id": "island:1483",
-      "connection_type": "air",
-      "directionality": "bidirectional",
-      "sequence": null,
-      "distance_m": null,
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [73.1166633, 5.2349308],
-          [73.5288562, 4.1917944]
-        ]
-      },
-      "source": "Modeled airport gateway link",
-      "source_object_id": "osm:way:978090098",
-      "modeled": true,
-      "name": "Amilla Floating Air Terminal to Hulhule Airport"
     }
   ]
 }

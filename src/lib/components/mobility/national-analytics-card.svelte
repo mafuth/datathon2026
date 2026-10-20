@@ -1,5 +1,6 @@
 <script lang="ts">
   import Hospital from '@lucide/svelte/icons/hospital';
+  import Route from '@lucide/svelte/icons/route';
   import School from '@lucide/svelte/icons/school';
   import Ship from '@lucide/svelte/icons/ship';
   import Users from '@lucide/svelte/icons/users';
@@ -24,6 +25,83 @@
     limitations: string[];
   };
 
+  type DemandMetric = {
+    local: number;
+    inbound: number;
+    outbound: number;
+    unserved: number;
+    combined: number;
+    demandPercent: number | null;
+    outboundPercent: number | null;
+  };
+
+  type HealthCareDemand = {
+    children: DemandMetric | null;
+    elderly: DemandMetric | null;
+  };
+
+  type DemandSummary = {
+    population: number | null;
+    health: DemandMetric;
+    education: DemandMetric;
+    healthCareDemand: HealthCareDemand;
+    healthByNeed: Record<string, DemandMetric>;
+    educationByNeed: Record<string, DemandMetric>;
+    localTotal: number;
+    inboundTotal: number;
+    outboundTotal: number;
+    unservedTotal: number;
+    combinedTotal: number;
+    inboundSources: DemandSource[];
+  };
+
+  type DemandSource = {
+    originIslandId: string;
+    originName: string;
+    originAtollName: string;
+    health: number;
+    education: number;
+    total: number;
+  };
+
+  type TransportDemandStop = {
+    stopId: string;
+    stopName: string | null;
+    subtype: string;
+    mode: 'land' | 'marine' | 'air';
+    connectedIslandIds: string[];
+    localDemand: number;
+    connectedDemand: number;
+    workingDemand: number;
+    studentDemand: number;
+    elderlyDemand: number;
+    careTransferDemand: number;
+    totalDemand: number;
+    capacity: number;
+    loadRatio: number;
+    score: number;
+  };
+
+  type TransportDemandSummary = {
+    workingDemand: number;
+    studentDemand: number;
+    elderlyDemand: number;
+    careTransferDemand: number;
+    totalDemand: number;
+    averageLoad: number | null;
+    score: number | null;
+    modes: Record<
+      string,
+      {
+        stopCount: number;
+        totalDemand: number;
+        careTransferDemand: number;
+        averageLoad: number | null;
+        score: number | null;
+      }
+    >;
+  };
+
   export type AnalyticsIsland = {
     id: string;
     name: string;
@@ -34,11 +112,37 @@
     health: ComponentScore;
     education: ComponentScore;
     transport: ComponentScore;
-    crowdedness: { score: number | null; population: number | null; pressure: number | null };
+    crowdedness: {
+      score: number | null;
+      population: number | null;
+      pressure: number | null;
+      populationDensity: number | null;
+      landAreaKm2: number | null;
+    };
+    transportModes: {
+      land: ComponentScore;
+      marine: ComponentScore;
+      air: ComponentScore;
+    };
+    transportDemand: TransportDemandSummary & { stops: TransportDemandStop[] };
     demand: {
-      health: number | null;
-      education: number | null;
-      total: number;
+      score: number | null;
+      status: string;
+      coverageRatio: number;
+      population: number | null;
+      health: DemandMetric;
+      education: DemandMetric;
+      healthCareDemand: HealthCareDemand;
+      healthByNeed: Record<string, DemandMetric>;
+      educationByNeed: Record<string, DemandMetric>;
+      localTotal: number;
+      inboundTotal: number;
+      outboundTotal: number;
+      unservedTotal: number;
+      combinedTotal: number;
+      inboundSources: DemandSource[];
+      inboundHealthPressure: number | null;
+      inboundEducationPressure: number | null;
       healthPressure: number | null;
       educationPressure: number | null;
     };
@@ -63,11 +167,14 @@
       unavailableIslandCount: number;
       categories: Record<string, ComponentScore>;
       limitations: string[];
+      demand: DemandSummary;
+      transportDemand: TransportDemandSummary;
     };
     population: { total: number; children: number; adolescents: number; youth: number; elderly: number };
     islands: AnalyticsIsland[];
     rankings: {
       demand: string[];
+      outbound: string[];
       underserved: string[];
       overall: string[];
       health: string[];
@@ -155,7 +262,7 @@
         score: category.externalDemand?.score ?? null,
         status: category.externalDemand?.status ?? 'unavailable',
         coverage: category.externalDemand?.coverageRatio ?? 0,
-        note: 'Estimated reachable population need'
+        note: 'Combined local and inbound service pressure'
       }
     ];
   });
@@ -167,6 +274,11 @@
   );
   let demandIslands = $derived(
     (data?.rankings.demand ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
+  );
+  let outboundIslands = $derived(
+    (data?.rankings.outbound ?? [])
       .map((id) => data?.islands.find((island) => island.id === id))
       .filter((island): island is AnalyticsIsland => island !== undefined)
   );
@@ -193,12 +305,27 @@
     return value === null ? 'N/A' : Math.round(value).toLocaleString();
   }
 
+  function outboundShare(island: AnalyticsIsland): number | null {
+    if (island.population === null || island.population <= 0) return null;
+    return Math.min(100, (island.demand.outboundTotal / island.population) * 100);
+  }
+
   function driverWidth(value: number | null): number {
     return value === null ? 0 : Math.min(100, Math.max(0, value));
   }
 
   function islandLabel(island: AnalyticsIsland): string {
     return `${island.atollName} ${island.name}`;
+  }
+
+  function sourceIsland(source: DemandSource): AnalyticsIsland | null {
+    return data?.islands.find((island) => island.id === source.originIslandId) ?? null;
+  }
+
+  function sourceShare(source: DemandSource): number | null {
+    const island = sourceIsland(source);
+    if (!island || island.population === null || island.population <= 0) return null;
+    return Math.min(100, (source.total / island.population) * 100);
   }
 
   function categoryIcon(key: string) {
@@ -404,6 +531,25 @@
                   </div>
                 {/each}
               </div>
+              <div class="demand-summary">
+                <span>Local age-cohort demand <strong>{number(data.national.demand.localTotal)}</strong></span>
+                <span>Inbound age-cohort demand <strong>{number(data.national.demand.inboundTotal)}</strong></span>
+                <span>Outbound age-cohort demand <strong>{number(data.national.demand.outboundTotal)}</strong></span>
+                <span
+                  >Elderly hospital outbound <strong
+                    >{number(data.national.demand.healthCareDemand.elderly?.outbound ?? 0)}</strong
+                  ></span
+                >
+                <span
+                  >Elderly care unserved <strong
+                    >{number(data.national.demand.healthCareDemand.elderly?.unserved ?? 0)}</strong
+                  ></span
+                >
+                <span
+                  >Average transport load <strong>{percentage(data.national.transportDemand.averageLoad)}</strong></span
+                >
+                <span>Transport demand score <strong>{percentage(data.national.transportDemand.score)}</strong></span>
+              </div>
             </Card.Root>
 
             <Card.Root class="insight-card" size="sm">
@@ -419,7 +565,7 @@
                   <Button class="mini-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}
                     ><span
                       ><strong>{islandLabel(island)}</strong><small
-                        >{number(island.demand.total)} inbound estimated need</small
+                        >{number(island.demand.inboundTotal)} inbound age-cohort demand</small
                       ></span
                     ><b>&gt;</b></Button
                   >
@@ -427,6 +573,59 @@
               </div>
             </Card.Root>
           </div>
+
+          <Card.Root class="insight-card ranking-card" size="sm">
+            <div class="panel-heading">
+              <div>
+                <h3>Outbound service dependence</h3>
+                <p>Resident demand routed to services on another island</p>
+              </div>
+              <Route size={17} strokeWidth={2.2} />
+            </div>
+            <div class="mini-list">
+              {#each outboundIslands as island (island.id)}
+                <Button class="mini-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+                  <span>
+                    <strong>{islandLabel(island)}</strong>
+                    <small>{number(island.demand.outboundTotal)} outbound demand</small>
+                  </span>
+                  <b>{percentage(outboundShare(island))}</b>
+                </Button>
+              {/each}
+            </div>
+          </Card.Root>
+
+          <Card.Root class="insight-card ranking-card" size="sm">
+            <div class="panel-heading">
+              <div>
+                <h3>Inbound demand origins</h3>
+                <p>Islands sending service demand, highest to lowest</p>
+              </div>
+              <Route size={17} strokeWidth={2.2} />
+            </div>
+            <div class="ranking-list">
+              {#each data.national.demand.inboundSources as source (source.originIslandId)}
+                {@const origin = sourceIsland(source)}
+                <Button
+                  class="ranking-row"
+                  variant="ghost"
+                  type="button"
+                  disabled={!origin}
+                  onclick={() => {
+                    if (origin) onIslandSelect(origin);
+                  }}
+                >
+                  <span>
+                    <strong>{source.originAtollName} {source.originName}</strong>
+                    <small>{number(source.total)} outbound service demand</small>
+                  </span>
+                  <b>{percentage(sourceShare(source))}</b>
+                </Button>
+              {:else}
+                <p class="analytics-state">No inbound demand origins are available.</p>
+              {/each}
+            </div>
+          </Card.Root>
 
           <Card.Root class="insight-card ranking-card" size="sm">
             <div class="panel-heading">
@@ -441,7 +640,8 @@
                 <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
                   <span
                     ><strong>{islandLabel(island)}</strong><small
-                      >Overall {percentage(island.overall.score)} - demand {number(island.demand.total)}</small
+                      >Overall {percentage(island.overall.score)} - inbound {number(island.demand.inboundTotal)} · outbound
+                      {percentage(outboundShare(island))}</small
                     ></span
                   >
                   <b>{percentage(island.overall.score)}</b>
@@ -696,6 +896,24 @@
     height: 100%;
     border-radius: inherit;
     background: #101820;
+  }
+  .demand-summary {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.72rem;
+    padding-top: 0.62rem;
+    border-top: 1px solid #e4e8e5;
+    color: #5d6260;
+    font-size: 0.57rem;
+  }
+  .demand-summary span {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .demand-summary strong {
+    color: #101820;
+    font-variant-numeric: tabular-nums;
   }
   .mini-list,
   .ranking-list {

@@ -1,0 +1,16 @@
+{
+  "schema_version": "osm-mobility-manifest-v1",
+  "generated_at": "2026-10-20T06:58:54.072Z",
+  "user_agent": "MobilitySandboxMV/0.1 (contact: mafaaz708+osm@gmail.com)",
+  "source": "OpenStreetMap",
+  "services": {
+    "endpoints": ["https://lz4.overpass-api.de/api/interpreter", "https://lz4.overpass-api.de/api/interpreter"],
+    "count": 5327
+  },
+  "marine_query": "[out:json][timeout:120];(\n  nwr[\"amenity\"=\"ferry_terminal\"](-1,72,8,74);\n  nwr[\"amenity\"=\"marina\"](-1,72,8,74);\n  nwr[\"amenity\"=\"boat_rental\"](-1,72,8,74);\n  nwr[\"harbour\"=\"yes\"](-1,72,8,74);\n  nwr[\"landuse\"=\"harbour\"](-1,72,8,74);\n  nwr[\"leisure\"=\"marina\"](-1,72,8,74);\n  nwr[\"waterway\"=\"boatyard\"](-1,72,8,74);\n  nwr[\"waterway\"=\"dock\"](-1,72,8,74);\n  nwr[\"man_made\"=\"pier\"](-1,72,8,74);\n  nwr[\"man_made\"=\"jetty\"](-1,72,8,74);\n  nwr[\"man_made\"=\"slipway\"](-1,72,8,74);\n  nwr[\"man_made\"=\"breakwater\"](-1,72,8,74);\n  nwr[\"man_made\"=\"dock\"](-1,72,8,74);\n  nwr[\"pier\"=\"yes\"](-1,72,8,74);\n  nwr[\"seamark:type\"~\"harbour|small_craft_harbour|pier|jetty\",i](-1,72,8,74);\n  nwr[\"seamark:harbour:category\"](-1,72,8,74);\n  nwr[\"public_transport\"=\"platform\"][\"ferry\"=\"yes\"](-1,72,8,74);\n  nwr[\"public_transport\"=\"stop_position\"][\"ferry\"=\"yes\"](-1,72,8,74);\n  nwr[\"ferry\"=\"yes\"](-1,72,8,74);\n  nwr[\"scuba_diving:entry:boat\"=\"yes\"](-1,72,8,74);\n);out body geom;",
+  "marine_services": 4780,
+  "ferry_routes": {
+    "endpoints": ["https://lz4.overpass-api.de/api/interpreter", "https://lz4.overpass-api.de/api/interpreter"],
+    "count": 130
+  }
+}
