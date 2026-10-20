@@ -210,10 +210,9 @@
           paint: {
             'circle-color': scoreColor,
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 4.4, 5, 5.4, 7, 6.4, 10, 6.8, 11],
-            'circle-opacity': ['interpolate', ['linear'], ['zoom'], 4.4, 0.72, 5.8, 0.58, 6.8, 0],
-            'circle-blur': 0.12,
-            'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 4.4, 0.55, 6.4, 0.9]
+            'circle-opacity': ['interpolate', ['linear'], ['zoom'], 4.4, 0.58, 5.8, 0.46, 6.8, 0],
+            'circle-blur': 0.34,
+            'circle-stroke-width': 0
           }
         },
         {
@@ -338,12 +337,15 @@
       );
       const scoreFields: ScoreFieldCollection = {
         type: 'FeatureCollection',
-        features: islands.features.map((island) => ({
-          type: 'Feature',
-          id: island.id,
-          geometry: { type: 'Point', coordinates: island.properties.centroid ?? [0, 0] },
-          properties: { score: island.properties.score ?? 0 }
-        }))
+        features: islands.features.flatMap((island) => {
+          if (island.properties.scoreStatus !== 'numeric' || island.properties.score === null) return [];
+          return {
+            type: 'Feature',
+            id: island.id,
+            geometry: { type: 'Point', coordinates: island.properties.centroid ?? [0, 0] },
+            properties: { score: island.properties.score }
+          };
+        })
       };
       (
         mapInstance?.getSource('score-fields') as { setData: (data: ScoreFieldCollection) => void } | undefined

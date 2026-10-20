@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 
 import { Atoll, Island } from '$lib/db/models';
 import db from '$lib/server/database';
+import { buildAnalyticsRankings } from '$lib/server/scoring/analytics-rankings';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { getNationalScore } from '$lib/server/scoring/national-score';
 
@@ -94,6 +95,17 @@ export const GET: RequestHandler = async () => {
     };
   });
 
+  const rankingInputs = islands.map((island) => ({
+    id: island.id,
+    overall: island.overall.score,
+    health: island.health.score,
+    education: island.education.score,
+    transport: island.transport.score,
+    demand: island.demand.total,
+    pressure: Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0)
+  }));
+  const rankings = buildAnalyticsRankings(rankingInputs);
+
   return json({
     national: {
       score: national.score,
@@ -113,6 +125,7 @@ export const GET: RequestHandler = async () => {
       limitations: national.limitations
     },
     population,
-    islands
+    islands,
+    rankings
   });
 };

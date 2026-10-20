@@ -66,6 +66,14 @@
     };
     population: { total: number; children: number; adolescents: number; youth: number; elderly: number };
     islands: AnalyticsIsland[];
+    rankings: {
+      demand: string[];
+      underserved: string[];
+      overall: string[];
+      health: string[];
+      education: string[];
+      transport: string[];
+    };
   };
 
   type Driver = {
@@ -153,22 +161,20 @@
   });
 
   let categoryIslands = $derived(
-    [...(data?.islands ?? [])]
-      .filter((island) => island[selectedCategory].score !== null)
-      .sort((left, right) => (left[selectedCategory].score ?? 101) - (right[selectedCategory].score ?? 101))
-      .slice(0, 4)
+    (data?.rankings[selectedCategory] ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
   );
   let demandIslands = $derived(
-    [...(data?.islands ?? [])].sort((left, right) => right.demand.total - left.demand.total).slice(0, 3)
+    (data?.rankings.demand ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
   );
   let underservedIslands = $derived(
-    [...(data?.islands ?? [])].sort((left, right) => underservedScore(right) - underservedScore(left)).slice(0, 4)
+    (data?.rankings.underserved ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
   );
-
-  function underservedScore(island: AnalyticsIsland): number {
-    const pressure = Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0);
-    return (100 - (island.overall.score ?? 100)) * (1 + pressure);
-  }
 
   function percentage(value: number | null): string {
     return value === null ? 'N/A' : `${Math.round(value)}%`;
@@ -180,18 +186,7 @@
   ): string {
     const component = island[category];
     if (component.score !== 0) return percentage(component.score);
-    const evidence =
-      category === 'overall'
-        ? island.evidence.healthServices +
-          island.evidence.educationServices +
-          island.evidence.transportServices +
-          island.evidence.transportConnections
-        : category === 'health'
-          ? island.evidence.healthServices
-          : category === 'education'
-            ? island.evidence.educationServices
-            : island.evidence.transportServices + island.evidence.transportConnections;
-    return evidence === 0 ? '0% - no evidence' : '0%';
+    return '0%';
   }
 
   function number(value: number | null): string {
@@ -229,7 +224,6 @@
         <section class="why-score" aria-labelledby="national-why-score-heading">
           <div class="why-heading">
             <div>
-              <p class="eyebrow">National accessibility</p>
               {#if loading}
                 <div id="national-why-score-heading" class="loading-title-wrap" aria-label="Loading national score">
                   <Skeleton class="loading-title" />
@@ -242,11 +236,6 @@
                     Why {percentage(data.national.score)}?
                   {/if}
                 </h2>
-              {/if}
-              {#if loading}
-                <Skeleton class="loading-caption" />
-              {:else}
-                <p class="analytics-caption">The people, access, and pressure behind the national score.</p>
               {/if}
             </div>
             <Button
@@ -262,44 +251,49 @@
             </Button>
           </div>
 
-          {#if loading}
-            <div class="driver-list" role="status" aria-label="Loading national analytics">
-              {#each driverSkeletons as label (label)}
-                <div class="driver-row">
-                  <div class="driver-topline"><Skeleton class="loading-label" /><Skeleton class="loading-badge" /></div>
-                  <Skeleton class="loading-progress" /><Skeleton class="loading-note" />
-                </div>
-              {/each}
-            </div>
-          {:else if error}
-            <p class="analytics-state analytics-error" role="alert">{error}</p>
-          {:else if data}
-            <div class="driver-heading">
-              <div>
-                <h3>Score drivers</h3>
-                <p>Each factor is weighted by the population it serves.</p>
-              </div>
-              <Badge class="status-badge" variant="outline">{data.national.status}</Badge>
-            </div>
-            <div class="driver-list">
-              {#each drivers as driver (driver.key)}
-                {@const Icon = categoryIcon(driver.key)}
-                <div class="driver-row">
-                  <div class="driver-topline">
-                    <span class="driver-label"><Icon size={15} strokeWidth={2.2} />{driver.label}</span>
-                    <Badge class={`driver-badge ${driver.status}`} variant="outline">{percentage(driver.score)}</Badge>
+          <Card.Root class="insight-card score-drivers-card" size="sm">
+            {#if loading}
+              <div class="driver-list" role="status" aria-label="Loading national analytics">
+                {#each driverSkeletons as label (label)}
+                  <div class="driver-row">
+                    <div class="driver-topline">
+                      <Skeleton class="loading-label" /><Skeleton class="loading-badge" />
+                    </div>
+                    <Skeleton class="loading-progress" /><Skeleton class="loading-note" />
                   </div>
-                  <Progress
-                    class={`driver-progress ${driver.status}`}
-                    value={driverWidth(driver.score)}
-                    max={100}
-                    aria-label={`${driver.label} score`}
-                  />
-                  <span class="driver-note">{driver.note} - {Math.round(driver.coverage * 100)}% coverage</span>
+                {/each}
+              </div>
+            {:else if error}
+              <p class="analytics-state analytics-error" role="alert">{error}</p>
+            {:else if data}
+              <div class="driver-heading">
+                <div>
+                  <h3>Score drivers</h3>
+                  <p>Each factor is weighted by the population it serves.</p>
                 </div>
-              {/each}
-            </div>
-          {/if}
+                <Badge class="status-badge" variant="outline">{data.national.status}</Badge>
+              </div>
+              <div class="driver-list">
+                {#each drivers as driver (driver.key)}
+                  {@const Icon = categoryIcon(driver.key)}
+                  <div class="driver-row">
+                    <div class="driver-topline">
+                      <span class="driver-label"><Icon size={15} strokeWidth={2.2} />{driver.label}</span>
+                      <Badge class={`driver-badge ${driver.status}`} variant="outline">{percentage(driver.score)}</Badge
+                      >
+                    </div>
+                    <Progress
+                      class={`driver-progress ${driver.status}`}
+                      value={driverWidth(driver.score)}
+                      max={100}
+                      aria-label={`${driver.label} score`}
+                    />
+                    <span class="driver-note">{driver.note} - {Math.round(driver.coverage * 100)}% coverage</span>
+                  </div>
+                {/each}
+              </div>
+            {/if}
+          </Card.Root>
         </section>
 
         {#if loading}
@@ -524,6 +518,7 @@
     border: 1px solid #e0e5e2;
     border-radius: 0.55rem;
     background: #fbfcfb;
+    box-shadow: 0 0.2rem 0.7rem rgb(16 24 32 / 5%);
   }
   .why-heading,
   .driver-heading,
@@ -537,29 +532,14 @@
     align-items: flex-start;
     min-height: 0;
   }
-  .eyebrow {
-    margin: 0 0 0.35rem;
-    color: #101820;
-    font-size: 0.61rem;
-    font-weight: 900;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
-  }
   .why-heading h2 {
     max-width: 22rem;
     margin: 0.16rem 0 0;
     color: #101820;
-    font-size: clamp(1.55rem, 2.8vw, 2rem);
-    font-weight: 900;
+    font-size: clamp(1.7rem, 3vw, 2.15rem);
+    font-weight: 950;
     letter-spacing: -0.045em;
-    line-height: 1;
-  }
-  .analytics-caption {
-    max-width: 22rem;
-    margin: 0.4rem 0 0;
-    color: #5d6260;
-    font-size: 0.68rem;
-    line-height: 1.35;
+    line-height: 0.98;
   }
   :global(.close-button) {
     display: grid;
@@ -584,7 +564,6 @@
   }
   .driver-heading {
     align-items: center;
-    margin-top: 1.1rem;
   }
   .driver-heading h3,
   .panel-heading h3 {
@@ -669,11 +648,14 @@
   :global(.insight-card) {
     min-width: 0;
     padding: 0.72rem;
-    border: 0;
+    border: 1px solid #dce3df;
     border-radius: 0.42rem;
-    background: #f6f7f6;
+    background: #fff;
     color: #101820;
-    box-shadow: none;
+    box-shadow: 0 0.2rem 0.7rem rgb(16 24 32 / 5%);
+  }
+  :global(.score-drivers-card) {
+    margin-top: 0.75rem;
   }
   :global(.panel-heading svg) {
     flex: 0 0 auto;
@@ -927,11 +909,6 @@
   }
   .loading-title-wrap {
     height: 1.35rem;
-  }
-  :global(.loading-caption) {
-    width: 13rem;
-    height: 0.55rem;
-    margin-top: 0.45rem;
   }
   :global(.loading-label) {
     width: 6rem;

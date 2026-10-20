@@ -7,6 +7,7 @@ import {
   confirmedServiceMappings
 } from '../../src/lib/server/mobility/reviewed-service-overlay';
 import { classifyZeroScore } from '../../src/lib/server/scoring/analytics-coverage';
+import { buildAnalyticsRankings } from '../../src/lib/server/scoring/analytics-rankings';
 
 describe('reviewed mobility mappings', () => {
   it('promotes only confirmed rows and leaves non-confirmed rows out', () => {
@@ -84,5 +85,24 @@ describe('analytics data gaps', () => {
         transportConnectionCount: 0
       })
     ).toBe('missing_connection');
+  });
+});
+
+describe('database-backed analytics rankings', () => {
+  it('orders rankings on the server from calculated score fields', () => {
+    expect(
+      buildAnalyticsRankings([
+        { id: 'a', overall: 20, health: 40, education: 30, transport: 10, demand: 5, pressure: 0.1 },
+        { id: 'b', overall: 60, health: 10, education: 50, transport: 40, demand: 20, pressure: 0.2 },
+        { id: 'c', overall: null, health: null, education: null, transport: null, demand: 0, pressure: 0 }
+      ])
+    ).toMatchObject({
+      demand: ['b', 'a'],
+      underserved: ['a', 'b', 'c'],
+      overall: ['a', 'b'],
+      health: ['b', 'a'],
+      education: ['a', 'b'],
+      transport: ['a', 'b']
+    });
   });
 });

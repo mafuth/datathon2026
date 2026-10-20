@@ -533,6 +533,466 @@
       "source_object_id": "osm:way:1462731870",
       "modeled": false,
       "name": null
+    },
+    {
+      "id": "modeled:airport:island-649:hulhule",
+      "from_island_id": "island:649",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [72.8961103, 6.9708231],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrah",
+      "modeled": true,
+      "name": "Hoarafushi Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-680:hulhule",
+      "from_island_id": "island:680",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.0669582, 6.6312667],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrbk",
+      "modeled": true,
+      "name": "Kulhudhuffushi Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1171:hulhule",
+      "from_island_id": "island:1171",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.2877102, 6.1618243],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrcf",
+      "modeled": true,
+      "name": "Funadhoo Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-952:hulhule",
+      "from_island_id": "island:952",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4685956, 5.8184196],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrda",
+      "modeled": true,
+      "name": "Maafaru Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1061:hulhule",
+      "from_island_id": "island:1061",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.0252199, 5.7076162],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrei",
+      "modeled": true,
+      "name": "Ifuru Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-792:hulhule",
+      "from_island_id": "island:792",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.3698816, 5.4582589],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrgd",
+      "modeled": true,
+      "name": "Madivaru Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-868:hulhule",
+      "from_island_id": "island:868",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.583034, 2.910826],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrkm",
+      "modeled": true,
+      "name": "Muli Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-188:hulhule",
+      "from_island_id": "island:188",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.130774, 5.156465],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmd",
+      "modeled": true,
+      "name": "Dharavandhoo Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1128:hulhule",
+      "from_island_id": "island:1128",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1557259, -0.690811],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmg",
+      "modeled": true,
+      "name": "Gan International Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-684:hulhule",
+      "from_island_id": "island:684",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1678184, 6.7452749],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmh",
+      "modeled": true,
+      "name": "Hanimaadhoo Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-370:hulhule",
+      "from_island_id": "island:370",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4343885, 0.7328555],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmo",
+      "modeled": true,
+      "name": "Kooddoo Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1334:hulhule",
+      "from_island_id": "island:1334",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4333699, -0.3090305],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmr",
+      "modeled": true,
+      "name": "Fuvahmulah Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-478:hulhule",
+      "from_island_id": "island:478",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [72.9959148, 0.4886475],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmt",
+      "modeled": true,
+      "name": "Kaadedhdhoo Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-260:hulhule",
+      "from_island_id": "island:260",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [72.8871628, 2.6670769],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmu",
+      "modeled": true,
+      "name": "Dhaalu Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1552:hulhule",
+      "from_island_id": "island:1552",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [72.836499, 3.4728835],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrmv",
+      "modeled": true,
+      "name": "Villa International Airport Maamigili to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1252:hulhule",
+      "from_island_id": "island:1252",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1524596, 2.2124794],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrnt",
+      "modeled": true,
+      "name": "Thimarafushi Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-452:hulhule",
+      "from_island_id": "island:452",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.51234, 0.3384098],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrom",
+      "modeled": true,
+      "name": "Maavarulu Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-541:hulhule",
+      "from_island_id": "island:541",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1949209, 0.1938949],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "airport:vrqf",
+      "modeled": true,
+      "name": "Faresmaathodaa Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-51:hulhule",
+      "from_island_id": "island:51",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4901174, 3.6487298],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "osm:way:207073193",
+      "modeled": true,
+      "name": "Landing Dhiggiri to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-706:hulhule",
+      "from_island_id": "island:706",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5207748, 1.8593773],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "osm:way:318417225",
+      "modeled": true,
+      "name": "Kadhdhoo Airport to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-10:hulhule",
+      "from_island_id": "island:10",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [72.8870973, 4.0751457],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "osm:way:364296622",
+      "modeled": true,
+      "name": "Landing Maayafushi to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-1442:hulhule",
+      "from_island_id": "island:1442",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5361866, 4.1956433],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "osm:way:870478342",
+      "modeled": true,
+      "name": "Hulhumale Waterdrome to Hulhule Airport"
+    },
+    {
+      "id": "modeled:airport:island-165:hulhule",
+      "from_island_id": "island:165",
+      "to_island_id": "island:1483",
+      "connection_type": "air",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": null,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1166633, 5.2349308],
+          [73.5288562, 4.1917944]
+        ]
+      },
+      "source": "Modeled airport gateway link",
+      "source_object_id": "osm:way:978090098",
+      "modeled": true,
+      "name": "Amilla Floating Air Terminal to Hulhule Airport"
     }
   ]
 }

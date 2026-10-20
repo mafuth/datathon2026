@@ -30,8 +30,6 @@ type MapPayload = {
   }>;
 };
 
-let overviewCache: MapPayload | null = null;
-let detailCache: MapPayload | null = null;
 let overviewRequest: Promise<MapPayload> | null = null;
 let detailRequest: Promise<MapPayload> | null = null;
 
@@ -55,17 +53,14 @@ async function buildMapPayload(): Promise<MapPayload> {
     })
   );
   const scoreByIsland = new Map(scores);
-  const scoredIslands = inhabitedIslands.filter((island) => {
-    const score = scoreByIsland.get(island.id);
-    return typeof score === 'number' && Number.isFinite(score);
-  });
-
   return {
     type: 'FeatureCollection',
-    features: scoredIslands.flatMap((island) => {
+    features: inhabitedIslands.flatMap((island) => {
       try {
         const geometry = JSON.parse(island.geoJson) as GeoJsonGeometry;
         if (!geometry || typeof geometry.type !== 'string' || geometry.coordinates === undefined) return [];
+
+        const score = scoreByIsland.get(island.id) ?? null;
 
         return [
           {
@@ -77,8 +72,8 @@ async function buildMapPayload(): Promise<MapPayload> {
               name: island.name,
               atollName: island.atollName,
               centroid: [island.longitude, island.latitude],
-              score: scoreByIsland.get(island.id) ?? null,
-              scoreStatus: 'numeric'
+              score,
+              scoreStatus: typeof score === 'number' && Number.isFinite(score) ? 'numeric' : 'unavailable'
             }
           }
         ];
@@ -91,8 +86,6 @@ async function buildMapPayload(): Promise<MapPayload> {
 
 export const GET: RequestHandler = async ({ url }) => {
   const detail = url.searchParams.get('detail') === 'true';
-  const cache = detail ? detailCache : overviewCache;
-  if (cache) return json(cache);
 
   const request = detail ? (detailRequest ?? buildMapPayload()) : (overviewRequest ?? buildMapPayload());
   if (detail) detailRequest = request;
@@ -100,8 +93,6 @@ export const GET: RequestHandler = async ({ url }) => {
 
   try {
     const payload = await request;
-    if (detail) detailCache = payload;
-    else overviewCache = payload;
     return json(payload);
   } finally {
     if (detail) detailRequest = null;

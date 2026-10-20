@@ -165,13 +165,16 @@ Used fields:
 
 Connection types are:
 
+- `air`
 - `ferry`
 - `bridge`
 - `causeway`
 - `land_link`
 
 Only valid land connection types may provide direct land access to another
-island. Ferry connections provide marine evidence, not land access.
+island. Ferry connections provide marine evidence, not land access. Modeled
+`air` links represent airport gateway connectivity and are kept separate from
+land and marine demand allocation.
 
 ### Transport Routes
 

@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 type Position = [number, number];
@@ -7,6 +7,7 @@ type IslandShape = { id: string; polygons: Ring[][]; minX: number; minY: number;
 
 const sourceRoot = resolve(process.env.MOBILITY_NORMALIZED_DATA_ROOT ?? 'old/data/mobility/normalized');
 const outputRoot = resolve(process.env.MOBILITY_CONNECTION_OUTPUT_ROOT ?? 'data/mobility/normalized');
+const outputPath = resolve(outputRoot, 'transport-connections.json');
 const islands = JSON.parse(readFileSync(resolve(sourceRoot, 'islands.geojson'), 'utf8')) as {
   features: Array<{ id?: unknown; geometry?: { type?: unknown; coordinates?: unknown } }>;
 };
@@ -160,24 +161,27 @@ const connections = (overpassPayload.elements ?? []).flatMap((element) => {
   ];
 });
 
+const modeledAirportConnections = existsSync(outputPath)
+  ? (
+      (JSON.parse(readFileSync(outputPath, 'utf8')) as { connections?: Array<{ connection_type?: unknown }> })
+        .connections ?? []
+    ).filter((connection) => connection.connection_type === 'air')
+  : [];
+
 mkdirSync(outputRoot, { recursive: true });
 writeFileSync(
-  resolve(outputRoot, 'transport-connections.json'),
+  outputPath,
   JSON.stringify(
     {
       schema_version: 'normalized-transport-connections-v1',
       source: 'OpenStreetMap',
       query,
-      connections
+      connections: [...connections, ...modeledAirportConnections]
     },
     null,
     2
   )
 );
 console.log(
-  JSON.stringify(
-    { output: resolve(outputRoot, 'transport-connections.json'), connections: connections.length },
-    null,
-    2
-  )
+  JSON.stringify({ output: outputPath, connections: connections.length + modeledAirportConnections.length }, null, 2)
 );

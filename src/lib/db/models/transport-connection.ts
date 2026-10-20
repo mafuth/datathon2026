@@ -31,7 +31,7 @@ export const TransportConnection = sqliteTable(
     index('transport_connection_type_index').on(table.connectionType),
     check(
       'transport_connection_type_check',
-      sql`${table.connectionType} in ('ferry', 'bus', 'bridge', 'causeway', 'land_link')`
+      sql`${table.connectionType} in ('air', 'ferry', 'bus', 'bridge', 'causeway', 'land_link')`
     ),
     check('transport_connection_directionality_check', sql`${table.directionality} in ('forward', 'bidirectional')`),
     check('transport_connection_distance_non_negative', sql`${table.distanceM} is null or ${table.distanceM} >= 0`)
