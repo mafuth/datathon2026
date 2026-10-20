@@ -205,7 +205,7 @@ describe('crowdedness calculation', () => {
         landAreaKm2: 2.08033728722,
         density: 65969.11,
         pressure: 0.93,
-        score: 7.05
+        score: 92.95
       },
       {
         id: 'island:1442',
@@ -214,7 +214,7 @@ describe('crowdedness calculation', () => {
         landAreaKm2: 4.1867060488,
         density: 15695.87,
         pressure: 0.76,
-        score: 24.16
+        score: 75.84
       },
       {
         id: 'island:1382',
@@ -223,7 +223,7 @@ describe('crowdedness calculation', () => {
         landAreaKm2: 0.329136945115,
         density: 20523.37,
         pressure: 0.8,
-        score: 19.59
+        score: 80.41
       }
     ] as const;
 

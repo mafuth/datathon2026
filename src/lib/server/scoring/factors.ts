@@ -110,7 +110,8 @@ export function calculateCrowdedness(island: Island, population: number | null):
     1 - scoringConfig.educationCrowdingImpact * pressure
   );
   return {
-    score: round((1 - pressure) * 100),
+    // Crowdedness is a severity score: higher density pressure means more crowded.
+    score: round(pressure * 100),
     populationDensity: round(density),
     population,
     landAreaKm2: area,

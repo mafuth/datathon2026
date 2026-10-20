@@ -312,10 +312,13 @@ Crowdedness is measured from the island population and usable land area:
 population_density = total_population / land_area_km2
 crowding_pressure = population_density /
                     (population_density + density_reference)
-crowdedness_score = 100 × (1 - crowding_pressure)
+crowdedness_score = 100 × crowding_pressure
 ```
 
 The result must return both `population_density` and `crowdedness_score`.
+Crowdedness is a severity score, so higher values indicate greater density
+pressure. The pressure value is also used directly when adjusting destination
+health and education access.
 
 Crowding affects service access once per destination:
 
