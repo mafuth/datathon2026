@@ -1,6 +1,6 @@
 {
   "schema_version": "osm-service-patch-v1",
-  "generated_at": "2026-10-20T08:35:48.565Z",
+  "generated_at": "2026-10-20T10:59:41.834Z",
   "search_policy": {
     "area_multiplier": 100,
     "linear_multiplier": 10,

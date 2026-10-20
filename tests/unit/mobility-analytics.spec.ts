@@ -16,7 +16,7 @@ import { flattenRtlRouteDetails } from '../../src/lib/server/mobility/rtl-bus-ro
 import { classifyZeroScore } from '../../src/lib/server/scoring/analytics-coverage';
 import { buildAnalyticsRankings } from '../../src/lib/server/scoring/analytics-rankings';
 import { buildDemandAllocation } from '../../src/lib/server/scoring/demand-allocation';
-import { calculateIslandScore } from '../../src/lib/server/scoring/factors';
+import { calculateCrowdedness, calculateIslandScore } from '../../src/lib/server/scoring/factors';
 
 describe('reviewed mobility mappings', () => {
   it('promotes only confirmed rows and leaves non-confirmed rows out', () => {
@@ -192,6 +192,61 @@ describe('database-backed analytics rankings', () => {
       education: ['a', 'b'],
       transport: ['a', 'b']
     });
+  });
+});
+
+describe('crowdedness calculation', () => {
+  it('keeps dense islands distinct using their table population and land area', () => {
+    const cases = [
+      {
+        id: 'island:1443',
+        name: 'Malé',
+        population: 137238,
+        landAreaKm2: 2.08033728722,
+        density: 65969.11,
+        pressure: 0.93,
+        score: 7.05
+      },
+      {
+        id: 'island:1442',
+        name: 'Hulhumalé',
+        population: 65714,
+        landAreaKm2: 4.1867060488,
+        density: 15695.87,
+        pressure: 0.76,
+        score: 24.16
+      },
+      {
+        id: 'island:1382',
+        name: "Vilin'gili",
+        population: 6755,
+        landAreaKm2: 0.329136945115,
+        density: 20523.37,
+        pressure: 0.8,
+        score: 19.59
+      }
+    ] as const;
+
+    const results = cases.map((entry) =>
+      calculateCrowdedness(
+        {
+          id: entry.id,
+          name: entry.name,
+          islandType: 'inhabited',
+          latitude: 0,
+          longitude: 0,
+          landAreaKm2: entry.landAreaKm2,
+          geoJson: '{}',
+          atollId: 'test'
+        },
+        entry.population
+      )
+    );
+
+    expect(results.map((result) => result.populationDensity)).toEqual(cases.map((entry) => entry.density));
+    expect(results.map((result) => result.pressure)).toEqual(cases.map((entry) => entry.pressure));
+    expect(results.map((result) => result.score)).toEqual(cases.map((entry) => entry.score));
+    expect(new Set(results.map((result) => result.score)).size).toBe(cases.length);
   });
 });
 

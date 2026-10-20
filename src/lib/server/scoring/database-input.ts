@@ -1,6 +1,6 @@
-import type { ScoringSnapshot, TransportRouteStop, TransportStop } from './types';
+import type { ResidentialDemandPoint, ScoringSnapshot, TransportRouteStop, TransportStop } from './types';
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { eq } from 'drizzle-orm';
 
@@ -19,7 +19,18 @@ type RtlBusArtifact = {
   }>;
 };
 
+type OsmBuildingArtifact = {
+  island?: { id?: unknown };
+  elements?: Array<{
+    type?: unknown;
+    id?: unknown;
+    tags?: Record<string, unknown>;
+    center?: { lat?: unknown; lon?: unknown };
+  }>;
+};
+
 let rtlBusStopsCache: { transportStops: TransportStop[]; routeStops: TransportRouteStop[] } | undefined;
+let residentialDemandPointsCache: ResidentialDemandPoint[] | undefined;
 
 function rtlBusStops(): { transportStops: TransportStop[]; routeStops: TransportRouteStop[] } {
   const empty = { transportStops: [], routeStops: [] };
@@ -94,7 +105,88 @@ function databaseTransportStops(services: ScoringSnapshot['services']): Transpor
   });
 }
 
-export async function loadScoringSnapshot(): Promise<ScoringSnapshot> {
+const RESIDENTIAL_BUILDING_TYPES = new Set([
+  'apartments',
+  'bungalow',
+  'cabin',
+  'detached',
+  'dormitory',
+  'house',
+  'residential',
+  'semidetached_house',
+  'terrace'
+]);
+
+const NON_RESIDENTIAL_TAG_KEYS = new Set([
+  'amenity',
+  'craft',
+  'education',
+  'healthcare',
+  'industrial',
+  'landuse',
+  'leisure',
+  'man_made',
+  'military',
+  'office',
+  'power',
+  'public_transport',
+  'religion',
+  'shop',
+  'tourism'
+]);
+
+function isResidentialBuilding(tags: Record<string, unknown>): boolean {
+  const building = typeof tags.building === 'string' ? tags.building.toLowerCase() : '';
+  if (RESIDENTIAL_BUILDING_TYPES.has(building)) return true;
+  if (building !== 'yes') return false;
+  return !Object.keys(tags).some((key) => NON_RESIDENTIAL_TAG_KEYS.has(key));
+}
+
+function residentialDemandPoints(): ResidentialDemandPoint[] {
+  if (residentialDemandPointsCache) return residentialDemandPointsCache;
+
+  const directory = resolve(process.cwd(), 'data/mobility/normalized');
+  if (!existsSync(directory)) {
+    residentialDemandPointsCache = [];
+    return residentialDemandPointsCache;
+  }
+
+  const points: ResidentialDemandPoint[] = [];
+  for (const filename of readdirSync(directory)
+    .filter((entry) => /^osm-sample-.*\.json$/i.test(entry))
+    .sort()) {
+    try {
+      const artifact = JSON.parse(readFileSync(resolve(directory, filename), 'utf8')) as OsmBuildingArtifact;
+      const islandId = typeof artifact.island?.id === 'string' ? artifact.island.id : null;
+      if (!islandId) continue;
+
+      for (const element of artifact.elements ?? []) {
+        if (element.type !== 'way' || typeof element.id !== 'number' || !isResidentialBuilding(element.tags ?? {})) {
+          continue;
+        }
+        const latitude = element.center?.lat;
+        const longitude = element.center?.lon;
+        if (typeof latitude !== 'number' || typeof longitude !== 'number') continue;
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+        points.push({
+          id: `osm-building:${islandId}:${element.id}`,
+          islandId,
+          coordinates: [longitude, latitude],
+          weight: 1
+        });
+      }
+    } catch {
+      // One malformed optional artifact must not prevent the map from loading.
+    }
+  }
+
+  residentialDemandPointsCache = points;
+  return residentialDemandPointsCache;
+}
+
+export async function loadScoringSnapshot(
+  options: { includeResidentialDemandPoints?: boolean } = {}
+): Promise<ScoringSnapshot> {
   const [islands, population, services, connections, routes] = await Promise.all([
     db.select().from(Island),
     db.select().from(Population),
@@ -121,7 +213,8 @@ export async function loadScoringSnapshot(): Promise<ScoringSnapshot> {
     connections,
     routes,
     transportStops: [...stops.values()],
-    routeStops: rtl.routeStops
+    routeStops: rtl.routeStops,
+    ...(options.includeResidentialDemandPoints ? { residentialDemandPoints: residentialDemandPoints() } : {})
   };
 }
 

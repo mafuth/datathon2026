@@ -1,4 +1,4 @@
-import type { DemandAllocationResult } from './types';
+import type { DemandAllocationResult, ScoringSnapshot } from './types';
 import type {
   IslandServiceDemand,
   IslandServicesResponse,
@@ -10,7 +10,9 @@ import { Atoll, Island as IslandModel } from '$models';
 import { eq } from 'drizzle-orm';
 
 import db from '$lib/server/database';
+import { serviceEligibility } from '$lib/server/mobility/service-rules';
 
+import { scoringConfig } from './config';
 import { loadScoringSnapshot } from './database-input';
 import { buildDemandAllocation } from './demand-allocation';
 import { calculateIslandScore } from './factors';
@@ -171,12 +173,31 @@ function buildPopulationDemand(
   return populationDemandForService(service, servicesOnIsland, population, totals);
 }
 
-export async function getIslandServices(islandId: string): Promise<IslandServicesResponse> {
+function serviceCoverageWeights(service: { serviceType: string; subtype: string }) {
+  return {
+    health:
+      service.serviceType === 'health'
+        ? (scoringConfig.healthQuality[service.subtype as keyof typeof scoringConfig.healthQuality] ?? 0)
+        : 0,
+    education:
+      service.serviceType === 'education'
+        ? (scoringConfig.educationQuality[service.subtype as keyof typeof scoringConfig.educationQuality] ?? 0)
+        : 0,
+    transport: service.serviceType === 'transport' ? 1 : 0
+  } satisfies Record<ServiceDemandCategory, number>;
+}
+
+export async function getIslandServices(
+  islandId: string,
+  snapshotOverride: ScoringSnapshot | undefined = undefined
+): Promise<IslandServicesResponse> {
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new IslandServicesNotFoundError(islandId);
 
   const [snapshot, islandRows] = await Promise.all([
-    loadScoringSnapshot(),
+    snapshotOverride
+      ? Promise.resolve(snapshotOverride)
+      : loadScoringSnapshot({ includeResidentialDemandPoints: true }),
     db
       .select({ island: IslandModel, atollName: Atoll.name })
       .from(IslandModel)
@@ -236,6 +257,8 @@ export async function getIslandServices(islandId: string): Promise<IslandService
       subtype: service.subtype,
       name: service.name,
       coordinates,
+      change: 'unchanged',
+      eligibility: serviceEligibility(service),
       demand
     };
   });
@@ -250,6 +273,8 @@ export async function getIslandServices(islandId: string): Promise<IslandService
       return null;
     }
   })();
+  const islandResidentialPoints =
+    snapshot.residentialDemandPoints?.filter((point) => point.islandId === normalizedId) ?? [];
   const hexes = buildServiceDemandHexes(
     islandGeometry,
     [islandRow.island.longitude, islandRow.island.latitude],
@@ -263,6 +288,7 @@ export async function getIslandServices(islandId: string): Promise<IslandService
                 education: educationWeights[index] ?? 0,
                 transport: transportWeights[index] ?? 0
               },
+              coverageWeights: serviceCoverageWeights(service),
               statuses: {
                 health: service.demand.health.status,
                 education: service.demand.education.status,
@@ -271,7 +297,8 @@ export async function getIslandServices(islandId: string): Promise<IslandService
             }
           ]
         : []
-    )
+    ),
+    islandResidentialPoints
   );
   const numericDemandCount = mapServices.filter((service) =>
     Object.values(service.demand).some((demand) => demand.value !== null)
@@ -295,12 +322,19 @@ export async function getIslandServices(islandId: string): Promise<IslandService
       mappedCoordinateCount: mapServices.filter((service) => service.coordinates !== null).length,
       hexFeatureCount: hexes.features.length,
       numericDemandCount,
-      unavailableDemandCount
+      unavailableDemandCount,
+      residentialBuildingCount: islandResidentialPoints.length
     },
     limitations: [
       'Health and education demand is an age-based population proxy, not measured facility usage.',
       'Population demand is divided equally between services with the same subtype because facility-level allocation is unavailable.',
       'Transport demand uses estimated stop capacity and load proxies.',
+      'Heat-map intensity combines facility demand pressure with residential building distance as a planning proxy; it does not affect island or national scores.',
+      ...(islandResidentialPoints.length > 0
+        ? ['Residential demand assumes one unit of population pressure per mapped residential building.']
+        : [
+            'No residential building artifact is available for this island; the heat map uses facility demand pressure only.'
+          ]),
       ...(mapServices.some((service) => service.coordinates === null)
         ? ['Some services are missing valid coordinates and are omitted from map layers.']
         : [])

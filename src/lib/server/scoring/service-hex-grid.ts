@@ -1,14 +1,18 @@
+import type { ResidentialDemandPoint } from './types';
 import type {
   IslandServiceHexes,
   ServiceDemandCategory,
   ServiceDemandStatus
 } from '$components/mobility/island-services';
 
+import { scoringConfig } from './config';
+
 type Coordinate = [number, number];
 
 export type ServiceHexInput = {
   coordinates: Coordinate;
   weights: Record<ServiceDemandCategory, number>;
+  coverageWeights?: Record<ServiceDemandCategory, number>;
   statuses: Record<ServiceDemandCategory, ServiceDemandStatus>;
 };
 
@@ -19,14 +23,11 @@ type ParsedGeometry = {
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
 };
 
-const HEX_RADIUS_METERS = 16;
-const INFLUENCE_SIGMA_METERS = 165;
-const INFLUENCE_RADIUS_METERS = INFLUENCE_SIGMA_METERS * 3.2;
+const HEX_RADIUS_METERS = 24;
 const METERS_PER_DEGREE_LATITUDE = 110_574;
 const METERS_PER_DEGREE_LONGITUDE = 111_320;
 const HEX_X_SPACING = Math.sqrt(3) * HEX_RADIUS_METERS;
 const HEX_Y_SPACING = HEX_RADIUS_METERS * 1.5;
-const DEMAND_CUTOFF = 0.0005;
 
 function isCoordinate(value: unknown): value is Coordinate {
   return (
@@ -145,30 +146,69 @@ function normalize(values: number[]): number[] {
   return maximum === 0 ? values.map(() => 0) : values.map((value) => Number((value / maximum).toFixed(3)));
 }
 
+function influence(distance: number, sigma: number): number {
+  return Math.exp(-(distance * distance) / (2 * sigma * sigma));
+}
+
+function combinedHeatValue(
+  facilityPressure: number,
+  residentialAccessGap: number,
+  hasFacilityPressure: boolean,
+  hasResidentialAccessGap: boolean
+): number {
+  if (!hasFacilityPressure) return residentialAccessGap;
+  if (!hasResidentialAccessGap) return facilityPressure;
+
+  const facilityWeight = scoringConfig.serviceHeatmap.facilityPressureWeight;
+  const accessGapWeight = scoringConfig.serviceHeatmap.residentialAccessGapWeight;
+  const totalWeight = facilityWeight + accessGapWeight;
+  if (totalWeight <= 0) return facilityPressure;
+  return Number(
+    ((facilityPressure * facilityWeight + residentialAccessGap * accessGapWeight) / totalWeight).toFixed(3)
+  );
+}
+
+function combinedStatus(statuses: ServiceDemandStatus[], hasResidentialData: boolean): ServiceDemandStatus {
+  const serviceStatus = combineStatuses(statuses);
+  if (serviceStatus !== 'unavailable') return serviceStatus;
+  return hasResidentialData ? 'partial' : 'unavailable';
+}
+
 export function buildServiceDemandHexes(
   geometry: unknown,
   islandCentroid: Coordinate,
-  services: readonly ServiceHexInput[]
+  services: readonly ServiceHexInput[],
+  residentialPoints: readonly ResidentialDemandPoint[] = []
 ): IslandServiceHexes {
   const parsedGeometry = parseGeometry(geometry);
-  if (!parsedGeometry || services.length === 0) return { type: 'FeatureCollection', features: [] };
+  if (!parsedGeometry || (services.length === 0 && residentialPoints.length === 0)) {
+    return { type: 'FeatureCollection', features: [] };
+  }
 
   const origin = islandCentroid;
+  const serviceSigma = scoringConfig.serviceHeatmap.serviceInfluenceSigmaMeters;
+  const residentialSigma = scoringConfig.serviceHeatmap.residentialInfluenceSigmaMeters;
+  const influenceRadius = Math.max(serviceSigma, residentialSigma) * 3.2;
   const localBounds = {
-    minX: toLocal([parsedGeometry.bounds.minX, origin[1]], origin).x - INFLUENCE_RADIUS_METERS,
-    minY: toLocal([origin[0], parsedGeometry.bounds.minY], origin).y - INFLUENCE_RADIUS_METERS,
-    maxX: toLocal([parsedGeometry.bounds.maxX, origin[1]], origin).x + INFLUENCE_RADIUS_METERS,
-    maxY: toLocal([origin[0], parsedGeometry.bounds.maxY], origin).y + INFLUENCE_RADIUS_METERS
+    minX: toLocal([parsedGeometry.bounds.minX, origin[1]], origin).x - influenceRadius,
+    minY: toLocal([origin[0], parsedGeometry.bounds.minY], origin).y - influenceRadius,
+    maxX: toLocal([parsedGeometry.bounds.maxX, origin[1]], origin).x + influenceRadius,
+    maxY: toLocal([origin[0], parsedGeometry.bounds.maxY], origin).y + influenceRadius
   };
   const localServices = services.map((service) => ({
     ...service,
     point: toLocal(service.coordinates, origin)
   }));
+  const localResidentialPoints = residentialPoints.map((point) => ({
+    ...point,
+    point: toLocal(point.coordinates, origin)
+  }));
 
   const rawFeatures = [] as Array<{
     id: string;
     center: LocalPoint;
-    values: Record<ServiceDemandCategory, number>;
+    facilityPressure: Record<ServiceDemandCategory, number>;
+    residentialAccessGap: Record<ServiceDemandCategory, number>;
     statuses: Record<ServiceDemandCategory, ServiceDemandStatus[]>;
   }>;
   for (
@@ -187,7 +227,13 @@ export function buildServiceDemandHexes(
       const vertices = hexVertices(center).map((vertex) => fromLocal(vertex, origin));
       if (!vertices.every((vertex) => pointInGeometry(vertex, parsedGeometry.polygons))) continue;
 
-      const values: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
+      const facilityPressure: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
+      const residentialAccessGap: Record<ServiceDemandCategory, number> = {
+        health: 0,
+        education: 0,
+        transport: 0
+      };
+      const serviceCoverage: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
       const statuses: Record<ServiceDemandCategory, ServiceDemandStatus[]> = {
         health: [],
         education: [],
@@ -195,35 +241,82 @@ export function buildServiceDemandHexes(
       };
       for (const service of localServices) {
         const distance = Math.hypot(center.x - service.point.x, center.y - service.point.y);
-        if (distance > INFLUENCE_RADIUS_METERS) continue;
-        const influence = Math.exp(-(distance * distance) / (2 * INFLUENCE_SIGMA_METERS * INFLUENCE_SIGMA_METERS));
+        if (distance > influenceRadius) continue;
+        const serviceInfluence = influence(distance, serviceSigma);
         for (const category of ['health', 'education', 'transport'] as const) {
           if (service.statuses[category] !== 'unavailable') statuses[category].push(service.statuses[category]);
-          values[category] += service.weights[category] * influence;
+          facilityPressure[category] += service.weights[category] * serviceInfluence;
+          const coverageWeight = service.coverageWeights?.[category] ?? service.weights[category];
+          serviceCoverage[category] = Math.max(
+            serviceCoverage[category],
+            Math.min(1, Math.max(0, coverageWeight)) * serviceInfluence
+          );
         }
       }
 
-      if (Math.max(values.health, values.education, values.transport) <= DEMAND_CUTOFF) continue;
-      rawFeatures.push({ id: `${row}:${column}`, center, values, statuses });
+      const residentialDensity = localResidentialPoints.reduce((sum, residentialPoint) => {
+        const distance = Math.hypot(center.x - residentialPoint.point.x, center.y - residentialPoint.point.y);
+        if (distance > influenceRadius) return sum;
+        return sum + Math.max(0, residentialPoint.weight) * influence(distance, residentialSigma);
+      }, 0);
+      for (const category of ['health', 'education', 'transport'] as const) {
+        residentialAccessGap[category] = residentialDensity * (1 - serviceCoverage[category]);
+      }
+
+      rawFeatures.push({ id: `${row}:${column}`, center, facilityPressure, residentialAccessGap, statuses });
     }
   }
 
+  const hasResidentialData = localResidentialPoints.length > 0;
   const normalizedValues = {
-    health: normalize(rawFeatures.map((feature) => feature.values.health)),
-    education: normalize(rawFeatures.map((feature) => feature.values.education)),
-    transport: normalize(rawFeatures.map((feature) => feature.values.transport))
+    facilityPressure: {
+      health: normalize(rawFeatures.map((feature) => feature.facilityPressure.health)),
+      education: normalize(rawFeatures.map((feature) => feature.facilityPressure.education)),
+      transport: normalize(rawFeatures.map((feature) => feature.facilityPressure.transport))
+    },
+    residentialAccessGap: {
+      health: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.health)),
+      education: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.education)),
+      transport: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.transport))
+    }
+  };
+
+  const hasFacilityPressure = {
+    health: normalizedValues.facilityPressure.health.some((value) => value > 0),
+    education: normalizedValues.facilityPressure.education.some((value) => value > 0),
+    transport: normalizedValues.facilityPressure.transport.some((value) => value > 0)
+  };
+  const hasResidentialAccessGap = {
+    health: normalizedValues.residentialAccessGap.health.some((value) => value > 0),
+    education: normalizedValues.residentialAccessGap.education.some((value) => value > 0),
+    transport: normalizedValues.residentialAccessGap.transport.some((value) => value > 0)
   };
 
   return {
     type: 'FeatureCollection',
     features: rawFeatures.map((feature, index) => {
-      const healthWeight = normalizedValues.health[index] ?? 0;
-      const educationWeight = normalizedValues.education[index] ?? 0;
-      const transportWeight = normalizedValues.transport[index] ?? 0;
+      const healthWeight = combinedHeatValue(
+        normalizedValues.facilityPressure.health[index] ?? 0,
+        normalizedValues.residentialAccessGap.health[index] ?? 0,
+        hasFacilityPressure.health,
+        hasResidentialAccessGap.health
+      );
+      const educationWeight = combinedHeatValue(
+        normalizedValues.facilityPressure.education[index] ?? 0,
+        normalizedValues.residentialAccessGap.education[index] ?? 0,
+        hasFacilityPressure.education,
+        hasResidentialAccessGap.education
+      );
+      const transportWeight = combinedHeatValue(
+        normalizedValues.facilityPressure.transport[index] ?? 0,
+        normalizedValues.residentialAccessGap.transport[index] ?? 0,
+        hasFacilityPressure.transport,
+        hasResidentialAccessGap.transport
+      );
       const statuses = {
-        healthStatus: combineStatuses(feature.statuses.health),
-        educationStatus: combineStatuses(feature.statuses.education),
-        transportStatus: combineStatuses(feature.statuses.transport)
+        healthStatus: combinedStatus(feature.statuses.health, hasResidentialData),
+        educationStatus: combinedStatus(feature.statuses.education, hasResidentialData),
+        transportStatus: combinedStatus(feature.statuses.transport, hasResidentialData)
       };
       return {
         type: 'Feature' as const,

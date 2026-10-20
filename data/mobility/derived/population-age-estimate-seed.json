@@ -1,0 +1,853 @@
+{
+  "schema_version": "population_age_estimate.v1",
+  "generated_from": {
+    "age_profile_source": "https://statisticsmaldives.gov.mv/mbs/wp-content/uploads/2026/03/Maldives-Population-Projection-2022-%E2%80%93-2062-Tables_230326.xlsx",
+    "island_sex_source": "https://statisticsmaldives.gov.mv/mbs/wp-content/uploads/2026/08/IslandLevelProjection_2022-2030.xlsx",
+    "reference_year": 2022,
+    "source_geography": "Greater Male / Male city projection aggregate",
+    "method": "Estimated island age profile by transferring the official Greater Male age shape and rescaling to the canonical island total; Hulhumale sex split uses the official island-level 2022 projection.",
+    "is_estimate": true,
+    "confidence": "low",
+    "excluded_from_official_scoring": true,
+    "excluded_from_audit_exports": true,
+    "enabled_by_default": false
+  },
+  "targets": [
+    {
+      "islandId": "island:1443",
+      "islandName": "Malé",
+      "canonicalTotal": 137238,
+      "estimatedMaleTotal": 85217,
+      "estimatedFemaleTotal": 52021,
+      "sourceGeography": "Greater Male / Male city",
+      "records": [
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "0_4",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 3362
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "0_4",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 3283
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "0_4",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 6645
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "5_9",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 4020
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "5_9",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 3858
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "5_9",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 7878
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "10_14",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 4502
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "10_14",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 4267
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "10_14",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 8769
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "15_19",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 4050
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "15_19",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 3944
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "15_19",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 7994
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "20_24",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 7194
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "20_24",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 4574
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "20_24",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 11768
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "25_29",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 14383
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "25_29",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 5579
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "25_29",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 19962
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "30_34",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 14223
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "30_34",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 5566
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "30_34",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 19789
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "35_39",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 12135
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "35_39",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 5778
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "35_39",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 17913
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "40_44",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 8107
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "40_44",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 4253
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "40_44",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 12360
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "45_49",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 4856
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "45_49",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 3265
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "45_49",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 8121
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "50_54",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 3209
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "50_54",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2526
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "50_54",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 5735
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "55_59",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 2060
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "55_59",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1862
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "55_59",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 3922
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "60_64",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 1357
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "60_64",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1368
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "60_64",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 2725
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "65_69",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 793
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "65_69",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 816
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "65_69",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 1609
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "70_74",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 440
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "70_74",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 470
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "70_74",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 910
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "75_79",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 256
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "75_79",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 311
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "75_79",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 567
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "80_plus",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 270
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "80_plus",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 301
+        },
+        {
+          "islandId": "island:1443",
+          "islandName": "Malé",
+          "ageCategory": "80_plus",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 571
+        }
+      ]
+    },
+    {
+      "islandId": "island:1442",
+      "islandName": "Hulhumalé",
+      "canonicalTotal": 65714,
+      "estimatedMaleTotal": 40510,
+      "estimatedFemaleTotal": 25204,
+      "sourceGeography": "Greater Male / Male city age shape + Hulhumale island sex projection",
+      "records": [
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "0_4",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 1598
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "0_4",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1591
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "0_4",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 3189
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "5_9",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 1911
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "5_9",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1869
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "5_9",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 3780
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "10_14",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 2140
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "10_14",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2067
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "10_14",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 4207
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "15_19",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 1925
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "15_19",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1911
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "15_19",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 3836
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "20_24",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 3420
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "20_24",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2216
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "20_24",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 5636
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "25_29",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 6837
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "25_29",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2703
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "25_29",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 9540
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "30_34",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 6761
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "30_34",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2696
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "30_34",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 9457
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "35_39",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 5769
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "35_39",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2799
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "35_39",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 8568
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "40_44",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 3854
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "40_44",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 2061
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "40_44",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 5915
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "45_49",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 2309
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "45_49",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1582
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "45_49",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 3891
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "50_54",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 1525
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "50_54",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 1224
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "50_54",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 2749
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "55_59",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 979
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "55_59",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 902
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "55_59",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 1881
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "60_64",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 645
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "60_64",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 663
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "60_64",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 1308
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "65_69",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 377
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "65_69",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 395
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "65_69",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 772
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "70_74",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 209
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "70_74",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 228
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "70_74",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 437
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "75_79",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 122
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "75_79",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 151
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "75_79",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 273
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "80_plus",
+          "sex": "male",
+          "nationality": "all",
+          "amount": 129
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "80_plus",
+          "sex": "female",
+          "nationality": "all",
+          "amount": 146
+        },
+        {
+          "islandId": "island:1442",
+          "islandName": "Hulhumalé",
+          "ageCategory": "80_plus",
+          "sex": "both",
+          "nationality": "all",
+          "amount": 275
+        }
+      ]
+    }
+  ]
+}

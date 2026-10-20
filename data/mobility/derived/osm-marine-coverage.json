@@ -1,6 +1,6 @@
 {
   "schema_version": "osm-marine-coverage-v1",
-  "generated_at": "2026-10-20T08:35:48.568Z",
+  "generated_at": "2026-10-20T10:59:41.836Z",
   "search_policy": {
     "area_multiplier": 100,
     "linear_multiplier": 10,

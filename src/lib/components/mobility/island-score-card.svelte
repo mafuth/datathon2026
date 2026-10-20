@@ -27,7 +27,7 @@
   }
 </script>
 
-<section class="island-panel" aria-label="Island mobility score" aria-busy={loading}>
+<section class="island-panel" aria-label="Island mobility score" aria-busy={loading} data-story-target="island-score">
   <div class="panel-heading">
     <div class="heading-copy">
       {#if loading}
@@ -80,11 +80,12 @@
   .island-panel {
     width: min(19rem, calc(100vw - 2rem));
     padding: 0.9rem 1rem;
-    border: 1px solid rgb(16 24 32 / 14%);
+    border: 1px solid var(--mobility-border-strong, #d4d4d8);
     border-radius: 0.55rem;
-    background: rgb(255 255 255 / 94%);
-    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 14%);
-    color: #101820;
+    background: var(--mobility-surface, #ffffff);
+    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
+    color: var(--mobility-text, #09090b);
+    color-scheme: light;
   }
   .panel-heading {
     display: flex;
@@ -106,7 +107,7 @@
   }
   .heading-copy p {
     margin: 0.16rem 0 0;
-    color: #53606a;
+    color: var(--mobility-muted, #71717a);
     font-size: 0.62rem;
     font-weight: 650;
   }
@@ -147,7 +148,7 @@
     font-size: 0.76rem;
   }
   .score-unavailable span {
-    color: #53606a;
+    color: #52525b;
     font-size: 0.61rem;
     line-height: 1.35;
   }
@@ -156,7 +157,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 0.6rem;
     padding-top: 0.6rem;
-    border-top: 1px solid rgb(16 24 32 / 12%);
+    border-top: 1px solid var(--mobility-border, #e4e4e7);
   }
   .metric {
     display: grid;
@@ -164,16 +165,16 @@
     padding: 0.28rem 0.45rem 0.08rem;
   }
   .metric + .metric {
-    border-left: 1px solid rgb(16 24 32 / 10%);
+    border-left: 1px solid var(--mobility-border, #e4e4e7);
   }
   .metric span {
-    color: #53606a;
+    color: var(--mobility-muted, #71717a);
     font-size: 0.55rem;
     font-weight: 700;
     line-height: 1.1;
   }
   .metric strong {
-    color: #101820;
+    color: var(--mobility-text, #09090b);
     font-size: 0.76rem;
     font-variant-numeric: tabular-nums;
   }
@@ -183,8 +184,8 @@
     font-size: 0.72rem;
   }
   :global([data-slot='skeleton']) {
-    background-color: #edf2ef;
-    background-image: linear-gradient(90deg, #edf2ef 0%, #f9fbfa 50%, #edf2ef 100%);
+    background-color: #f4f4f5;
+    background-image: linear-gradient(90deg, #f4f4f5 0%, #fafafa 50%, #f4f4f5 100%);
     background-size: 200% 100%;
   }
   :global(.title-skeleton) {

@@ -34,6 +34,8 @@
     "mobility:fetch-connections": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-connections.ts",
     "mobility:fetch-bus-routes": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-bus-routes.ts",
     "mobility:fetch-rtl-bus": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-rtl-bus-data.ts",
+    "mobility:generate-route": "vite-node --options.transformMode.ssr='/.*/' scripts/generate-osm-route.ts",
+    "mobility:refresh-route": "vite-node --options.transformMode.ssr='/.*/' scripts/generate-osm-route.ts --refresh",
     "mobility:refresh-rtl-ferries": "node scripts/mobility/refresh-rtl-ferries.mjs",
     "db:studio": "drizzle-kit studio"
   },

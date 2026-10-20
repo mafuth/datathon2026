@@ -85,7 +85,7 @@ function educationQuality(service: Service): number {
   return scoringConfig.educationQuality[service.subtype as keyof typeof scoringConfig.educationQuality] ?? 0;
 }
 
-function calculateCrowdedness(island: Island, population: number | null): CrowdednessResult {
+export function calculateCrowdedness(island: Island, population: number | null): CrowdednessResult {
   const area = finite(island.landAreaKm2);
   if (population === null || area === null || area <= 0) {
     return {
@@ -101,7 +101,9 @@ function calculateCrowdedness(island: Island, population: number | null): Crowde
     };
   }
   const density = population / area;
-  const pressure = Math.min(1, density / scoringConfig.densityReferencePersonsPerKm2);
+  // Use a bounded curve instead of capping every density above the reference
+  // at the same pressure. This preserves differences between dense islands.
+  const pressure = density / (density + scoringConfig.densityReferencePersonsPerKm2);
   const healthFactor = Math.max(scoringConfig.minimumCrowdingFactor, 1 - scoringConfig.healthCrowdingImpact * pressure);
   const educationFactor = Math.max(
     scoringConfig.minimumCrowdingFactor,

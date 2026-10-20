@@ -310,7 +310,8 @@ Crowdedness is measured from the island population and usable land area:
 
 ```text
 population_density = total_population / land_area_km2
-crowding_pressure = min(1, population_density / density_reference)
+crowding_pressure = population_density /
+                    (population_density + density_reference)
 crowdedness_score = 100 × (1 - crowding_pressure)
 ```
 
@@ -336,8 +337,10 @@ applied once to the origin, again to the destination, and then a third time to
 the overall score.
 
 Starting configuration values are density reference `5,000 people/km2`, health
-impact `0.20`, education impact `0.25`, and minimum factor `0.40`. These values
-must be versioned configuration.
+impact `0.20`, education impact `0.25`, and minimum factor `0.40`. The density
+reference is the half-saturation point of the pressure curve, so densities
+above it remain distinguishable instead of all becoming pressure `1`. These
+values must be versioned configuration.
 
 ### External Service Demand
 

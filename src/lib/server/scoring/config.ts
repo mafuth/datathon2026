@@ -3,6 +3,7 @@ export const scoringConfig = {
   transportWeights: { land: 1 / 3, marine: 1 / 3, air: 1 / 3 },
   healthQuality: { hospital: 1, health_center: 0.65, clinic: 0.35 },
   educationQuality: { preschool: 1, school: 1, high_school: 1, tertiary: 1 },
+  // Density at which the bounded crowdedness pressure reaches 0.5.
   densityReferencePersonsPerKm2: 5000,
   healthCrowdingImpact: 0.2,
   educationCrowdingImpact: 0.25,
@@ -19,6 +20,12 @@ export const scoringConfig = {
     land: 1.5,
     marine: 2,
     air: 3
+  },
+  serviceHeatmap: {
+    facilityPressureWeight: 0.5,
+    residentialAccessGapWeight: 0.5,
+    serviceInfluenceSigmaMeters: 260,
+    residentialInfluenceSigmaMeters: 260
   },
   hubCapacityProxyByType: {
     airport: 2,

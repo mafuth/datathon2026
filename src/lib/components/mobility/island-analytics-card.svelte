@@ -23,6 +23,7 @@
     loading?: boolean;
     error?: string | null;
     onClose?: () => void;
+    proposalMode?: boolean;
   };
   let {
     open = $bindable(false),
@@ -30,7 +31,8 @@
     profile,
     loading = false,
     error = null,
-    onClose = () => (open = false)
+    onClose = () => (open = false),
+    proposalMode = false
   }: Props = $props();
 
   const drivers = [
@@ -74,12 +76,18 @@
 
 {#if open}
   <div
-    class="island-analytics-layer"
+    class={`island-analytics-layer${proposalMode ? ' proposal-mode-right' : ''}`}
+    aria-hidden={proposalMode}
     in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
     out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
   >
-    <Card.Root class="island-analytics-card" role="dialog" aria-label="Island score analytics">
-      <div class="analytics-scroll">
+    <Card.Root
+      class="island-analytics-card"
+      role="dialog"
+      aria-label="Island score analytics"
+      data-story-target="island-analytics"
+    >
+      <div class="analytics-scroll" data-story-scroll-container>
         <div class="analytics-heading">
           <div>
             <h2>
@@ -109,7 +117,6 @@
               <div>
                 <h3>Score drivers</h3>
               </div>
-              <Badge class="status-badge" variant="outline">{island.overall.status}</Badge>
             </div>
             <div class="driver-list">
               {#each drivers as driver (driver.key)}
@@ -138,7 +145,12 @@
               </div>
               <div class="population-list">
                 {#each profile.population.bands as band (band.key)}
-                  <div class={['population-row', { 'population-overlap': band.overlapping }]}>
+                  <div
+                    class={['population-row', { 'population-overlap': band.overlapping }]}
+                    data-story-target={band.key === 'elderly_population_65_plus'
+                      ? 'island-elderly-population'
+                      : undefined}
+                  >
                     <div class="population-topline">
                       <span>{band.label}</span><b>{number(band.amount)}</b>
                     </div>
@@ -225,15 +237,12 @@
             </Card.Root>
 
             <div class="demand-grid">
-              <Card.Root class="insight-card demand-card" size="sm">
-                <div class="card-heading">
+              <Card.Root class="insight-card demand-card" size="sm" data-story-target="island-health-demand">
+                <div class="card-heading demand-heading">
                   <div>
                     <h3>Health demand</h3>
                   </div>
-                </div>
-                <div class="demand-main">
-                  <strong>{percentage(profile.demand.health.demand.demandPercent)}</strong>
-                  <span>service demand</span>
+                  <strong class="demand-percentage">{percentage(profile.demand.health.demand.demandPercent)}</strong>
                 </div>
                 <div class="demand-metrics">
                   <span>Local demand <b>{number(profile.demand.health.demand.local)}</b></span><span
@@ -254,14 +263,11 @@
               </Card.Root>
 
               <Card.Root class="insight-card demand-card" size="sm">
-                <div class="card-heading">
+                <div class="card-heading demand-heading">
                   <div>
                     <h3>Education demand</h3>
                   </div>
-                </div>
-                <div class="demand-main">
-                  <strong>{percentage(profile.demand.education.demand.demandPercent)}</strong>
-                  <span>service demand</span>
+                  <strong class="demand-percentage">{percentage(profile.demand.education.demand.demandPercent)}</strong>
                 </div>
                 <div class="demand-metrics">
                   <span>Local demand <b>{number(profile.demand.education.demand.local)}</b></span><span
@@ -384,6 +390,24 @@
     justify-content: flex-end;
     pointer-events: none;
   }
+
+  .proposal-mode-right {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translate3d(calc(100% + 2rem), 0, 0) scale(0.985);
+    opacity: 0;
+    transition:
+      transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 340ms ease-out;
+    transition-delay: 35ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .proposal-mode-right {
+      transition: none;
+      will-change: auto;
+    }
+  }
   :global(.island-analytics-card) {
     display: flex;
     flex-direction: column;
@@ -394,7 +418,7 @@
     border: 1px solid rgb(16 24 32 / 14%);
     border-radius: 0.55rem;
     background: #fff;
-    color: #101820;
+    color: #09090b;
     box-shadow: 0 0.7rem 2.2rem rgb(16 24 32 / 16%);
     pointer-events: auto;
   }
@@ -423,17 +447,17 @@
     place-items: center;
     width: 2.45rem;
     height: 2.45rem;
-    border: 1px solid #c8d1cd;
+    border: 1px solid #d4d4d8;
     border-radius: 0.8rem;
-    color: #263139;
+    color: #27272a;
   }
   :global(.insight-card) {
     margin-top: 0.8rem;
     padding: 0.72rem;
-    border: 1px solid #dce3df;
+    border: 1px solid #e4e4e7;
     border-radius: 0.42rem;
     background: #fff;
-    color: #101820;
+    color: #09090b;
     box-shadow: 0 0.2rem 0.7rem rgb(16 24 32 / 5%);
   }
   h3 {
@@ -442,17 +466,17 @@
     font-weight: 800;
   }
   :global(.island-analytics-card [data-slot='badge']) {
-    border-color: #d3ddd8;
-    background: #f8faf9;
-    color: #263139;
+    border-color: #d4d4d8;
+    background: #fafafa;
+    color: #27272a;
     box-shadow: none;
     font-size: 0.56rem;
   }
   :global(.island-analytics-card .status-badge),
   :global(.island-analytics-card .driver-badge) {
-    border-color: #c4d4cc;
-    background: #edf4f0;
-    color: #315d4c;
+    border-color: #d4d4d8;
+    background: #f4f4f5;
+    color: #3f3f46;
     font-size: 0.56rem;
   }
   .driver-list {
@@ -470,13 +494,13 @@
   }
   :global(.driver-row [data-slot='progress']) {
     height: 0.38rem;
-    background: #e4e6e5;
+    background: #e4e4e7;
   }
   :global(.driver-row [data-slot='progress-indicator']) {
-    background: #101820;
+    background: var(--mobility-accent, #09090b);
   }
   .driver-row small {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.56rem;
     line-height: 1.25;
   }
@@ -514,32 +538,32 @@
   }
   .population-topline b,
   .service-group-title b {
-    color: #101820;
+    color: #09090b;
     font-size: 0.66rem;
     font-variant-numeric: tabular-nums;
   }
   :global(.population-row [data-slot='progress']) {
     height: 0.34rem;
-    background: #e4e6e5;
+    background: #e4e4e7;
   }
   :global(.population-row [data-slot='progress-indicator']) {
-    background: #101820;
+    background: var(--mobility-accent, #09090b);
   }
   :global(.population-overlap [data-slot='progress']) {
-    background: #eef1ef;
+    background: #f4f4f5;
   }
   :global(.population-overlap [data-slot='progress-indicator']) {
-    background: #97a39d;
+    background: #a1a1aa;
   }
   .population-row small {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.54rem;
   }
   .stat-list {
     display: grid;
     gap: 0.48rem;
     margin-top: 0.7rem;
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.59rem;
   }
   .stat-list span {
@@ -548,7 +572,7 @@
     gap: 0.4rem;
   }
   .stat-list b {
-    color: #101820;
+    color: #09090b;
   }
   .service-groups {
     display: grid;
@@ -559,7 +583,7 @@
     display: grid;
     gap: 0.35rem;
     padding-top: 0.45rem;
-    border-top: 1px solid #e7ebe9;
+    border-top: 1px solid #e4e4e7;
   }
   .service-items {
     display: flex;
@@ -568,18 +592,18 @@
   }
   .service-item {
     padding: 0.3rem 0.4rem;
-    border: 1px solid #e0e5e2;
+    border: 1px solid #e4e4e7;
     border-radius: 0.35rem;
     background: #fff;
-    color: #53606a;
+    color: #52525b;
     font-size: 0.56rem;
   }
   .service-item b {
-    color: #101820;
+    color: #09090b;
   }
   .empty-inline,
   .empty-state {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.6rem;
   }
   .empty-state {
@@ -601,9 +625,9 @@
     column-gap: 0.3rem;
     min-width: 4.2rem;
     padding: 0.35rem;
-    border: 1px solid #e0e5e2;
+    border: 1px solid #e4e4e7;
     border-radius: 0.35rem;
-    background: #f8faf9;
+    background: #fafafa;
   }
   .connection-mode-icon,
   .connection-row-icon {
@@ -612,19 +636,19 @@
     width: 1.35rem;
     height: 1.35rem;
     border-radius: 0.35rem;
-    background: #e6ece9;
-    color: #101820;
+    background: #f4f4f5;
+    color: #09090b;
   }
   .connection-mode-icon {
     grid-row: span 2;
   }
   .connection-mode strong {
-    color: #101820;
+    color: #09090b;
     font-size: 0.72rem;
     line-height: 1;
   }
   .connection-mode > span:last-child {
-    color: #53606a;
+    color: #52525b;
     font-size: 0.52rem;
   }
   .connection-list {
@@ -632,7 +656,7 @@
     gap: 0.45rem;
     margin-top: 0.7rem;
     padding-top: 0.55rem;
-    border-top: 1px solid #e7ebe9;
+    border-top: 1px solid #e4e4e7;
   }
   .connection-row {
     display: grid;
@@ -650,13 +674,13 @@
   }
   .connection-copy b {
     overflow: hidden;
-    color: #101820;
+    color: #09090b;
     font-size: 0.64rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .connection-copy span {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.55rem;
   }
   .demand-grid {
@@ -670,26 +694,21 @@
   :global(.transport-demand-card) {
     grid-column: 1 / -1;
   }
-  .demand-main {
-    display: flex;
+  .demand-heading {
     align-items: baseline;
-    gap: 0.35rem;
-    margin-top: 0.75rem;
   }
-  .demand-main strong {
-    color: #101820;
+  .demand-percentage {
+    color: #09090b;
     font-size: 1.35rem;
     letter-spacing: -0.04em;
-  }
-  .demand-main span {
-    color: #5d6260;
-    font-size: 0.55rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
   .demand-metrics {
     display: grid;
     gap: 0.35rem;
     margin-top: 0.65rem;
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.58rem;
   }
   .demand-metrics span {
@@ -698,30 +717,30 @@
     gap: 0.4rem;
   }
   .demand-metrics b {
-    color: #101820;
+    color: #09090b;
     font-variant-numeric: tabular-nums;
   }
   :global(.demand-card [data-slot='progress']) {
     height: 0.34rem;
     margin-top: 0.7rem;
-    background: #e4e6e5;
+    background: #e4e4e7;
   }
   :global(.demand-card [data-slot='progress-indicator']) {
-    background: #101820;
+    background: var(--mobility-accent, #09090b);
   }
   .hub-list {
     display: grid;
     gap: 0.4rem;
     margin-top: 0.7rem;
     padding-top: 0.55rem;
-    border-top: 1px solid #e7ebe9;
+    border-top: 1px solid #e4e4e7;
   }
   .inbound-source-list {
     display: grid;
     gap: 0.4rem;
     margin-top: 0.7rem;
     padding-top: 0.55rem;
-    border-top: 1px solid #e7ebe9;
+    border-top: 1px solid #e4e4e7;
   }
   .inbound-source-row {
     display: grid;
@@ -736,17 +755,17 @@
   }
   .inbound-source-row b {
     overflow: hidden;
-    color: #101820;
+    color: #09090b;
     font-size: 0.6rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .inbound-source-row small {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.54rem;
   }
   .inbound-source-row > strong {
-    color: #101820;
+    color: #09090b;
     font-size: 0.65rem;
     font-variant-numeric: tabular-nums;
   }
@@ -775,8 +794,8 @@
     width: 1.3rem;
     height: 1.3rem;
     border-radius: 0.35rem;
-    background: #e7efeb;
-    color: #315d4c;
+    background: #f4f4f5;
+    color: #3f3f46;
   }
   .hub-row-copy {
     display: grid;
@@ -785,7 +804,7 @@
   }
   .hub-row b {
     overflow: hidden;
-    color: #101820;
+    color: #09090b;
     font-size: 0.6rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -793,7 +812,7 @@
   .hub-row-copy small,
   .hub-load-legend,
   .hub-row-values small {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.54rem;
   }
   .hub-load-bar {
@@ -802,7 +821,7 @@
     width: 100%;
     height: 0.32rem;
     border-radius: 999px;
-    background: #e7ebe9;
+    background: #e4e4e7;
   }
   .hub-load-fill {
     display: flex;
@@ -815,10 +834,10 @@
     height: 100%;
   }
   .hub-load-local {
-    background: #101820;
+    background: var(--mobility-accent, #09090b);
   }
   .hub-load-linked {
-    background: #9bb3a7;
+    background: #a1a1aa;
   }
   .hub-load-legend {
     display: flex;
@@ -839,10 +858,10 @@
     border-radius: 999px;
   }
   .hub-dot-local {
-    background: #101820;
+    background: var(--mobility-accent, #09090b);
   }
   .hub-dot-linked {
-    background: #9bb3a7;
+    background: #a1a1aa;
   }
   .hub-dot-care {
     background: #c69a5c;
@@ -854,13 +873,13 @@
     min-width: 3.2rem;
   }
   .hub-row-values strong {
-    color: #101820;
+    color: #09090b;
     font-size: 1rem;
     letter-spacing: -0.04em;
     font-variant-numeric: tabular-nums;
   }
   .analytics-state {
-    color: #5d6260;
+    color: #71717a;
     font-size: 0.65rem;
   }
   :global(.loading-heading) {
@@ -886,8 +905,8 @@
     height: 0.38rem;
   }
   :global(.island-analytics-card [data-slot='skeleton']) {
-    background-color: #e9ecea;
-    background-image: linear-gradient(90deg, #e9ecea 0%, #f8f9f8 50%, #e9ecea 100%);
+    background-color: #f4f4f5;
+    background-image: linear-gradient(90deg, #f4f4f5 0%, #fafafa 50%, #f4f4f5 100%);
     background-size: 200% 100%;
   }
   @media (max-width: 640px) {
@@ -905,5 +924,111 @@
     .demand-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  :global(.island-analytics-card) {
+    border-color: var(--mobility-border-strong, #d4d4d8);
+    background: var(--mobility-surface, #ffffff);
+    color: var(--mobility-text, #09090b);
+    color-scheme: light;
+    box-shadow: 0 0.7rem 2.2rem rgb(16 24 32 / 12%);
+  }
+
+  :global(.island-analytics-card .insight-card) {
+    border-color: var(--mobility-border, #e4e4e7);
+    background: var(--mobility-surface, #ffffff);
+    color: var(--mobility-text, #09090b);
+    box-shadow: 0 0.2rem 0.7rem rgb(16 24 32 / 4%);
+  }
+
+  :global(.island-analytics-card h2),
+  :global(.island-analytics-card h3),
+  :global(.island-analytics-card .people-total),
+  :global(.island-analytics-card .population-topline b),
+  :global(.island-analytics-card .service-group-title b),
+  :global(.island-analytics-card .stat-list b),
+  :global(.island-analytics-card .service-item b),
+  :global(.island-analytics-card .connection-copy b),
+  :global(.island-analytics-card .demand-percentage),
+  :global(.island-analytics-card .demand-metrics b),
+  :global(.island-analytics-card .inbound-source-row b),
+  :global(.island-analytics-card .inbound-source-row > strong),
+  :global(.island-analytics-card .hub-row b),
+  :global(.island-analytics-card .hub-row-values strong) {
+    color: var(--mobility-text, #09090b);
+  }
+
+  :global(.island-analytics-card .card-heading > div > p),
+  :global(.island-analytics-card .driver-row small),
+  :global(.island-analytics-card .population-row small),
+  :global(.island-analytics-card .stat-list),
+  :global(.island-analytics-card .service-item),
+  :global(.island-analytics-card .empty-inline),
+  :global(.island-analytics-card .empty-state),
+  :global(.island-analytics-card .connection-copy span),
+  :global(.island-analytics-card .demand-metrics),
+  :global(.island-analytics-card .inbound-source-row small),
+  :global(.island-analytics-card .hub-row-copy small),
+  :global(.island-analytics-card .hub-load-legend),
+  :global(.island-analytics-card .hub-row-values small),
+  :global(.island-analytics-card .analytics-state) {
+    color: var(--mobility-muted, #71717a);
+  }
+
+  :global(.island-analytics-card .status-badge),
+  :global(.island-analytics-card .driver-badge) {
+    border-color: #d4d4d8;
+    background: var(--mobility-accent-soft, #f4f4f5);
+    color: #3f3f46;
+  }
+
+  :global(.island-analytics-card .close-button) {
+    border-color: var(--mobility-border-strong, #d4d4d8);
+    background: var(--mobility-surface, #ffffff);
+    color: var(--mobility-accent, #09090b);
+  }
+
+  :global(.island-analytics-card .close-button:hover),
+  :global(.island-analytics-card .close-button:focus-visible) {
+    border-color: var(--mobility-focus, #3f3f46);
+    background: var(--mobility-accent-soft, #f4f4f5);
+    color: var(--mobility-accent, #09090b);
+  }
+
+  :global(.island-analytics-card [data-slot='progress']) {
+    background: var(--mobility-surface-muted, #f4f4f5);
+  }
+
+  :global(.island-analytics-card [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+
+  :global(.island-analytics-card .service-group),
+  :global(.island-analytics-card .connection-list),
+  :global(.island-analytics-card .hub-list),
+  :global(.island-analytics-card .inbound-source-list) {
+    border-color: var(--mobility-border, #e4e4e7);
+  }
+
+  :global(.island-analytics-card .service-item),
+  :global(.island-analytics-card .connection-mode) {
+    border-color: var(--mobility-border, #e4e4e7);
+    background: var(--mobility-surface-soft, #fafafa);
+  }
+
+  :global(.island-analytics-card .connection-mode-icon),
+  :global(.island-analytics-card .connection-row-icon),
+  :global(.island-analytics-card .hub-mode-icon) {
+    background: var(--mobility-accent-soft, #f4f4f5);
+    color: var(--mobility-accent, #09090b);
+  }
+
+  :global(.island-analytics-card .hub-load-bar) {
+    background: var(--mobility-surface-muted, #f4f4f5);
+  }
+
+  :global(.island-analytics-card .hub-load-local),
+  :global(.island-analytics-card .hub-dot-local) {
+    background: var(--mobility-accent, #09090b);
   }
 </style>

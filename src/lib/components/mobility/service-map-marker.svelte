@@ -54,6 +54,7 @@
     border: 0;
     border-radius: 50%;
     background: transparent;
+    color-scheme: light;
     z-index: 4;
     animation: service-marker-enter 260ms ease both;
     opacity: 1;
@@ -66,7 +67,7 @@
   }
 
   .service-marker:focus-visible {
-    outline: 3px solid #19332f;
+    outline: 3px solid #09090b;
     outline-offset: 3px;
   }
 
@@ -85,7 +86,7 @@
     border-radius: 50%;
     background: var(--marker-color);
     color: #ffffff;
-    box-shadow: 0 0.18rem 0.55rem rgb(16 24 32 / 25%);
+    box-shadow: 0 0.18rem 0.55rem rgb(16 24 32 / 18%);
   }
 
   :global(.service-marker-icon svg) {

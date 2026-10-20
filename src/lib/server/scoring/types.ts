@@ -21,6 +21,13 @@ export type TransportRouteStop = {
   sequence: number;
 };
 
+export type ResidentialDemandPoint = {
+  id: string;
+  islandId: string;
+  coordinates: [number, number];
+  weight: number;
+};
+
 export type ScoringSnapshot = {
   islands: Island[];
   population: Population[];
@@ -29,6 +36,8 @@ export type ScoringSnapshot = {
   routes: TransportRoute[];
   transportStops: TransportStop[];
   routeStops: TransportRouteStop[];
+  /** Spatial heat-map input only. Score calculators intentionally ignore it. */
+  residentialDemandPoints?: ResidentialDemandPoint[];
 };
 
 export type ScoreComponent = {

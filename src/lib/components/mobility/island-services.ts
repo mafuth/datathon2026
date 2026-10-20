@@ -3,6 +3,19 @@ export const ISLAND_DEMAND_CATEGORIES = ['all', 'health', 'education', 'transpor
 export type IslandDemandCategory = (typeof ISLAND_DEMAND_CATEGORIES)[number];
 export type ServiceDemandCategory = Exclude<IslandDemandCategory, 'all'>;
 export type ServiceDemandStatus = 'numeric' | 'partial' | 'unavailable';
+export type IslandServiceChange = 'unchanged' | 'added' | 'upgraded' | 'moved' | 'deleted';
+
+export type IslandServiceUpgradeOption = {
+  targetSubtype: string;
+  label: string;
+};
+
+export type IslandServiceEligibility = {
+  canUpgrade: boolean;
+  upgrades: IslandServiceUpgradeOption[];
+  canMove: boolean;
+  canDelete: boolean;
+};
 
 export type IslandServiceDemand = {
   value: number | null;
@@ -24,6 +37,8 @@ export type IslandMapService = {
   subtype: string;
   name: string | null;
   coordinates: [number, number] | null;
+  change?: IslandServiceChange;
+  eligibility?: IslandServiceEligibility;
   demand: {
     health: IslandServiceDemand;
     education: IslandServiceDemand;
@@ -51,7 +66,8 @@ export type IslandServiceHexes = {
 };
 
 export type IslandServicesResponse = {
-  status: ServiceDemandStatus;
+  status: ServiceDemandStatus | 'draft';
+  baselineVersion?: string;
   island: {
     id: string;
     name: string;
@@ -66,6 +82,7 @@ export type IslandServicesResponse = {
     hexFeatureCount: number;
     numericDemandCount: number;
     unavailableDemandCount: number;
+    residentialBuildingCount: number;
   };
   limitations: string[];
 };

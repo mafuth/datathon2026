@@ -75,4 +75,38 @@ describe('island service demand map data', () => {
       )
     ).toEqual(hexes);
   });
+
+  it('combines facility pressure with residential access gaps', () => {
+    const geometry = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [72.998, 2.998],
+          [73.006, 2.998],
+          [73.006, 3.006],
+          [72.998, 3.006],
+          [72.998, 2.998]
+        ]
+      ]
+    };
+    const services = [
+      {
+        coordinates: [73, 3] as [number, number],
+        weights: { health: 1, education: 0, transport: 0 },
+        coverageWeights: { health: 1, education: 0, transport: 0 },
+        statuses: { health: 'numeric' as const, education: 'unavailable' as const, transport: 'unavailable' as const }
+      }
+    ];
+    const residentialPoints = [
+      { id: 'building:near', islandId: 'island:test', coordinates: [73, 3] as [number, number], weight: 1 },
+      { id: 'building:far', islandId: 'island:test', coordinates: [73.004, 3.004] as [number, number], weight: 4 }
+    ];
+
+    const hexes = buildServiceDemandHexes(geometry, [73, 3], services, residentialPoints);
+
+    expect(hexes.features.length).toBeGreaterThan(1);
+    expect(hexes.features.some((feature) => feature.properties.healthStatus === 'numeric')).toBe(true);
+    expect(hexes.features.some((feature) => feature.properties.healthWeight > 0)).toBe(true);
+    expect(buildServiceDemandHexes(geometry, [73, 3], services, residentialPoints)).toEqual(hexes);
+  });
 });

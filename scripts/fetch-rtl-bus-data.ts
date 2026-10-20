@@ -87,7 +87,7 @@ function islandShapes(): IslandShape[] {
       geometry.type === 'Polygon'
         ? [geometry.coordinates]
         : geometry.type === 'MultiPolygon'
-          ? geometry.coordinates.flat()
+          ? geometry.coordinates
           : [];
     const rings = polygons.flatMap((polygon) =>
       Array.isArray(polygon)

@@ -92,7 +92,7 @@ export function scorePercentage(value: number | null | undefined): string {
 
 export function scorePresentation(value: number | null | undefined, unavailableLabel: string): ScorePresentation {
   if (isUnavailableScore(value)) {
-    return { percent: 'N/A', color: '#101820', emojiSrc: '', emojiLabel: unavailableLabel };
+    return { percent: 'N/A', color: '#09090b', emojiSrc: '', emojiLabel: unavailableLabel };
   }
 
   const score = Math.max(0, Math.min(100, value ?? 0));
