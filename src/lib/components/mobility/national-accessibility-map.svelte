@@ -1,16 +1,24 @@
 <script lang="ts">
-  import type { Map as MapLibreMap, MapOptions } from 'maplibre-gl';
+  import type { Map as MapLibreMap, Marker as MapLibreMarker, Popup as MapLibrePopup, MapOptions } from 'maplibre-gl';
 
-  import { onMount } from 'svelte';
+  import Hospital from '@lucide/svelte/icons/hospital';
+  import Route from '@lucide/svelte/icons/route';
+  import School from '@lucide/svelte/icons/school';
+  import { mount, onMount, unmount } from 'svelte';
+  import { prefersReducedMotion } from 'svelte/motion';
 
   import 'maplibre-gl/dist/maplibre-gl.css';
 
   import type { IslandProfile } from './island-profile';
+  import type { IslandDemandCategory, IslandServiceHexes, IslandServicesResponse } from './island-services';
   import type { AnalyticsData, AnalyticsIsland } from './national-analytics-card.svelte';
   import type { IslandSearchOption } from './national-score-card.svelte';
 
+  import * as Tabs from '$components/ui/tabs';
+
   import IslandAnalyticsCard from './island-analytics-card.svelte';
   import IslandScoreCard from './island-score-card.svelte';
+  import { ISLAND_DEMAND_CATEGORIES } from './island-services';
   import {
     buildZoomInterpolation,
     NATIONAL_ISLAND_FILL_OPACITY_STOPS,
@@ -20,6 +28,8 @@
   } from './national-accessibility-map-style';
   import NationalAnalyticsCard from './national-analytics-card.svelte';
   import NationalScoreCard from './national-score-card.svelte';
+  import ServiceDetailsPopup from './service-details-popup.svelte';
+  import ServiceMapMarker from './service-map-marker.svelte';
 
   type Coordinate = [number, number];
 
@@ -54,13 +64,45 @@
       type: 'Feature';
       id: string;
       geometry: { type: 'Point'; coordinates: Coordinate };
-      properties: { score: number };
+      properties: { islandId: string; score: number };
     }>;
+  };
+
+  type MountedServiceMarker = {
+    marker: MapLibreMarker;
+    component: ReturnType<typeof mount>;
+  };
+
+  type MountedServicePopup = {
+    popup: MapLibrePopup;
+    component: ReturnType<typeof mount>;
   };
 
   const EMPTY_ISLAND_COLLECTION: IslandCollection = { type: 'FeatureCollection', features: [] };
   const EMPTY_SCORE_FIELD_COLLECTION: ScoreFieldCollection = { type: 'FeatureCollection', features: [] };
+  const EMPTY_SERVICE_HEXES: IslandServiceHexes = { type: 'FeatureCollection', features: [] };
+  const SELECTED_DEMAND_HEX_OPACITY = 0.42;
+  const OSM_ROAD_CLASSES = [
+    'motorway',
+    'trunk',
+    'primary',
+    'secondary',
+    'tertiary',
+    'minor',
+    'service',
+    'track',
+    'path',
+    'cycleway',
+    'footway',
+    'pedestrian',
+    'steps'
+  ] as const;
   const MALDIVES_CENTER: Coordinate = [73.2, 3.4];
+  const SERVICE_MARKER_LEGEND = [
+    { label: 'Health services', color: '#bf4f55', icon: Hospital },
+    { label: 'Education services', color: '#4b6fa8', icon: School },
+    { label: 'Transport services', color: '#b47a3c', icon: Route }
+  ] as const;
   const ANIMATED_EMOJI_BASE_URL =
     'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/';
   const LOADING_MESSAGES = [
@@ -108,6 +150,8 @@
 
   let mapElement: HTMLDivElement;
   let mapInstance: MapLibreMap | null = null;
+  let maplibreMarkerConstructor: typeof import('maplibre-gl').Marker | null = null;
+  let maplibrePopupConstructor: typeof import('maplibre-gl').Popup | null = null;
   let mapReady = $state(false);
   let heatmapLoading = $state(true);
   let heatmapError = $state(false);
@@ -125,6 +169,13 @@
   let islandProfileLoading = $state(false);
   let islandProfileError = $state<string | null>(null);
   let islandProfileRequest = 0;
+  let islandServices = $state<IslandServicesResponse | null>(null);
+  let islandServicesLoading = $state(false);
+  let islandServicesError = $state<string | null>(null);
+  let islandServicesRequest = 0;
+  let selectedDemandCategory = $state<IslandDemandCategory>('all');
+  let mountedServiceMarkers: MountedServiceMarker[] = [];
+  let activeServicePopup: MountedServicePopup | null = null;
   let nationalMetrics = $derived([
     { key: 'health', label: 'Health', value: analyticsData?.national.categories.health?.score },
     { key: 'education', label: 'Schools', value: analyticsData?.national.categories.education?.score },
@@ -134,9 +185,12 @@
 
   function selectIslandById(id: string, centroid?: Coordinate): void {
     selectedIslandId = id;
+    selectedDemandCategory = 'all';
     analyticsOpen = false;
     islandAnalyticsOpen = true;
+    prepareSelectedIslandOverlay(id);
     void loadIslandProfile(id);
+    void loadIslandServices(id);
 
     const island = islandCollection.features.find((feature) => feature.properties.id === id);
     focusIsland({
@@ -150,16 +204,113 @@
     if (!analyticsData) void loadAnalytics();
   }
 
+  function collectCoordinates(value: unknown, points: Coordinate[]): void {
+    if (!Array.isArray(value)) return;
+    if (typeof value[0] === 'number' && typeof value[1] === 'number') {
+      points.push([value[0], value[1]]);
+      return;
+    }
+    for (const child of value) collectCoordinates(child, points);
+  }
+
+  function islandBounds(feature: IslandFeature): [Coordinate, Coordinate] | null {
+    const points: Coordinate[] = [];
+    collectCoordinates(feature.geometry.coordinates, points);
+    if (points.length === 0) return null;
+
+    let west = points[0][0];
+    let south = points[0][1];
+    let east = points[0][0];
+    let north = points[0][1];
+
+    for (const [longitude, latitude] of points.slice(1)) {
+      west = Math.min(west, longitude);
+      south = Math.min(south, latitude);
+      east = Math.max(east, longitude);
+      north = Math.max(north, latitude);
+    }
+
+    return [
+      [west, south],
+      [east, north]
+    ];
+  }
+
+  function islandCameraPadding(): { top: number; right: number; bottom: number; left: number } {
+    const isMobile = (mapElement?.clientWidth ?? 0) <= 640;
+    if (isMobile) return { top: 210, right: 24, bottom: 190, left: 24 };
+    return { top: 155, right: 370, bottom: 135, left: 350 };
+  }
+
+  function boundsFitAtCurrentZoom(
+    bounds: [Coordinate, Coordinate],
+    padding: { top: number; right: number; bottom: number; left: number }
+  ): boolean {
+    if (!mapInstance || !mapElement.clientWidth || !mapElement.clientHeight) return false;
+
+    const [[west, south], [east, north]] = bounds;
+    const projectedCorners = [
+      mapInstance.project([west, south]),
+      mapInstance.project([west, north]),
+      mapInstance.project([east, south]),
+      mapInstance.project([east, north])
+    ];
+    const left = padding.left;
+    const right = mapElement.clientWidth - padding.right;
+    const top = padding.top;
+    const bottom = mapElement.clientHeight - padding.bottom;
+
+    return projectedCorners.every(
+      (point) => point.x >= left && point.x <= right && point.y >= top && point.y <= bottom
+    );
+  }
+
   function returnToNational(): void {
     selectedIslandId = null;
     islandAnalyticsOpen = false;
     islandProfile = null;
     islandProfileError = null;
+    islandProfileRequest += 1;
+    islandServices = null;
+    islandServicesError = null;
+    islandServicesLoading = false;
+    islandServicesRequest += 1;
+    resetSelectedIslandOverlay();
   }
 
   function focusIsland(island: IslandSearchOption): void {
     if (!mapInstance || !island.centroid) return;
-    mapInstance.flyTo({ center: island.centroid, zoom: 10, duration: 900, essential: true });
+    const reducedMotion = prefersReducedMotion.current;
+    const feature = islandCollection.features.find((candidate) => candidate.properties.id === island.id);
+    const bounds = feature ? islandBounds(feature) : null;
+
+    if (bounds) {
+      const padding = islandCameraPadding();
+      const camera = mapInstance.cameraForBounds(bounds, {
+        padding,
+        maxZoom: 14
+      });
+      const currentZoom = mapInstance.getZoom();
+
+      if (camera?.center) {
+        const fittedZoom = camera.zoom ?? currentZoom;
+        const keepCurrentZoom = fittedZoom < currentZoom && boundsFitAtCurrentZoom(bounds, padding);
+        mapInstance.easeTo({
+          center: camera.center,
+          zoom: keepCurrentZoom ? currentZoom : fittedZoom,
+          duration: reducedMotion ? 0 : 850,
+          essential: !reducedMotion
+        });
+        return;
+      }
+    }
+
+    mapInstance.flyTo({
+      center: island.centroid,
+      zoom: Math.max(mapInstance.getZoom(), 10),
+      duration: reducedMotion ? 0 : 850,
+      essential: !reducedMotion
+    });
   }
 
   function selectSearchIsland(island: IslandSearchOption): void {
@@ -204,6 +355,330 @@
     }
   }
 
+  function serviceMarkerLabel(service: IslandServicesResponse['services'][number]): string {
+    return service.name ?? `${service.subtype.replaceAll('_', ' ')} ${service.serviceType}`;
+  }
+
+  function closeServicePopup(): void {
+    const mountedPopup = activeServicePopup;
+    if (!mountedPopup) return;
+    activeServicePopup = null;
+    mountedPopup.popup.remove();
+    void unmount(mountedPopup.component);
+  }
+
+  function openServicePopup(service: IslandServicesResponse['services'][number]): void {
+    if (!mapInstance || !maplibrePopupConstructor || !service.coordinates) return;
+    closeServicePopup();
+
+    const popupElement = document.createElement('div');
+    const popup = new maplibrePopupConstructor({
+      closeButton: false,
+      closeOnClick: true,
+      maxWidth: 'min(20rem, calc(100vw - 1rem))',
+      offset: 20
+    });
+    const component = mount(ServiceDetailsPopup, {
+      target: popupElement,
+      props: {
+        service,
+        onClose: () => popup.remove()
+      }
+    });
+    popup.on('close', () => {
+      if (activeServicePopup?.popup !== popup) return;
+      activeServicePopup = null;
+      void unmount(component);
+    });
+    activeServicePopup = { popup, component };
+    popup.setLngLat(service.coordinates).setDOMContent(popupElement).addTo(mapInstance);
+  }
+
+  function removeServiceMarkers(animate = false): void {
+    closeServicePopup();
+    const markers = mountedServiceMarkers;
+    mountedServiceMarkers = [];
+    const reducedMotion = prefersReducedMotion.current;
+
+    for (const { marker, component } of markers) {
+      const element = marker.getElement().querySelector<HTMLElement>('[data-service-marker]');
+      if (animate && element && !reducedMotion) {
+        element.classList.add('service-marker-exiting');
+        window.setTimeout(() => {
+          marker.remove();
+          void unmount(component);
+        }, 240);
+      } else {
+        marker.remove();
+        void unmount(component);
+      }
+    }
+  }
+
+  function renderServiceMarkers(data: IslandServicesResponse): void {
+    if (!mapInstance || !maplibreMarkerConstructor) return;
+    removeServiceMarkers();
+
+    for (const service of data.services) {
+      if (!service.coordinates) continue;
+      const host = document.createElement('div');
+      const component = mount(ServiceMapMarker, {
+        target: host,
+        props: {
+          serviceType: service.serviceType,
+          label: serviceMarkerLabel(service),
+          onSelect: () => openServicePopup(service)
+        }
+      });
+      const marker = new maplibreMarkerConstructor({ element: host, anchor: 'center' });
+      marker.setLngLat(service.coordinates).addTo(mapInstance);
+      mountedServiceMarkers.push({ marker, component });
+    }
+  }
+
+  function setSourceData(sourceId: string, data: unknown): void {
+    (mapInstance?.getSource(sourceId) as { setData: (value: unknown) => void } | undefined)?.setData(data);
+  }
+
+  function setLayerOpacity(layerId: string, property: 'fill-opacity' | 'line-opacity', value: number): void {
+    if (mapInstance?.getLayer(layerId)) mapInstance.setPaintProperty(layerId, property, value as never);
+  }
+
+  function setLayerVisibility(layerId: string, visibility: 'visible' | 'none'): void {
+    if (mapInstance?.getLayer(layerId)) mapInstance.setLayoutProperty(layerId, 'visibility', visibility);
+  }
+
+  function setLayerFilter(layerId: string, filter: unknown): void {
+    if (mapInstance?.getLayer(layerId)) mapInstance.setFilter(layerId, filter as never);
+  }
+
+  function osmRoadFilter(): unknown[] {
+    return [
+      'all',
+      ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false],
+      ['match', ['get', 'class'], OSM_ROAD_CLASSES, true, false],
+      ['!=', ['get', 'brunnel'], 'tunnel']
+    ];
+  }
+
+  function selectedIslandRoadFilter(id: string): unknown[] {
+    const feature = islandCollection.features.find((candidate) => candidate.properties.id === id);
+    const baseFilter = osmRoadFilter();
+
+    if (feature && ['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
+      return [...baseFilter.slice(0, 1), ...baseFilter.slice(1), ['within', feature.geometry]];
+    }
+
+    return baseFilter;
+  }
+
+  function demandStatusProperty(category: IslandDemandCategory): string {
+    if (category === 'health') return 'healthStatus';
+    if (category === 'education') return 'educationStatus';
+    if (category === 'transport') return 'transportStatus';
+    return 'allStatus';
+  }
+
+  function demandColorExpression(category: IslandDemandCategory): unknown[] {
+    const weightProperty = demandWeightProperty(category);
+    const statusProperty = demandStatusProperty(category);
+    return [
+      'case',
+      ['==', ['get', statusProperty], 'unavailable'],
+      '#aeb7b3',
+      [
+        'interpolate',
+        ['linear'],
+        ['coalesce', ['get', weightProperty], 0],
+        0,
+        '#edf8e9',
+        0.25,
+        '#c7e9c0',
+        0.5,
+        '#fee08b',
+        0.75,
+        '#fdae61',
+        1,
+        '#d73027'
+      ]
+    ];
+  }
+
+  function demandFillOpacityExpression(category: IslandDemandCategory, multiplier = 1): unknown[] {
+    const weightProperty = demandWeightProperty(category);
+    const statusProperty = demandStatusProperty(category);
+    const opacity = [
+      'case',
+      ['==', ['get', statusProperty], 'unavailable'],
+      0,
+      [
+        'interpolate',
+        ['linear'],
+        ['coalesce', ['get', weightProperty], 0],
+        0,
+        0.02,
+        0.08,
+        0.08,
+        0.25,
+        0.2,
+        0.5,
+        0.38,
+        0.75,
+        0.58,
+        1,
+        0.82
+      ]
+    ];
+    return multiplier === 1 ? opacity : ['*', opacity, multiplier];
+  }
+
+  function demandAvailabilityFilter(category: IslandDemandCategory): unknown[] {
+    if (category === 'all') {
+      return [
+        'any',
+        ['!=', ['get', 'healthStatus'], 'unavailable'],
+        ['!=', ['get', 'educationStatus'], 'unavailable'],
+        ['!=', ['get', 'transportStatus'], 'unavailable']
+      ];
+    }
+    return ['!=', ['get', demandStatusProperty(category)], 'unavailable'];
+  }
+
+  function fadeLayerTo(
+    layerId: string,
+    property: 'fill-opacity' | 'line-opacity',
+    target: number,
+    islandId?: string
+  ): void {
+    setLayerOpacity(layerId, property, 0);
+    if (prefersReducedMotion.current) {
+      setLayerOpacity(layerId, property, target);
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      if (islandId && selectedIslandId !== islandId) return;
+      setLayerOpacity(layerId, property, target);
+    });
+  }
+
+  function setDemandHexOpacity(multiplier: number): void {
+    if (!mapInstance?.getLayer('selected-service-demand-hexes')) return;
+    mapInstance.setPaintProperty(
+      'selected-service-demand-hexes',
+      'fill-opacity',
+      demandFillOpacityExpression(selectedDemandCategory, multiplier) as never
+    );
+  }
+
+  function fadeDemandHexesTo(target: number, islandId?: string): void {
+    setDemandHexOpacity(0);
+    if (prefersReducedMotion.current) {
+      setDemandHexOpacity(target);
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      if (islandId && selectedIslandId !== islandId) return;
+      setDemandHexOpacity(target);
+    });
+  }
+
+  function applySelectedIslandMask(id: string): void {
+    if (!mapInstance) return;
+    mapInstance.setFilter('island-fill', ['!=', ['get', 'id'], id]);
+    mapInstance.setFilter('national-score-fields', ['!=', ['get', 'islandId'], id]);
+    mapInstance.setFilter('island-outline', ['!=', ['get', 'id'], id]);
+    mapInstance.setFilter('island-labels', ['!=', ['get', 'id'], id]);
+    mapInstance.setFilter('selected-island-fill', ['==', ['get', 'id'], id]);
+    mapInstance.setFilter('selected-island-outline', ['==', ['get', 'id'], id]);
+    mapInstance.setFilter('selected-service-demand-hexes', demandAvailabilityFilter(selectedDemandCategory));
+    setLayerFilter('selected-island-road-casing', selectedIslandRoadFilter(id));
+    setLayerFilter('selected-island-road-inner', selectedIslandRoadFilter(id));
+    setLayerVisibility('selected-island-road-casing', 'visible');
+    setLayerVisibility('selected-island-road-inner', 'visible');
+  }
+
+  function prepareSelectedIslandOverlay(id: string): void {
+    setSourceData('selected-service-hexes', EMPTY_SERVICE_HEXES);
+    removeServiceMarkers(true);
+    applySelectedIslandMask(id);
+    fadeLayerTo('selected-island-fill', 'fill-opacity', 0.45, id);
+    fadeLayerTo('selected-island-outline', 'line-opacity', 1, id);
+    setDemandHexOpacity(0);
+  }
+
+  function resetSelectedIslandOverlay(): void {
+    removeServiceMarkers(true);
+    if (!mapInstance) return;
+    mapInstance.setFilter('island-fill', null);
+    mapInstance.setFilter('national-score-fields', null);
+    mapInstance.setFilter('island-outline', null);
+    mapInstance.setFilter('island-labels', null);
+    mapInstance.setFilter('selected-island-fill', ['==', ['get', 'id'], '']);
+    mapInstance.setFilter('selected-island-outline', ['==', ['get', 'id'], '']);
+    mapInstance.setFilter('selected-service-demand-hexes', ['==', ['get', 'allStatus'], '']);
+    setLayerFilter('selected-island-road-casing', ['==', ['get', 'class'], '']);
+    setLayerFilter('selected-island-road-inner', ['==', ['get', 'class'], '']);
+    setLayerVisibility('selected-island-road-casing', 'none');
+    setLayerVisibility('selected-island-road-inner', 'none');
+    setSourceData('selected-service-hexes', EMPTY_SERVICE_HEXES);
+    setLayerOpacity('selected-island-fill', 'fill-opacity', 0);
+    setLayerOpacity('selected-island-outline', 'line-opacity', 0);
+    setDemandHexOpacity(0);
+  }
+
+  async function loadIslandServices(id: string): Promise<void> {
+    const requestId = ++islandServicesRequest;
+    islandServices = null;
+    islandServicesLoading = true;
+    islandServicesError = null;
+    try {
+      const response = await fetch(`/api/map/islands/${encodeURIComponent(id)}/services`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Island services request failed with status ${response.status}`);
+      const data = (await response.json()) as IslandServicesResponse;
+      if (requestId !== islandServicesRequest) return;
+      islandServices = data;
+      setSourceData('selected-service-hexes', data.hexes);
+      applySelectedIslandMask(id);
+      renderServiceMarkers(data);
+      fadeDemandHexesTo(SELECTED_DEMAND_HEX_OPACITY, id);
+    } catch (error) {
+      if (requestId === islandServicesRequest) {
+        islandServicesError = error instanceof Error ? error.message : 'Island services could not be loaded.';
+      }
+    } finally {
+      if (requestId === islandServicesRequest) islandServicesLoading = false;
+    }
+  }
+
+  function demandWeightProperty(category: IslandDemandCategory): string {
+    if (category === 'health') return 'healthWeight';
+    if (category === 'education') return 'educationWeight';
+    if (category === 'transport') return 'transportWeight';
+    return 'allWeight';
+  }
+
+  function demandCategoryLabel(category: IslandDemandCategory): string {
+    if (category === 'health') return 'Health';
+    if (category === 'education') return 'Education';
+    if (category === 'transport') return 'Transport';
+    return 'All demand';
+  }
+
+  $effect(() => {
+    if (!mapInstance?.getLayer('selected-service-demand-hexes')) return;
+    mapInstance.setPaintProperty(
+      'selected-service-demand-hexes',
+      'fill-color',
+      demandColorExpression(selectedDemandCategory) as never
+    );
+    mapInstance.setPaintProperty(
+      'selected-service-demand-hexes',
+      'fill-opacity',
+      demandFillOpacityExpression(selectedDemandCategory, SELECTED_DEMAND_HEX_OPACITY) as never
+    );
+    mapInstance.setFilter('selected-service-demand-hexes', demandAvailabilityFilter(selectedDemandCategory) as never);
+  });
+
   async function openAnalytics(): Promise<void> {
     analyticsOpen = true;
     await loadAnalytics();
@@ -226,6 +701,46 @@
 
     const baseLayers = Array.isArray(baseStyle.layers)
       ? baseStyle.layers.filter((layer) => layer.type !== 'symbol')
+      : [];
+    const selectedRoadLayers = baseStyle.sources?.openmaptiles
+      ? [
+          {
+            id: 'selected-island-road-casing',
+            type: 'line',
+            source: 'openmaptiles',
+            'source-layer': 'transportation',
+            minzoom: 8,
+            layout: {
+              visibility: 'none',
+              'line-cap': 'round',
+              'line-join': 'round'
+            },
+            filter: osmRoadFilter(),
+            paint: {
+              'line-color': '#38574f',
+              'line-opacity': 0.88,
+              'line-width': ['interpolate', ['exponential', 1.3], ['zoom'], 8, 1.4, 11, 2.8, 14, 5]
+            }
+          },
+          {
+            id: 'selected-island-road-inner',
+            type: 'line',
+            source: 'openmaptiles',
+            'source-layer': 'transportation',
+            minzoom: 8,
+            layout: {
+              visibility: 'none',
+              'line-cap': 'round',
+              'line-join': 'round'
+            },
+            filter: osmRoadFilter(),
+            paint: {
+              'line-color': '#f8fbf8',
+              'line-opacity': 0.96,
+              'line-width': ['interpolate', ['exponential', 1.3], ['zoom'], 8, 0.55, 11, 1.3, 14, 2.6]
+            }
+          }
+        ]
       : [];
     const scoreColor = [
       'case',
@@ -253,7 +768,8 @@
       sources: {
         ...(baseStyle.sources ?? {}),
         islands: { type: 'geojson', data: EMPTY_ISLAND_COLLECTION },
-        'score-fields': { type: 'geojson', data: EMPTY_SCORE_FIELD_COLLECTION }
+        'score-fields': { type: 'geojson', data: EMPTY_SCORE_FIELD_COLLECTION },
+        'selected-service-hexes': { type: 'geojson', data: EMPTY_SERVICE_HEXES }
       },
       layers: [
         ...baseLayers,
@@ -280,6 +796,30 @@
             'fill-opacity': buildZoomInterpolation(NATIONAL_ISLAND_FILL_OPACITY_STOPS)
           }
         },
+        {
+          id: 'selected-island-fill',
+          type: 'fill',
+          source: 'islands',
+          filter: ['==', ['get', 'id'], ''],
+          paint: {
+            'fill-color': '#8fd19e',
+            'fill-opacity': 0,
+            'fill-opacity-transition': { duration: 240, delay: 0 }
+          }
+        },
+        {
+          id: 'selected-service-demand-hexes',
+          type: 'fill',
+          source: 'selected-service-hexes',
+          filter: ['!=', ['get', 'allStatus'], 'unavailable'],
+          paint: {
+            'fill-color': demandColorExpression('all'),
+            'fill-opacity': demandFillOpacityExpression('all', SELECTED_DEMAND_HEX_OPACITY),
+            'fill-opacity-transition': { duration: 700, delay: 0 },
+            'fill-outline-color': 'rgba(255, 255, 255, 0.22)'
+          }
+        },
+        ...selectedRoadLayers,
         {
           id: 'island-outline',
           type: 'line',
@@ -319,6 +859,18 @@
             'text-halo-width': 1.5,
             'text-halo-blur': 0.15
           }
+        },
+        {
+          id: 'selected-island-outline',
+          type: 'line',
+          source: 'islands',
+          filter: ['==', ['get', 'id'], ''],
+          paint: {
+            'line-color': '#101820',
+            'line-opacity': 0,
+            'line-opacity-transition': { duration: 240, delay: 0 },
+            'line-width': ['interpolate', ['linear'], ['zoom'], 5.5, 1.5, 10, 2.8, 16, 3.6]
+          }
         }
       ]
     } as unknown as NonNullable<MapOptions['style']>;
@@ -334,6 +886,8 @@
     void (async () => {
       const maplibre = await import('maplibre-gl');
       if (disposed) return;
+      maplibreMarkerConstructor = maplibre.Marker;
+      maplibrePopupConstructor = maplibre.Popup;
 
       maplibre.setWorkerUrl(
         import.meta.env.DEV
@@ -372,14 +926,41 @@
           if (mapInstance) mapInstance.getCanvas().style.cursor = '';
         });
         mapReady = true;
+        if (mapInstance.getLayer('selected-service-demand-hexes')) {
+          mapInstance.setPaintProperty(
+            'selected-service-demand-hexes',
+            'fill-color',
+            demandColorExpression(selectedDemandCategory) as never
+          );
+          mapInstance.setPaintProperty(
+            'selected-service-demand-hexes',
+            'fill-opacity',
+            demandFillOpacityExpression(selectedDemandCategory, SELECTED_DEMAND_HEX_OPACITY) as never
+          );
+          mapInstance.setFilter(
+            'selected-service-demand-hexes',
+            demandAvailabilityFilter(selectedDemandCategory) as never
+          );
+        }
+        if (selectedIslandId) {
+          prepareSelectedIslandOverlay(selectedIslandId);
+          if (islandServices) {
+            setSourceData('selected-service-hexes', islandServices.hexes);
+            renderServiceMarkers(islandServices);
+            fadeDemandHexesTo(SELECTED_DEMAND_HEX_OPACITY, selectedIslandId);
+          }
+        }
         void loadAnalytics();
       });
     })();
 
     return () => {
       disposed = true;
+      removeServiceMarkers();
       mapInstance?.remove();
       mapInstance = null;
+      maplibreMarkerConstructor = null;
+      maplibrePopupConstructor = null;
       document.documentElement.classList.remove('light');
       document.documentElement.style.colorScheme = '';
     };
@@ -401,6 +982,10 @@
       (mapInstance?.getSource('islands') as { setData: (data: IslandCollection) => void } | undefined)?.setData(
         islands
       );
+      if (selectedIslandId) {
+        setLayerFilter('selected-island-road-casing', selectedIslandRoadFilter(selectedIslandId));
+        setLayerFilter('selected-island-road-inner', selectedIslandRoadFilter(selectedIslandId));
+      }
       const scoreFields: ScoreFieldCollection = {
         type: 'FeatureCollection',
         features: islands.features.flatMap((island) => {
@@ -409,7 +994,7 @@
             type: 'Feature',
             id: island.id,
             geometry: { type: 'Point', coordinates: island.properties.centroid ?? [0, 0] },
-            properties: { score: island.properties.score }
+            properties: { islandId: island.properties.id, score: island.properties.score }
           };
         })
       };
@@ -441,8 +1026,8 @@
     bind:this={mapElement}
     class="map-canvas"
     role="application"
-    aria-label="National Maldives accessibility score map"
-    aria-busy={mapReady ? 'false' : 'true'}
+    aria-label={selectedIslandId ? 'Selected island service demand map' : 'National Maldives accessibility score map'}
+    aria-busy={mapReady && !islandServicesLoading ? 'false' : 'true'}
   ></div>
 
   {#if heatmapLoading}
@@ -472,6 +1057,44 @@
         <button type="button" onclick={retryHeatmap}>Retry map</button>
       </div>
     </div>
+  {/if}
+
+  {#if selectedIslandId}
+    <section class="selected-map-controls" aria-label="Selected island service demand controls">
+      <div class="selected-map-heading">
+        <div>
+          <p class="selected-map-eyebrow">Selected island</p>
+          <h2>{islandServices?.island.name ?? selectedIsland?.name ?? 'Island services'}</h2>
+        </div>
+        {#if islandServicesLoading}<span class="selected-map-spinner" aria-label="Loading service demand"></span>{/if}
+      </div>
+
+      <p class="selected-map-caption">Service markers and demand intensity</p>
+      <div class="service-marker-legend" aria-label="Service marker colors">
+        <span><i class="marker-dot marker-dot-health"></i>Health</span>
+        <span><i class="marker-dot marker-dot-education"></i>Education</span>
+        <span><i class="marker-dot marker-dot-transport"></i>Transport</span>
+      </div>
+      <Tabs.Root bind:value={selectedDemandCategory} class="demand-tabs">
+        <Tabs.List class="demand-tabs-list" aria-label="Demand category">
+          {#each ISLAND_DEMAND_CATEGORIES as category (category)}
+            <Tabs.Trigger value={category}>{demandCategoryLabel(category)}</Tabs.Trigger>
+          {/each}
+        </Tabs.List>
+      </Tabs.Root>
+
+      {#if islandServicesError}
+        <p class="selected-map-state" role="alert">{islandServicesError}</p>
+      {:else if islandServices && islandServices.summary.hexFeatureCount === 0}
+        <p class="selected-map-state" role="status">
+          No services with valid coordinates are available for this island.
+        </p>
+      {:else if islandServices}
+        <p class="selected-map-state" role="status">
+          {islandServices.summary.mappedCoordinateCount} services mapped · {demandCategoryLabel(selectedDemandCategory)}
+        </p>
+      {/if}
+    </section>
   {/if}
 
   <div class="national-panel-slot" aria-live="polite">
@@ -519,11 +1142,34 @@
     onClose={returnToNational}
   />
 
-  <section class="map-legend" aria-label="Accessibility score legend">
-    <p class="legend-title">Accessibility score</p>
-    <div class="score-scale" aria-hidden="true"></div>
-    <div class="score-labels"><span>Low</span><span>High</span></div>
-    <div class="score-unavailable"><span></span>No access / no data</div>
+  <section class="map-legend" aria-label={selectedIslandId ? 'Service demand legend' : 'Accessibility score legend'}>
+    {#if selectedIslandId}
+      <p class="legend-title">
+        {selectedDemandCategory === 'all' ? 'All demand' : `${demandCategoryLabel(selectedDemandCategory)} demand`}
+      </p>
+      <div class="demand-scale" aria-hidden="true"></div>
+      <div class="score-labels"><span>Low</span><span>High</span></div>
+      <div class="score-unavailable"><span></span>No mapped demand</div>
+      <div class="marker-legend-section">
+        <p class="legend-section-title">Map markers</p>
+        <ul class="marker-legend" aria-label="Map service markers">
+          {#each SERVICE_MARKER_LEGEND as marker (marker.label)}
+            {@const Icon = marker.icon}
+            <li class="marker-legend-item">
+              <span class="marker-legend-icon" style={`--marker-color: ${marker.color}`} aria-hidden="true">
+                <Icon size={13} strokeWidth={2.5} />
+              </span>
+              <span>{marker.label}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    {:else}
+      <p class="legend-title">Accessibility score</p>
+      <div class="score-scale" aria-hidden="true"></div>
+      <div class="score-labels"><span>Low</span><span>High</span></div>
+      <div class="score-unavailable"><span></span>No access / no data</div>
+    {/if}
   </section>
 </div>
 
@@ -554,6 +1200,10 @@
   .map-canvas {
     position: absolute;
     inset: 0;
+  }
+
+  :global(.maplibregl-popup) {
+    z-index: 3;
   }
 
   .heatmap-loading {
@@ -646,7 +1296,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .loading-spinner {
+    .loading-spinner,
+    .selected-map-spinner {
       animation: none;
     }
   }
@@ -657,6 +1308,125 @@
     left: 1rem;
     z-index: 2;
     width: min(19rem, calc(100vw - 2rem));
+  }
+
+  .selected-map-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+    width: min(21rem, calc(100vw - 2rem));
+    padding: 0.8rem;
+    border: 1px solid rgb(16 24 32 / 14%);
+    border-radius: 0.55rem;
+    background: rgb(255 255 255 / 95%);
+    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 14%);
+    color: #101820;
+  }
+
+  .selected-map-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.7rem;
+  }
+
+  .selected-map-eyebrow {
+    margin: 0;
+    color: #66827c;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .selected-map-heading h2 {
+    overflow: hidden;
+    margin: 0.18rem 0 0;
+    font-size: 1.05rem;
+    font-weight: 850;
+    letter-spacing: -0.025em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .selected-map-caption,
+  .selected-map-state {
+    margin: 0.55rem 0 0;
+    color: #53606a;
+    font-size: 0.62rem;
+    line-height: 1.3;
+  }
+
+  .service-marker-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.7rem;
+    margin-top: 0.55rem;
+    color: #53606a;
+    font-size: 0.57rem;
+  }
+
+  .service-marker-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .marker-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgb(16 24 32 / 16%);
+  }
+
+  .marker-dot-health {
+    background: #bf4f55;
+  }
+
+  .marker-dot-education {
+    background: #4b6fa8;
+  }
+
+  .marker-dot-transport {
+    background: #b47a3c;
+  }
+
+  .selected-map-state[role='alert'] {
+    color: #b42318;
+  }
+
+  :global(.demand-tabs) {
+    margin-top: 0.65rem;
+  }
+
+  :global(.demand-tabs-list) {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    background: #edf2ef;
+  }
+
+  :global(.demand-tabs-list [data-slot='tabs-trigger']) {
+    min-width: 0;
+    padding: 0.3rem 0.2rem;
+    color: #53606a;
+    font-size: 0.58rem;
+  }
+
+  :global(.demand-tabs-list [data-slot='tabs-trigger'][data-state='active']) {
+    color: #19332f;
+  }
+
+  .selected-map-spinner {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: 0 0 auto;
+    border: 2px solid #d7e4df;
+    border-top-color: #3d947d;
+    border-radius: 50%;
+    animation: loading-spin 0.8s linear infinite;
   }
 
   .map-legend {
@@ -694,6 +1464,13 @@
     background: linear-gradient(90deg, #bf4f55 0%, #d98068 25%, #d5ad63 50%, #79a884 75%, #3d947d 100%);
   }
 
+  .demand-scale {
+    height: 0.55rem;
+    margin-top: 0.45rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #edf8e9 0%, #c7e9c0 28%, #fee08b 52%, #fdae61 75%, #d73027 100%);
+  }
+
   .score-labels {
     display: flex;
     justify-content: space-between;
@@ -718,10 +1495,76 @@
     background: #aeb7b3;
   }
 
+  .marker-legend-section {
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #e1e6e3;
+  }
+
+  .legend-section-title {
+    margin: 0;
+    color: #53606a;
+    font-size: 0.6rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .marker-legend {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0.45rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .marker-legend-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.35rem;
+    color: #53606a;
+    font-size: 0.6rem;
+    line-height: 1.15;
+  }
+
+  .marker-legend-item > span:last-child {
+    overflow-wrap: anywhere;
+  }
+
+  .marker-legend-icon {
+    display: grid;
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: var(--marker-color);
+    color: #ffffff;
+    box-shadow: 0 0.12rem 0.35rem rgb(16 24 32 / 18%);
+  }
+
+  :global(.marker-legend-icon svg) {
+    display: block;
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+  }
+
   @media (max-width: 640px) {
     .national-panel-slot {
       top: 0.75rem;
       left: 0.75rem;
+    }
+
+    .selected-map-controls {
+      top: auto;
+      right: 0.75rem;
+      bottom: 8.8rem;
+      left: 0.75rem;
+      width: auto;
     }
 
     .map-legend {
