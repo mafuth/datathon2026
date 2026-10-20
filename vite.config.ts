@@ -4,6 +4,11 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 
+const previewAllowedHosts = (process.env.PREVIEW_ALLOWED_HOSTS ?? 'msb.mafuth.online')
+  .split(',')
+  .map((host) => host.trim())
+  .filter((host) => host.length > 0);
+
 export default defineConfig(() => ({
   plugins: [
     tailwindcss(),
@@ -44,6 +49,9 @@ export default defineConfig(() => ({
       preprocess: vitePreprocess()
     })
   ],
+  preview: {
+    allowedHosts: previewAllowedHosts
+  },
   test: {
     expect: { requireAssertions: true },
     projects: [
