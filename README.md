@@ -77,6 +77,24 @@ pnpm db:push
 pnpm dev
 ```
 
+### Docker and Podman
+
+The container uses SvelteKit's Node adapter and mounts the existing `local.db`
+file so the mobility dataset and application data persist on the host.
+
+```bash
+# Podman
+podman compose up --build
+
+# Docker
+docker compose up --build
+```
+
+Open `http://localhost:3000`. Set `DOCKER_PUBLIC_BASE_URL` and
+`BETTER_AUTH_SECRET` in `.env` when using a different host or a non-local
+deployment. On systems without the Podman Compose plugin, use
+`podman-compose up --build` instead.
+
 ## Project Structure
 
 ```

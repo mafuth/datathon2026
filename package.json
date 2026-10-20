@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "start": "node build",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "postinstall": "npx simple-git-hooks",
@@ -45,7 +46,7 @@
     "@internationalized/date": "^3.12.3",
     "@lucide/svelte": "^1.28.0",
     "@playwright/test": "^1.62.1",
-    "@sveltejs/adapter-auto": "^7.0.1",
+    "@sveltejs/adapter-node": "^5.5.2",
     "@sveltejs/kit": "^2.70.2",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@tailwindcss/vite": "^4.3.3",
