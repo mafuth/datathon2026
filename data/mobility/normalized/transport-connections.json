@@ -1,0 +1,538 @@
+{
+  "schema_version": "normalized-transport-connections-v1",
+  "source": "OpenStreetMap",
+  "query": "[out:json][timeout:60];(way[\"bridge\"=\"yes\"](-1,72,8,74);way[\"bridge\"=\"viaduct\"](-1,72,8,74);way[\"man_made\"=\"causeway\"](-1,72,8,74););out tags geom;",
+  "connections": [
+    {
+      "id": "osm:way:150401745",
+      "from_island_id": "island:1129",
+      "to_island_id": "island:1128",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 338.2060752690582,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1419759, -0.6854462],
+          [73.1444613, -0.6871997]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:150401745",
+      "modeled": false,
+      "name": "Shamsudheen Bodu Fandiyaaru Thakurufaanu Magu"
+    },
+    {
+      "id": "osm:way:150455649",
+      "from_island_id": "island:1129",
+      "to_island_id": "island:1130",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 24.115009423489482,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1300076, -0.6766237],
+          [73.1298105, -0.6765332]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:150455649",
+      "modeled": false,
+      "name": "Shamsudheen Bodu Fandiyaaru Thakurufaanu Magu"
+    },
+    {
+      "id": "osm:way:150455664",
+      "from_island_id": "island:1129",
+      "to_island_id": "island:1130",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 24.534928763018268,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1299749, -0.6767089],
+          [73.1297719, -0.6766224]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:150455664",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:150594231",
+      "from_island_id": "island:1131",
+      "to_island_id": "island:1132",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 94.23803247196822,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1143466, -0.6584686],
+          [73.1139598, -0.6577145]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:150594231",
+      "modeled": false,
+      "name": "Shamsudheen Bodu Fandiyaaru Thakurufaanu Magu"
+    },
+    {
+      "id": "osm:way:150919978",
+      "from_island_id": "island:1132",
+      "to_island_id": "island:1152",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 78.92077167102343,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1096512, -0.6536662],
+          [73.1092902, -0.6530551]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:150919978",
+      "modeled": false,
+      "name": "Shamsudheen Bodu Fandiyaaru Thakurufaanu Magu"
+    },
+    {
+      "id": "osm:way:151370066",
+      "from_island_id": "island:1455",
+      "to_island_id": "island:1435",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 279.21246983867695,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.506279, 3.968366],
+          [73.506294, 3.968413],
+          [73.50631, 3.96857],
+          [73.50634, 3.96881],
+          [73.506355, 3.968929],
+          [73.506371, 3.969053],
+          [73.506393, 3.96911],
+          [73.506477, 3.969247],
+          [73.506546, 3.969339],
+          [73.506676, 3.969474],
+          [73.506706, 3.969571],
+          [73.506706, 3.969579],
+          [73.506706, 3.969687],
+          [73.506714, 3.969723],
+          [73.506775, 3.969804],
+          [73.506721, 3.969907],
+          [73.506676, 3.970026],
+          [73.506638, 3.970143],
+          [73.506622, 3.970214],
+          [73.506622, 3.970332],
+          [73.50663, 3.970448],
+          [73.506645, 3.970589],
+          [73.506683, 3.970734],
+          [73.506721, 3.970838]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:151370066",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:318417247",
+      "from_island_id": "island:705",
+      "to_island_id": "island:706",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 267.8339011650775,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5261918, 1.8709949],
+          [73.525783, 1.8707203],
+          [73.5254587, 1.8704994],
+          [73.5251445, 1.870288],
+          [73.5248409, 1.870073],
+          [73.5245533, 1.8698638],
+          [73.5242179, 1.869613]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:318417247",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:376417400",
+      "from_island_id": "island:1125",
+      "to_island_id": "island:1560",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 35.64442753298432,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.224888, -0.6091149],
+          [73.2248819, -0.6087944]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:376417400",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:573669167",
+      "from_island_id": "island:1494",
+      "to_island_id": "island:1495",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 155.40509530511042,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5532747, 4.2869339],
+          [73.5518758, 4.2870192]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:573669167",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:622011146",
+      "from_island_id": "island:1528",
+      "to_island_id": "island:1529",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 125.87161695969485,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4584475, 3.8531987],
+          [73.4585624, 3.8531806],
+          [73.4586984, 3.8531591],
+          [73.4588182, 3.8531402],
+          [73.4588763, 3.853131],
+          [73.4594564, 3.8530393],
+          [73.4595681, 3.8530217]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:622011146",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:683059715",
+      "from_island_id": "island:1427",
+      "to_island_id": "island:1426",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 66.9458387927597,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4688525, 3.8979275],
+          [73.4688705, 3.8978831],
+          [73.4690791, 3.8973695]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:683059715",
+      "modeled": false,
+      "name": "Guraidhoo-Lhosfushi Bridge"
+    },
+    {
+      "id": "osm:way:739607393",
+      "from_island_id": "island:1479",
+      "to_island_id": "island:1480",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 429.7698126188808,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4668007, 4.1225127],
+          [73.4671979, 4.1226813],
+          [73.4674157, 4.1227586],
+          [73.4676234, 4.1228239],
+          [73.4678481, 4.1228791],
+          [73.4680753, 4.1229249],
+          [73.4682928, 4.1229575],
+          [73.4685164, 4.1229769],
+          [73.4687369, 4.1229913],
+          [73.4689631, 4.1229969],
+          [73.4691835, 4.1229906],
+          [73.4694169, 4.1229691],
+          [73.4696144, 4.1229425],
+          [73.4698538, 4.1228967],
+          [73.4700581, 4.1228495],
+          [73.4702991, 4.1227834],
+          [73.4704731, 4.1227263],
+          [73.4706732, 4.1226526]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:739607393",
+      "modeled": false,
+      "name": "Musikee Birdge"
+    },
+    {
+      "id": "osm:way:917619455",
+      "from_island_id": "island:1509",
+      "to_island_id": "island:1505",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 26.782762366195623,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.3830018, 4.0132951],
+          [73.3828752, 4.01309]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:917619455",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:997685165",
+      "from_island_id": "island:1493",
+      "to_island_id": "island:1529",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 49.77211534988226,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.4596629, 3.8499525],
+          [73.4596661, 3.8504001]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:997685165",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:1157988099",
+      "from_island_id": "island:1443",
+      "to_island_id": "island:1483",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 0,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.527296, 4.1748409],
+          [73.527219, 4.1747913],
+          [73.5265541, 4.1743646],
+          [73.5264498, 4.1742947],
+          [73.5255036, 4.1736869],
+          [73.5253893, 4.1736128],
+          [73.5247618, 4.1732137],
+          [73.5241188, 4.1728395],
+          [73.5240062, 4.1727765],
+          [73.5233477, 4.1724381],
+          [73.5226756, 4.1721203],
+          [73.5225577, 4.1720667],
+          [73.5218406, 4.171761],
+          [73.5212005, 4.1715194],
+          [73.5205536, 4.1712961],
+          [73.5199052, 4.1710979],
+          [73.5192545, 4.1709152],
+          [73.5182004, 4.1706707],
+          [73.5171259, 4.1704808],
+          [73.5171365, 4.1704218],
+          [73.5171489, 4.1703523],
+          [73.5171603, 4.1702886],
+          [73.5182422, 4.1704858],
+          [73.5192996, 4.170729],
+          [73.5199593, 4.1709125],
+          [73.5206147, 4.1711115],
+          [73.5212653, 4.1713369],
+          [73.521909, 4.1715806],
+          [73.5226372, 4.1718895],
+          [73.5227563, 4.1719431],
+          [73.5234321, 4.1722642],
+          [73.5240989, 4.1726034],
+          [73.5242137, 4.1726664],
+          [73.5248667, 4.1730488],
+          [73.5255019, 4.1734513],
+          [73.5256105, 4.1735221],
+          [73.526555, 4.1741299],
+          [73.5266598, 4.1741957],
+          [73.5273236, 4.1746266],
+          [73.5274023, 4.174676],
+          [73.5285004, 4.1754046],
+          [73.5284698, 4.1754484],
+          [73.5284248, 4.1755127],
+          [73.528396, 4.1755538],
+          [73.527296, 4.1748409]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1157988099",
+      "modeled": false,
+      "name": null
+    },
+    {
+      "id": "osm:way:1157988101",
+      "from_island_id": "island:1483",
+      "to_island_id": "island:1443",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 1377.4461782579028,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5284698, 4.1754484],
+          [73.5273309, 4.1747035],
+          [73.5265767, 4.1742185],
+          [73.5255216, 4.1735357],
+          [73.5248354, 4.173098],
+          [73.5241262, 4.1726916],
+          [73.523406, 4.172317],
+          [73.5226765, 4.1719727],
+          [73.5218885, 4.1716369],
+          [73.521246, 4.1713937],
+          [73.5205966, 4.1711669],
+          [73.5199436, 4.1709664],
+          [73.5192884, 4.1707845],
+          [73.5182315, 4.170542],
+          [73.5171489, 4.1703523]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1157988101",
+      "modeled": false,
+      "name": "ސިނަމާލެ ބުރިޖު"
+    },
+    {
+      "id": "osm:way:1157988102",
+      "from_island_id": "island:1443",
+      "to_island_id": "island:1483",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 1373.9132997964837,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5171365, 4.1704218],
+          [73.5175224, 4.1704897],
+          [73.5182169, 4.1706142],
+          [73.5192722, 4.1708555],
+          [73.5199245, 4.171039],
+          [73.520575, 4.1712379],
+          [73.5212236, 4.1714621],
+          [73.5218626, 4.1717055],
+          [73.5226425, 4.1720384],
+          [73.5240932, 4.1727548],
+          [73.5248011, 4.1731643],
+          [73.5254834, 4.1735995],
+          [73.5265377, 4.174276],
+          [73.5272927, 4.1747608],
+          [73.5284248, 4.1755127]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1157988102",
+      "modeled": false,
+      "name": "ސިނަމާލެ ބުރިޖު"
+    },
+    {
+      "id": "osm:way:1418963955",
+      "from_island_id": "island:1128",
+      "to_island_id": "island:1129",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 342.44063401171735,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.1444128, -0.6872732],
+          [73.1419099, -0.6854786]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1418963955",
+      "modeled": false,
+      "name": "Shamsudheen Bodu Fandiyaaru Thakurufaanu Magu"
+    },
+    {
+      "id": "osm:way:1450612798",
+      "from_island_id": "island:483",
+      "to_island_id": "island:606",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 197.32832747953736,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.0004094, 0.4502477],
+          [72.9994885, 0.4501548],
+          [72.9994411, 0.4501489],
+          [72.9992178, 0.4502229],
+          [72.9990824, 0.4502953],
+          [72.9989625, 0.4504204],
+          [72.9989456, 0.450475],
+          [72.9989234, 0.4505609],
+          [72.9989232, 0.4505792],
+          [72.9989271, 0.4512235]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1450612798",
+      "modeled": false,
+      "name": "Haadhoo-Bridge"
+    },
+    {
+      "id": "osm:way:1462731870",
+      "from_island_id": "island:706",
+      "to_island_id": "island:705",
+      "connection_type": "bridge",
+      "directionality": "bidirectional",
+      "sequence": null,
+      "distance_m": 268.2611334949221,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [73.5241672, 1.8696792],
+          [73.5245099, 1.8699232],
+          [73.5247981, 1.8701328],
+          [73.5251025, 1.8703484],
+          [73.5254171, 1.8705601],
+          [73.5257414, 1.870781],
+          [73.5261524, 1.8710516]
+        ]
+      },
+      "source": "OpenStreetMap",
+      "source_object_id": "osm:way:1462731870",
+      "modeled": false,
+      "name": null
+    }
+  ]
+}

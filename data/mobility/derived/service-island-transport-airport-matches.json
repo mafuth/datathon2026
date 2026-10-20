@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-10-19T19:26:16Z",
+  "matches": [
+    {
+      "service_id": "airport:vrkm",
+      "name": "Muli Airport",
+      "island_id": "island:868",
+      "island_name": "Muli",
+      "atoll_id": "M",
+      "source_urls": [
+        "https://caa.gov.mv/attachments/RkSqFCz1wZL9uF3eK2Zq.pdf",
+        "https://api.openstreetmap.org/api/0.6/way/1557297319/full.json"
+      ]
+    },
+    {
+      "service_id": "osm:way:1557297319",
+      "name": "Muli Airport",
+      "island_id": "island:868",
+      "island_name": "Muli",
+      "atoll_id": "M",
+      "source_urls": ["https://api.openstreetmap.org/api/0.6/way/1557297319/full.json"]
+    },
+    {
+      "service_id": "airport:vrmu",
+      "name": "Dhaalu Airport",
+      "island_id": "island:260",
+      "island_name": "Kudahuvadhoo",
+      "atoll_id": "Dh",
+      "source_urls": [
+        "https://www.dhaalu-airport.com/",
+        "https://nominatim.openstreetmap.org/reverse?lat=2.6670769&lon=72.8871628&format=jsonv2&zoom=18&addressdetails=1"
+      ]
+    },
+    {
+      "service_id": "osm:way:602758011",
+      "name": "Dhaalu Airport",
+      "island_id": "island:260",
+      "island_name": "Kudahuvadhoo",
+      "atoll_id": "Dh",
+      "source_urls": [
+        "https://api.openstreetmap.org/api/0.6/way/602758011/full.json",
+        "https://nominatim.openstreetmap.org/reverse?lat=2.6670769&lon=72.8871628&format=jsonv2&zoom=18&addressdetails=1"
+      ]
+    },
+    {
+      "service_id": "osm:way:207073193",
+      "name": "Landing Dhiggiri",
+      "island_id": "island:51",
+      "island_name": "Dhiggiri",
+      "atoll_id": "Adh",
+      "source_urls": ["https://api.openstreetmap.org/api/0.6/way/207073193/full.json"]
+    },
+    {
+      "service_id": "osm:way:364296622",
+      "name": "Landing Maayafushi",
+      "island_id": "island:10",
+      "island_name": "Maayafushi",
+      "atoll_id": "AA",
+      "source_urls": ["https://api.openstreetmap.org/api/0.6/way/364296622/full.json"]
+    },
+    {
+      "service_id": "osm:way:870478342",
+      "name": "Waterdrome",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "source_urls": [
+        "https://api.openstreetmap.org/api/0.6/way/870478342/full.json",
+        "https://nominatim.openstreetmap.org/reverse?lat=4.1956433&lon=73.5361866&format=jsonv2&zoom=18&addressdetails=1"
+      ]
+    },
+    {
+      "service_id": "osm:way:978090098",
+      "name": "Amilla floating air terminal",
+      "island_id": "island:165",
+      "island_name": "Finolhas",
+      "atoll_id": "B",
+      "source_urls": ["https://api.openstreetmap.org/api/0.6/way/978090098/full.json", "https://www.amilla.com/"]
+    }
+  ]
+}

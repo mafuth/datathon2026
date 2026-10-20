@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "generated_at": "2026-10-20T00:00:00Z",
+  "purpose": "Official source-backed service island mappings not yet represented as confirmed rows in the review overlay.",
+  "entries": [
+    {
+      "service_id": "facility:health:592",
+      "service_type": "health",
+      "island_id": "island:429",
+      "island_name": "Vilin'gili",
+      "atoll_id": "GA",
+      "disposition": "confirmed",
+      "confidence": "high",
+      "source_urls": ["https://maaharaa.health.gov.mv/Public/Home/ListHealthCare"],
+      "retrieved_at": "2026-10-20T00:00:00Z",
+      "reason": "The Ministry of Health public directory record for GA. Atoll Hospital gives the locality/address as GA. Vilingili, matching the official island universe.",
+      "evidence_note": "Official Ministry of Health directory name and locality context identify Vilingili; no nearest-island inference was used."
+    },
+    {
+      "service_id": "facility:health:577",
+      "service_type": "health",
+      "island_id": "island:483",
+      "island_name": "Hoan'dehdhoo",
+      "atoll_id": "GDh",
+      "disposition": "confirmed",
+      "confidence": "high",
+      "source_urls": ["https://maaharaa.health.gov.mv/Public/Home/ListHealthCare"],
+      "retrieved_at": "2026-10-20T00:00:00Z",
+      "reason": "The official health facility name identifies GDh Hoadedhoo; Hoadedhdhoo/Hoan'dehdhoo is the matching official island record in Gaafu Dhaalu.",
+      "evidence_note": "Official name and Gaafu Dhaalu island-context spelling variants agree on Hoan'dehdhoo; mapping is not based on proximity."
+    },
+    {
+      "service_id": "facility:health:917",
+      "service_type": "health",
+      "island_id": "island:635",
+      "island_name": "Ihavandhoo",
+      "atoll_id": "HA",
+      "disposition": "confirmed",
+      "confidence": "high",
+      "source_urls": [
+        "https://maaharaa.health.gov.mv/Public/Home/ListHealthCare",
+        "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D9w8veetV1ppzbyk_k15LaEs8wi583oIn6C_VD8Ag-Ff8l2StuVx0krNBFOpHwXwsv7hCApJcdfsZfN8wyV6ci9DPavIeOvz1Y62sqKfxTPA"
+      ],
+      "retrieved_at": "2026-10-19T19:12:48Z",
+      "reason": "Official Ministry of Health match for Pulse Point Medical Center.",
+      "evidence_note": "The official directory record address is Fulmoon, Ha. Ihavandhoo and matches the reviewed island mapping."
+    }
+  ]
+}

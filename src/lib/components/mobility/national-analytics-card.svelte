@@ -1,0 +1,966 @@
+<script lang="ts">
+  import Hospital from '@lucide/svelte/icons/hospital';
+  import School from '@lucide/svelte/icons/school';
+  import Ship from '@lucide/svelte/icons/ship';
+  import Users from '@lucide/svelte/icons/users';
+  import X from '@lucide/svelte/icons/x';
+  import { tick } from 'svelte';
+  import { prefersReducedMotion } from 'svelte/motion';
+  import { fly } from 'svelte/transition';
+
+  import { Badge } from '$components/ui/badge';
+  import { Button } from '$components/ui/button';
+  import * as Card from '$components/ui/card';
+  import { Progress } from '$components/ui/progress';
+  import { Skeleton } from '$components/ui/skeleton';
+
+  type ComponentScore = {
+    score: number | null;
+    coverageRatio: number;
+    status: string;
+    denominatorPopulation: number | null;
+    numericPopulation: number | null;
+    evidenceCount: number;
+    limitations: string[];
+  };
+
+  export type AnalyticsIsland = {
+    id: string;
+    name: string;
+    atollName: string;
+    centroid?: [number, number];
+    population: number | null;
+    overall: ComponentScore;
+    health: ComponentScore;
+    education: ComponentScore;
+    transport: ComponentScore;
+    crowdedness: { score: number | null; population: number | null; pressure: number | null };
+    demand: {
+      health: number | null;
+      education: number | null;
+      total: number;
+      healthPressure: number | null;
+      educationPressure: number | null;
+    };
+    evidence: {
+      populationRows: number;
+      healthServices: number;
+      educationServices: number;
+      transportServices: number;
+      transportConnections: number;
+    };
+    limitations: string[];
+  };
+
+  export type AnalyticsData = {
+    national: {
+      score: number | null;
+      status: string;
+      islandCount: number;
+      inhabitedIslandCount: number;
+      scoredIslandCount: number;
+      partialIslandCount: number;
+      unavailableIslandCount: number;
+      categories: Record<string, ComponentScore>;
+      limitations: string[];
+    };
+    population: { total: number; children: number; adolescents: number; youth: number; elderly: number };
+    islands: AnalyticsIsland[];
+  };
+
+  type Driver = {
+    key: string;
+    label: string;
+    score: number | null;
+    status: string;
+    coverage: number;
+    note: string;
+  };
+
+  type Props = {
+    open?: boolean;
+    data: AnalyticsData | null;
+    loading?: boolean;
+    error?: string | null;
+    onIslandSelect: (island: AnalyticsIsland) => void;
+  };
+
+  let { open = $bindable(false), data, loading = false, error = null, onIslandSelect }: Props = $props();
+  let closeButton = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
+  let selectedCategory = $state<'overall' | 'health' | 'education' | 'transport'>('overall');
+
+  const populationGroups = [
+    { label: 'Children', key: 'children' },
+    { label: 'Adolescents', key: 'adolescents' },
+    { label: 'Youth', key: 'youth' },
+    { label: 'Elderly', key: 'elderly' }
+  ] as const;
+  const categoryTabs = [
+    { key: 'overall', label: 'Overall' },
+    { key: 'health', label: 'Health' },
+    { key: 'education', label: 'Education' },
+    { key: 'transport', label: 'Transport' }
+  ] as const;
+  const driverSkeletons = ['Health', 'Education', 'Transport', 'Crowdedness', 'External demand'] as const;
+  const hotspotSkeletons = ['one', 'two', 'three'] as const;
+  const rankingSkeletons = [0, 1, 2, 3] as const;
+
+  let drivers = $derived.by((): Driver[] => {
+    if (!data) return [];
+    const category = data.national.categories;
+    return [
+      {
+        key: 'health',
+        label: 'Health',
+        score: category.health?.score ?? null,
+        status: category.health?.status ?? 'unavailable',
+        coverage: category.health?.coverageRatio ?? 0,
+        note: 'Population-weighted health access'
+      },
+      {
+        key: 'education',
+        label: 'Education',
+        score: category.education?.score ?? null,
+        status: category.education?.status ?? 'unavailable',
+        coverage: category.education?.coverageRatio ?? 0,
+        note: 'Population-weighted school access'
+      },
+      {
+        key: 'transport',
+        label: 'Transport',
+        score: category.transport?.score ?? null,
+        status: category.transport?.status ?? 'unavailable',
+        coverage: category.transport?.coverageRatio ?? 0,
+        note: 'Land, marine, and air connections'
+      },
+      {
+        key: 'crowdedness',
+        label: 'Crowdedness',
+        score: category.crowdedness?.score ?? null,
+        status: category.crowdedness?.status ?? 'unavailable',
+        coverage: category.crowdedness?.coverageRatio ?? 0,
+        note: 'Population density pressure'
+      },
+      {
+        key: 'external-demand',
+        label: 'External demand',
+        score: category.externalDemand?.score ?? null,
+        status: category.externalDemand?.status ?? 'unavailable',
+        coverage: category.externalDemand?.coverageRatio ?? 0,
+        note: 'Estimated reachable population need'
+      }
+    ];
+  });
+
+  let categoryIslands = $derived(
+    [...(data?.islands ?? [])]
+      .filter((island) => island[selectedCategory].score !== null)
+      .sort((left, right) => (left[selectedCategory].score ?? 101) - (right[selectedCategory].score ?? 101))
+      .slice(0, 4)
+  );
+  let demandIslands = $derived(
+    [...(data?.islands ?? [])].sort((left, right) => right.demand.total - left.demand.total).slice(0, 3)
+  );
+  let underservedIslands = $derived(
+    [...(data?.islands ?? [])].sort((left, right) => underservedScore(right) - underservedScore(left)).slice(0, 4)
+  );
+
+  function underservedScore(island: AnalyticsIsland): number {
+    const pressure = Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0);
+    return (100 - (island.overall.score ?? 100)) * (1 + pressure);
+  }
+
+  function percentage(value: number | null): string {
+    return value === null ? 'N/A' : `${Math.round(value)}%`;
+  }
+
+  function categoryCoverage(
+    island: AnalyticsIsland,
+    category: 'overall' | 'health' | 'education' | 'transport'
+  ): string {
+    const component = island[category];
+    if (component.score !== 0) return percentage(component.score);
+    const evidence =
+      category === 'overall'
+        ? island.evidence.healthServices +
+          island.evidence.educationServices +
+          island.evidence.transportServices +
+          island.evidence.transportConnections
+        : category === 'health'
+          ? island.evidence.healthServices
+          : category === 'education'
+            ? island.evidence.educationServices
+            : island.evidence.transportServices + island.evidence.transportConnections;
+    return evidence === 0 ? '0% - no evidence' : '0%';
+  }
+
+  function number(value: number | null): string {
+    return value === null ? 'N/A' : Math.round(value).toLocaleString();
+  }
+
+  function driverWidth(value: number | null): number {
+    return value === null ? 0 : Math.min(100, Math.max(0, value));
+  }
+
+  function islandLabel(island: AnalyticsIsland): string {
+    return `${island.atollName} ${island.name}`;
+  }
+
+  function categoryIcon(key: string) {
+    if (key === 'health') return Hospital;
+    if (key === 'education') return School;
+    if (key === 'transport') return Ship;
+    return Users;
+  }
+
+  $effect(() => {
+    if (open) void tick().then(() => closeButton?.focus());
+  });
+</script>
+
+{#if open}
+  <div
+    class="analytics-card-layer"
+    in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
+    out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
+  >
+    <Card.Root class="analytics-card" role="dialog" aria-label="National accessibility analytics">
+      <div class="analytics-scroll">
+        <section class="why-score" aria-labelledby="national-why-score-heading">
+          <div class="why-heading">
+            <div>
+              <p class="eyebrow">National accessibility</p>
+              {#if loading}
+                <div id="national-why-score-heading" class="loading-title-wrap" aria-label="Loading national score">
+                  <Skeleton class="loading-title" />
+                </div>
+              {:else}
+                <h2 id="national-why-score-heading">
+                  {#if data?.national.score === null || data?.national.score === undefined}
+                    Why is this score unavailable?
+                  {:else}
+                    Why {percentage(data.national.score)}?
+                  {/if}
+                </h2>
+              {/if}
+              {#if loading}
+                <Skeleton class="loading-caption" />
+              {:else}
+                <p class="analytics-caption">The people, access, and pressure behind the national score.</p>
+              {/if}
+            </div>
+            <Button
+              bind:ref={closeButton}
+              class="close-button"
+              variant="ghost"
+              size="icon"
+              aria-label="Close analytics"
+              title="Close analytics"
+              onclick={() => (open = false)}
+            >
+              <X size={18} strokeWidth={2.2} />
+            </Button>
+          </div>
+
+          {#if loading}
+            <div class="driver-list" role="status" aria-label="Loading national analytics">
+              {#each driverSkeletons as label (label)}
+                <div class="driver-row">
+                  <div class="driver-topline"><Skeleton class="loading-label" /><Skeleton class="loading-badge" /></div>
+                  <Skeleton class="loading-progress" /><Skeleton class="loading-note" />
+                </div>
+              {/each}
+            </div>
+          {:else if error}
+            <p class="analytics-state analytics-error" role="alert">{error}</p>
+          {:else if data}
+            <div class="driver-heading">
+              <div>
+                <h3>Score drivers</h3>
+                <p>Each factor is weighted by the population it serves.</p>
+              </div>
+              <Badge class="status-badge" variant="outline">{data.national.status}</Badge>
+            </div>
+            <div class="driver-list">
+              {#each drivers as driver (driver.key)}
+                {@const Icon = categoryIcon(driver.key)}
+                <div class="driver-row">
+                  <div class="driver-topline">
+                    <span class="driver-label"><Icon size={15} strokeWidth={2.2} />{driver.label}</span>
+                    <Badge class={`driver-badge ${driver.status}`} variant="outline">{percentage(driver.score)}</Badge>
+                  </div>
+                  <Progress
+                    class={`driver-progress ${driver.status}`}
+                    value={driverWidth(driver.score)}
+                    max={100}
+                    aria-label={`${driver.label} score`}
+                  />
+                  <span class="driver-note">{driver.note} - {Math.round(driver.coverage * 100)}% coverage</span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </section>
+
+        {#if loading}
+          <div class="section-divider" aria-hidden="true"></div>
+
+          <div class="detail-grid" aria-hidden="true">
+            <Card.Root class="insight-card loading-insight-card" size="sm">
+              <div class="panel-heading">
+                <div class="loading-copy">
+                  <Skeleton class="loading-panel-heading" /><Skeleton class="loading-panel-caption" />
+                </div>
+                <Skeleton class="loading-panel-icon" />
+              </div>
+              <Skeleton class="loading-people-total" />
+              <div class="age-bars">
+                {#each populationGroups as group (group.key)}
+                  <div class="age-row">
+                    <div class="loading-age-copy">
+                      <Skeleton class="loading-age-label" /><Skeleton class="loading-age-value" />
+                    </div>
+                    <Skeleton class="loading-age-track" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card loading-insight-card" size="sm">
+              <div class="panel-heading">
+                <div class="loading-copy">
+                  <Skeleton class="loading-panel-heading" /><Skeleton class="loading-panel-caption" />
+                </div>
+                <Skeleton class="loading-panel-icon" />
+              </div>
+              <div class="mini-list">
+                {#each hotspotSkeletons as hotspot (hotspot)}
+                  <div class="loading-mini-row">
+                    <span class="loading-row-copy"
+                      ><Skeleton class="loading-row-title" /><Skeleton class="loading-row-caption" /></span
+                    ><Skeleton class="loading-row-arrow" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+          </div>
+
+          <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
+            <div class="panel-heading">
+              <div class="loading-copy">
+                <Skeleton class="loading-panel-heading loading-wide-heading" /><Skeleton
+                  class="loading-panel-caption"
+                />
+              </div>
+              <Skeleton class="loading-priority" />
+            </div>
+            <div class="ranking-list">
+              {#each rankingSkeletons as row (row)}
+                <div class="loading-ranking-row">
+                  <span class="loading-row-copy"
+                    ><Skeleton class="loading-ranking-title" /><Skeleton class="loading-ranking-caption" /></span
+                  ><Skeleton class="loading-ranking-score" />
+                </div>
+              {/each}
+            </div>
+          </Card.Root>
+
+          <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
+            <div class="loading-copy">
+              <Skeleton class="loading-panel-heading loading-wide-heading" /><Skeleton class="loading-panel-caption" />
+            </div>
+            <div class="loading-category-tabs">
+              {#each categoryTabs as category (category.key)}
+                <Skeleton class="loading-category-tab" />
+              {/each}
+            </div>
+            <div class="ranking-list">
+              {#each rankingSkeletons as row (row)}
+                <div class="loading-ranking-row">
+                  <Skeleton class="loading-ranking-title loading-single-ranking-title" /><Skeleton
+                    class="loading-ranking-score"
+                  />
+                </div>
+              {/each}
+            </div>
+          </Card.Root>
+        {:else if data && !error}
+          <div class="section-divider" aria-hidden="true"></div>
+
+          <div class="detail-grid">
+            <Card.Root class="insight-card" size="sm">
+              <div class="panel-heading">
+                <div>
+                  <h3>People & needs</h3>
+                  <p>Population represented</p>
+                </div>
+                <Users size={17} strokeWidth={2.2} />
+              </div>
+              <strong class="people-total">{number(data.population.total)}</strong>
+              <div class="age-bars">
+                {#each populationGroups as group (group.key)}
+                  {@const value = data.population[group.key]}
+                  <div class="age-row">
+                    <div><span>{group.label}</span><strong>{number(value)}</strong></div>
+                    <div class="age-track">
+                      <span
+                        style={`width: ${data.population.total ? Math.min(100, (value / data.population.total) * 100) : 0}%`}
+                      ></span>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card" size="sm">
+              <div class="panel-heading">
+                <div>
+                  <h3>External demand hotspots</h3>
+                  <p>Inbound estimated need from other islands</p>
+                </div>
+                <Ship size={17} strokeWidth={2.2} />
+              </div>
+              <div class="mini-list">
+                {#each demandIslands as island (island.id)}
+                  <Button class="mini-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}
+                    ><span
+                      ><strong>{islandLabel(island)}</strong><small
+                        >{number(island.demand.total)} inbound estimated need</small
+                      ></span
+                    ><b>&gt;</b></Button
+                  >
+                {/each}
+              </div>
+            </Card.Root>
+          </div>
+
+          <Card.Root class="insight-card ranking-card" size="sm">
+            <div class="panel-heading">
+              <div>
+                <h3>Most underserved</h3>
+                <p>High demand combined with low access</p>
+              </div>
+              <Badge class="priority-badge" variant="outline">Priority</Badge>
+            </div>
+            <div class="ranking-list">
+              {#each underservedIslands as island (island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+                  <span
+                    ><strong>{islandLabel(island)}</strong><small
+                      >Overall {percentage(island.overall.score)} - demand {number(island.demand.total)}</small
+                    ></span
+                  >
+                  <b>{percentage(island.overall.score)}</b>
+                </Button>
+              {/each}
+            </div>
+          </Card.Root>
+
+          <Card.Root class="insight-card ranking-card" size="sm">
+            <div class="panel-heading">
+              <div>
+                <h3>Lowest by category</h3>
+                <p>Click an island to inspect it on the map</p>
+              </div>
+            </div>
+            <div class="category-tabs" role="tablist">
+              {#each categoryTabs as category (category.key)}
+                <Button
+                  type="button"
+                  variant={selectedCategory === category.key ? 'default' : 'outline'}
+                  class={`category-tab ${selectedCategory === category.key ? 'category-active' : ''}`}
+                  role="tab"
+                  aria-selected={selectedCategory === category.key}
+                  onclick={() => (selectedCategory = category.key)}>{category.label}</Button
+                >
+              {/each}
+            </div>
+            <div class="ranking-list">
+              {#each categoryIslands as island (island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}
+                  ><strong>{islandLabel(island)}</strong><b>{categoryCoverage(island, selectedCategory)}</b></Button
+                >
+              {/each}
+            </div>
+          </Card.Root>
+        {/if}
+      </div>
+    </Card.Root>
+  </div>
+{/if}
+
+<style>
+  :global(.analytics-card-layer) {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+  :global(.analytics-card) {
+    display: flex;
+    flex-direction: column;
+    width: min(31rem, calc(100vw - 2rem));
+    height: min(47rem, calc(100dvh - 2rem));
+    margin: 1rem;
+    overflow: hidden;
+    border: 1px solid rgb(16 24 32 / 14%);
+    border-radius: 0.55rem;
+    background: #fff;
+    color: #101820;
+    color-scheme: light;
+    box-shadow: 0 0.7rem 2.2rem rgb(16 24 32 / 16%);
+    pointer-events: auto;
+  }
+  .analytics-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1rem 1rem;
+    scrollbar-color: #aeb4b1 transparent;
+  }
+  .why-score {
+    padding: 0.75rem 0.8rem 0.7rem;
+    border: 1px solid #e0e5e2;
+    border-radius: 0.55rem;
+    background: #fbfcfb;
+  }
+  .why-heading,
+  .driver-heading,
+  .panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.7rem;
+  }
+  .why-heading {
+    align-items: flex-start;
+    min-height: 0;
+  }
+  .eyebrow {
+    margin: 0 0 0.35rem;
+    color: #101820;
+    font-size: 0.61rem;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+  .why-heading h2 {
+    max-width: 22rem;
+    margin: 0.16rem 0 0;
+    color: #101820;
+    font-size: clamp(1.55rem, 2.8vw, 2rem);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .analytics-caption {
+    max-width: 22rem;
+    margin: 0.4rem 0 0;
+    color: #5d6260;
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+  :global(.close-button) {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    margin-bottom: 0.65rem;
+    border: 1px solid #c8d1cd;
+    border-radius: 0.8rem;
+    background: #fff;
+    color: #263139;
+    box-shadow: none;
+  }
+  :global(.close-button:hover),
+  :global(.close-button:focus-visible) {
+    border-color: #9daaa4;
+    background: #eef2f0;
+    color: #101820;
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(16 24 32 / 12%);
+  }
+  .driver-heading {
+    align-items: center;
+    margin-top: 1.1rem;
+  }
+  .driver-heading h3,
+  .panel-heading h3 {
+    margin: 0;
+    color: #101820;
+    font-size: 0.78rem;
+    letter-spacing: -0.01em;
+  }
+  .driver-heading p,
+  .panel-heading p {
+    margin: 0.18rem 0 0;
+    color: #5d6260;
+    font-size: 0.57rem;
+    line-height: 1.35;
+  }
+  :global(.status-badge),
+  :global(.driver-badge),
+  :global(.priority-badge) {
+    border-color: #101820;
+    background: #101820;
+    color: #fff;
+    font-size: 0.56rem;
+  }
+  :global(.driver-badge.unavailable) {
+    border-color: #b8bdbb;
+    background: #f0f1f0;
+    color: #4d5350;
+  }
+  :global(.priority-badge) {
+    background: #fff;
+    color: #101820;
+  }
+  .driver-list {
+    display: grid;
+    gap: 0.72rem;
+    margin-top: 0.75rem;
+  }
+  .driver-row {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .driver-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .driver-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #101820;
+    font-size: 0.66rem;
+    font-weight: 780;
+  }
+  :global(.driver-progress) {
+    height: 0.38rem;
+    background: #e4e6e5;
+  }
+  :global(.driver-progress [data-slot='progress-indicator']) {
+    background: #101820;
+  }
+  :global(.driver-progress.unavailable [data-slot='progress-indicator']) {
+    background: #aeb4b1;
+  }
+  .driver-note {
+    color: #5d6260;
+    font-size: 0.56rem;
+    line-height: 1.25;
+  }
+  .section-divider {
+    height: 1px;
+    margin: 0;
+    background: rgb(16 24 32 / 12%);
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.55rem;
+    padding: 0.8rem 0;
+  }
+  :global(.insight-card) {
+    min-width: 0;
+    padding: 0.72rem;
+    border: 0;
+    border-radius: 0.42rem;
+    background: #f6f7f6;
+    color: #101820;
+    box-shadow: none;
+  }
+  :global(.panel-heading svg) {
+    flex: 0 0 auto;
+    color: #101820;
+  }
+  .people-total {
+    display: block;
+    margin: 0.72rem 0 0.7rem;
+    color: #101820;
+    font-size: 1.25rem;
+    letter-spacing: -0.04em;
+  }
+  .age-bars {
+    display: grid;
+    gap: 0.52rem;
+  }
+  .age-row {
+    display: grid;
+    gap: 0.2rem;
+  }
+  .age-row > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    color: #5d6260;
+    font-size: 0.57rem;
+  }
+  .age-row strong {
+    color: #101820;
+  }
+  .age-track {
+    height: 0.28rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #dfe2e0;
+  }
+  .age-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #101820;
+  }
+  .mini-list,
+  .ranking-list {
+    display: grid;
+    gap: 0.28rem;
+    margin-top: 0.7rem;
+  }
+  :global(.mini-row),
+  :global(.ranking-row) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 0;
+    padding: 0.45rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.32rem;
+    background: transparent;
+    color: #101820;
+    text-align: left;
+  }
+  :global(.mini-row:hover),
+  :global(.mini-row:focus-visible),
+  :global(.ranking-row:hover),
+  :global(.ranking-row:focus-visible) {
+    border-color: #101820;
+    background: #fff;
+    color: #101820;
+    outline: none;
+  }
+  :global(.mini-row span),
+  :global(.ranking-row span) {
+    display: grid;
+    min-width: 0;
+    gap: 0.12rem;
+  }
+  :global(.mini-row strong),
+  :global(.ranking-row strong) {
+    overflow: hidden;
+    color: #101820;
+    font-size: 0.6rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  :global(.mini-row small),
+  :global(.ranking-row small) {
+    color: #5d6260;
+    font-size: 0.54rem;
+  }
+  :global(.mini-row b),
+  :global(.ranking-row b) {
+    flex: 0 0 auto;
+    color: #101820;
+    font-size: 0.64rem;
+  }
+  :global(.ranking-card) {
+    margin-bottom: 0.55rem;
+  }
+  .category-tabs {
+    display: flex;
+    gap: 0.22rem;
+    margin-top: 0.68rem;
+    overflow-x: auto;
+  }
+  :global(.category-tab) {
+    height: 1.7rem;
+    padding: 0 0.48rem;
+    border-color: #c9cdca;
+    background: #fff;
+    color: #5d6260;
+    font-size: 0.56rem;
+  }
+  :global(.category-tab.category-active),
+  :global(.category-tab:hover),
+  :global(.category-tab:focus-visible) {
+    border-color: #101820;
+    background: #101820;
+    color: #fff;
+    outline: none;
+  }
+  .analytics-state {
+    padding: 1.2rem 0 0;
+    color: #5d6260;
+    font-size: 0.72rem;
+  }
+  .analytics-error {
+    color: #101820;
+  }
+  :global(.analytics-card [data-slot='skeleton']) {
+    background-color: #e9ecea;
+    background-image: linear-gradient(90deg, #e9ecea 0%, #f8f9f8 50%, #e9ecea 100%);
+    background-size: 200% 100%;
+  }
+  .loading-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.22rem;
+  }
+  :global(.loading-panel-heading) {
+    width: 6.2rem;
+    height: 0.68rem;
+    border-radius: 999px;
+  }
+  :global(.loading-wide-heading) {
+    width: 8.2rem;
+  }
+  :global(.loading-panel-caption) {
+    width: 8.8rem;
+    height: 0.48rem;
+    border-radius: 999px;
+  }
+  :global(.loading-panel-icon) {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 0.3rem;
+  }
+  :global(.loading-people-total) {
+    width: 7rem;
+    height: 1.45rem;
+    margin: 0.72rem 0 0.7rem;
+    border-radius: 0.3rem;
+  }
+  .loading-age-copy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  :global(.loading-age-label) {
+    width: 3.9rem;
+    height: 0.48rem;
+    border-radius: 999px;
+  }
+  :global(.loading-age-value) {
+    width: 2.4rem;
+    height: 0.48rem;
+    border-radius: 999px;
+  }
+  :global(.loading-age-track) {
+    width: 100%;
+    height: 0.28rem;
+    border-radius: 999px;
+  }
+  .loading-mini-row,
+  .loading-ranking-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+  }
+  .loading-row-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.18rem;
+  }
+  :global(.loading-row-title) {
+    width: 7.2rem;
+    height: 0.55rem;
+    border-radius: 999px;
+  }
+  :global(.loading-row-caption) {
+    width: 4.2rem;
+    height: 0.45rem;
+    border-radius: 999px;
+  }
+  :global(.loading-row-arrow) {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 999px;
+  }
+  :global(.loading-priority) {
+    width: 3.4rem;
+    height: 1rem;
+    border-radius: 999px;
+  }
+  :global(.loading-ranking-title) {
+    width: 8.6rem;
+    height: 0.56rem;
+    border-radius: 999px;
+  }
+  :global(.loading-single-ranking-title) {
+    width: 7.6rem;
+  }
+  :global(.loading-ranking-caption) {
+    width: 7rem;
+    height: 0.45rem;
+    border-radius: 999px;
+  }
+  :global(.loading-ranking-score) {
+    width: 2.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+  }
+  .loading-category-tabs {
+    display: flex;
+    gap: 0.22rem;
+    margin-top: 0.68rem;
+    overflow: hidden;
+  }
+  :global(.loading-category-tab) {
+    width: 3.1rem;
+    height: 1.7rem;
+    border-radius: 0.35rem;
+  }
+  :global(.loading-title) {
+    width: 8rem;
+    height: 1.35rem;
+  }
+  .loading-title-wrap {
+    height: 1.35rem;
+  }
+  :global(.loading-caption) {
+    width: 13rem;
+    height: 0.55rem;
+    margin-top: 0.45rem;
+  }
+  :global(.loading-label) {
+    width: 6rem;
+    height: 0.65rem;
+  }
+  :global(.loading-badge) {
+    width: 3rem;
+    height: 1rem;
+    border-radius: 999px;
+  }
+  :global(.loading-progress) {
+    height: 0.38rem;
+  }
+  :global(.loading-note) {
+    width: 12rem;
+    height: 0.5rem;
+  }
+  @media (max-width: 640px) {
+    :global(.analytics-card-layer) {
+      align-items: flex-end;
+    }
+    :global(.analytics-card) {
+      width: calc(100vw - 1rem);
+      height: min(42rem, calc(100dvh - 1rem));
+      margin: 0.5rem;
+      border-radius: 0.55rem;
+    }
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

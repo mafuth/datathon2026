@@ -16,12 +16,18 @@
     "fix": "prettier --write . && eslint . --fix",
     "test:e2e": "playwright test",
     "test:unit": "vitest",
+    "test:scoring": "vite-node --options.transformMode.ssr='/.*/' scripts/test-scoring.ts",
+    "test:scoring:all": "vite-node --options.transformMode.ssr='/.*/' scripts/test-scoring-all.ts",
     "test": "playwright test && vitest",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",
     "db:clear": "vite-node --options.transformMode.ssr='/.*/' src/lib/db/clear",
+    "db:seed:mobility": "vite-node --options.transformMode.ssr='/.*/' scripts/seed-mobility.ts",
+    "mobility:fetch-connections": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-connections.ts",
+    "mobility:fetch-bus-routes": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-bus-routes.ts",
+    "mobility:fetch-rtl-bus": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-rtl-bus-data.ts",
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
@@ -77,6 +83,7 @@
     "@libsql/client": "^0.17.4",
     "better-auth": "^1.6.26",
     "drizzle-orm": "^0.45.2",
+    "maplibre-gl": "^6.14.0",
     "qrcode": "^1.5.4",
     "resend": "^6.18.1",
     "uuid": "^14.0.1"

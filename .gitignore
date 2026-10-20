@@ -39,7 +39,6 @@ node_modules/
 # Databases & local data
 # -------------------------
 dev.db
-*.db
 
 # -------------------------
 # Test results

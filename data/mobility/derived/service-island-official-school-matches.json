@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-10-19T19:16:42Z",
+  "source_url": "https://www.moe.gov.mv/en/schools",
+  "matches": [
+    {
+      "service_id": "facility:school:439",
+      "name": "Ha. Atoll Education Centre",
+      "island_id": "island:625",
+      "island_name": "Dhidhdhoo",
+      "atoll_id": "HA",
+      "source_url": "https://www.moe.gov.mv/en/schools/439"
+    },
+    {
+      "service_id": "facility:school:465",
+      "name": "Sh. Atoll Education Centre",
+      "island_id": "island:1192",
+      "island_name": "Komandoo",
+      "atoll_id": "Sh",
+      "source_url": "https://www.moe.gov.mv/en/schools/465"
+    },
+    {
+      "service_id": "facility:school:601",
+      "name": "GA. Atoll Education Centre",
+      "island_id": "island:429",
+      "island_name": "Vilin'gili",
+      "atoll_id": "GA",
+      "source_url": "https://www.moe.gov.mv/en/schools/601"
+    },
+    {
+      "service_id": "facility:school:632",
+      "name": "S. Atoll School",
+      "island_id": "island:1559",
+      "island_name": "Addu Meedhoo",
+      "atoll_id": "S",
+      "source_url": "https://www.moe.gov.mv/en/schools/632"
+    },
+    {
+      "service_id": "facility:school:648",
+      "name": "I'zzudhdheen School",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "source_url": "https://www.moe.gov.mv/en/schools/648"
+    }
+  ]
+}

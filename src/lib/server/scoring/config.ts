@@ -1,0 +1,21 @@
+export const scoringConfig = {
+  domainWeights: { health: 1 / 3, education: 1 / 3, transport: 1 / 3 },
+  transportWeights: { land: 1 / 3, marine: 1 / 3, air: 1 / 3 },
+  healthQuality: { hospital: 1, health_center: 0.65, clinic: 0.35 },
+  educationQuality: { preschool: 1, school: 1, high_school: 1, tertiary: 1 },
+  densityReferencePersonsPerKm2: 5000,
+  healthCrowdingImpact: 0.2,
+  educationCrowdingImpact: 0.25,
+  minimumCrowdingFactor: 0.4,
+  externalDemandImpact: 0.2,
+  minimumExternalDemandFactor: 0.5,
+  hubDemandImpact: 0.2,
+  transferDemandShare: 0.25,
+  minimumHubFactor: 0.5,
+  hubCapacityProxyByType: {
+    airport: 2,
+    ferry_terminal: 1.5,
+    land_gateway: 2,
+    transfer: 1.5
+  }
+} as const;

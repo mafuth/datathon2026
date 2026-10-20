@@ -1,0 +1,6 @@
+﻿service_id,name,island_id,island_name,atoll_id,source_url
+facility:school:439,Ha. Atoll Education Centre,island:625,Dhidhdhoo,HA,https://www.moe.gov.mv/en/schools/439
+facility:school:465,Sh. Atoll Education Centre,island:1192,Komandoo,Sh,https://www.moe.gov.mv/en/schools/465
+facility:school:601,GA. Atoll Education Centre,island:429,Vilin'gili,GA,https://www.moe.gov.mv/en/schools/601
+facility:school:632,S. Atoll School,island:1559,Addu Meedhoo,S,https://www.moe.gov.mv/en/schools/632
+facility:school:648,I'zzudhdheen School,island:1443,Malé,MLE,https://www.moe.gov.mv/en/schools/648

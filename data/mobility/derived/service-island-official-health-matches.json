@@ -1,0 +1,1408 @@
+{
+  "generated_at": "2026-10-19T19:12:49Z",
+  "source_url": "https://maaharaa.health.gov.mv/Public/Home/ListHealthCare",
+  "directory_records": 558,
+  "matched_records": 140,
+  "matches": [
+    {
+      "service_id": "facility:health:1",
+      "name": "Blu Clinic",
+      "island_id": "island:63",
+      "island_name": "Huruelhi",
+      "atoll_id": "Adh",
+      "directory_name": "Blu Clinic (ADH)",
+      "address": "Radisson Blu Resort Maldives / ADH. Huruelhi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BTNbBXuqHarH2ayjejPpVqT9ivdTf2HJsrYfQvqXafbepGpNDBGcwxgaxemt9DeHXjpAcdlI5fzL84WFstWnRIoCAvaRtShuyrw-72FpkVMw"
+    },
+    {
+      "service_id": "facility:health:101",
+      "name": "Kaam Medical",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Kaam Medical (23448)",
+      "address": "Lot 10414, Ahigas Magu, Hulhumale'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8ArDFWeTFisCrEYzv3_SF0XhnQNDiD5gXsdPSLmqkc2ua4s0lLfeL02BAjr6bLnezyQGEj8aJpwXoyGKDdICgk9YABVGT05uoxa1Bu1Gr93zw"
+    },
+    {
+      "service_id": "facility:health:104",
+      "name": "VCare Counselling and Psychotherapy Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "VCare Counselling and Psychotherapy Centre (23444)",
+      "address": "Villa College QI Campus, Rahdhebai Magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BW8SiQGpv8NvZekk4NUSIuSrsVUf_Ct4FUpWIQehwXCJMHlSEqV4zFyQmH25xg0Zq2Ardr7TpkllsQu-FVnUnW65MbYTvRJ0erkfA6nvII8A"
+    },
+    {
+      "service_id": "facility:health:1063",
+      "name": "WELL CARE MEDICALS",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "WELL CARE MEDICALS (K)",
+      "address": "Well Care Medicals, 7th Floor, Kulunuvehi, Buruzu Magu, Maafanu, Male' Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CSRGbPtAa88KlYzPHncjBEnYxzFRaizJKjaODMZaQdAudMGCaPv96iDDuY0hcTup5MrIS3U6RgVEzs8MGzR8DXly5BjxnSadSDmfRGjqII5w"
+    },
+    {
+      "service_id": "facility:health:11",
+      "name": "Omni Care Clinic",
+      "island_id": "island:205",
+      "island_name": "Thulhaadhoo",
+      "atoll_id": "B",
+      "directory_name": "Omni Care Clinic (B)",
+      "address": "Snow Rose, B. Thulhaadhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CH33EdNE-2lBJZJMlbY42eZeGr9t6oNdfPjJwOHQTpB2iAFn5O-yi8CGCm16ub7epyxz5ZnbMJjCwQIyDMXB343FrO7ZNkYVjONy09aCTo3Q"
+    },
+    {
+      "service_id": "facility:health:110",
+      "name": "Shifaa Medical",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Shifaa Medical (23443)",
+      "address": "5th Floor, G. Hiyaakuri, Alikilegefaanu Magu 20119, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8At2Xh-LaWxpanBDmhe1TCf_0kQsiX91EVwlfZGbNbeQTzBueCmkBccCn04yKESU5fiwT-n0m5IyA_Bfrg7EKthCqFwlL-ThodXTn5Jf_ydRQ"
+    },
+    {
+      "service_id": "facility:health:118",
+      "name": "Maldives Neuro Endocrine Medical Facility",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Maldives Neuro Endocrine Medical Facility (23412)",
+      "address": "G. Maajehi Anex , K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Alo8MK9reh5J8yyk8uoQGkIe6sxY86a-Ej_jUsVMrxlj9Ejir0V4f7LdWF6BZ1KTb9uDQvO8DPaRT6y7LQy0f1PneVQ1oGbJh2y4ViMsgFKw"
+    },
+    {
+      "service_id": "facility:health:121",
+      "name": "Nada Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Nada Clinic (23408)",
+      "address": "H. Gaamathi, 3rd Floor, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Ah886DBCgTqFNvI2P5NCw8ZbTBHF5iKVWmqKMeWM7ImzWF1SfkRK1ljObcm6PcAGyvj8qJpR0nXWrizZpwzHknXZNJQn7aWMaSt9HgE5it4Q"
+    },
+    {
+      "service_id": "facility:health:122",
+      "name": "Therapy Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Therapy Centre (23415)",
+      "address": "M. Jeymuge, Majeedhee Magu, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DNGgs250Kx5RuBehdY2PjMBhYn9E9PvESPfUsO8YWwkGohghRWAMrh2u_s-PgWuhva2Qe_I3P3HClGnuva9s6UVFF1gPu2UISyP6MJZXxnYw"
+    },
+    {
+      "service_id": "facility:health:13",
+      "name": "Yoonaanee Faruvaa Clinic",
+      "island_id": "island:1066",
+      "island_name": "Dhuvaafaru",
+      "atoll_id": "R",
+      "directory_name": "Yoonaanee Faruvaa Clinic (R)",
+      "address": "52.3 Goathi, Almas, R. Dhuvaafaru",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BUk9v9LlqhZPE8qlxzlv_HHuKLSszyq6c7xghXXXZwK7zUj9QLVSZf2_QORhApl1X2xrQo86D3-TRg9OBJZYhH-MfF505wYCAGd8lTBsppKQ"
+    },
+    {
+      "service_id": "facility:health:133",
+      "name": "Popular Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Popular Clinic (23392)",
+      "address": "G. Gavali, Bodurasgefaanu Magu, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BSMg_n3qrTFzoHsWVvnBn_SAIHUESvyG27XnvYpCVgICUmb6y1VlYJkoLTZRlR79-0mPxvkUESCn679eevhuxaH256k3nCCm2Al4oekqungQ"
+    },
+    {
+      "service_id": "facility:health:135",
+      "name": "Sun Island Medical Centre",
+      "island_id": "island:73",
+      "island_name": "Nalaguraidhoo",
+      "atoll_id": "Adh",
+      "directory_name": "Sun Island Medical Centre (23391)",
+      "address": "Sun Island, Adh. Nalaguraidhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CeWUfhjXNvIB-FzhvVSHUiuXWXB3D4hhxmYP9eNzAX-ZdGmPwq4eQWhAjRtcP0J4quadjXC94nbOCkILgBlaEYVniG0x_XobSOxl_-ph9Uhw"
+    },
+    {
+      "service_id": "facility:health:138",
+      "name": "Reethi Beach Clilnic",
+      "island_id": "island:175",
+      "island_name": "Fonimagoodhoo",
+      "atoll_id": "B",
+      "directory_name": "Reethi Beach Clilnic (23385)",
+      "address": "B. Fonimagoodhoo, B. Atoll, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BgYOByRFqSpcoQ1PPRmUB385iH1RtJNd3dTTWstLkYqMk6i5sZ7t2pxHvvYIXT3JWVO6KFEQqfp0PDqm11oePaI2M8GYpkxUOuL8Nnd8E0GA"
+    },
+    {
+      "service_id": "facility:health:139",
+      "name": "My Dental Care",
+      "island_id": "island:1552",
+      "island_name": "Maamigili",
+      "atoll_id": "Adh",
+      "directory_name": "My Dental Care (23382)",
+      "address": "Maamigili council 2 number fihaara",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AVXm_7pvaoH-0Tz2_xjZS1LU03IXncFoJ4_wHDnYa4135lJkdUcSrFlLKbsQuRcmwD-eQv8iOvKDDJ_Vr_nhk6hR0Gh3tqn8AIR2NkEwFWsQ"
+    },
+    {
+      "service_id": "facility:health:144",
+      "name": "Alai Play and Learn Therapy Center",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Alai Play and Learn Therapy Center (23378)",
+      "address": "Hulhumale Lot 11123, Raw house 13-08, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D2ki91Kd24Kid0hiWwEGtQAZp1VtSwGjHTJjFntqNVPF3dfTSJ46m-hJBvyarWhdSk1ze-sf_ZR2QvZkPAN34Fld4FZPCDedy5YA0w7t0A-w"
+    },
+    {
+      "service_id": "facility:health:148",
+      "name": "Cheval Blance Randeli Clinic",
+      "island_id": "island:977",
+      "island_name": "Randheli",
+      "atoll_id": "N",
+      "directory_name": "Cheval Blance Randeli Clinic (23374)",
+      "address": "Cheval Blanc Randheli, N.Atoll, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8A4zWE1ijgvxQMgqnqCLKgOWX7V2DTwMIcTaZvn9L3-pkYKQE85NcwXDXS6WTcR0wOST5dpcZ8TrNlZF6vmz20C0dHFf8QbE019K9VkROI_tQ"
+    },
+    {
+      "service_id": "facility:health:150",
+      "name": "Institute For Counselling And Psychotherapy",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Institute For Counselling And Psychotherapy (23372)",
+      "address": "H.Haifa,Bodufenavalhuge Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bo3PUXbiWHxxMAhGxWZUzy1FMRBXE99zNG9smQN3NJft3IgTJFSibrAJa4POGFic5NZrrI0VDQpwgoDPm9-T0M7T3vW3v6tx0bnPeyDyOkJg"
+    },
+    {
+      "service_id": "facility:health:16",
+      "name": "Royal Island Medical Center",
+      "island_id": "island:162",
+      "island_name": "Horubadhoo",
+      "atoll_id": "B",
+      "directory_name": "Royal Island Medical Center (B)",
+      "address": "Royal Island Resort and Spa, B. Horubadhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AdKiFKOpImJauugDyS31DSwzYIGqg8Cl7b7GRsGuIRKmCofyu_y4xWBQjVOTUPaa_QToTITqrxB5u1MF90iw61vZixXbxT4Y0FXrUossvSCQ"
+    },
+    {
+      "service_id": "facility:health:160",
+      "name": "Ayurvedic Therapy",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Ayurvedic Therapy (23352)",
+      "address": "Hulhumale' Lot 11123/ Raw House 13-08",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CuWym-iaio6TL40uv-reiZqByI94C1xh9gKfm2lzCY_QyGt32zxgk3wYKJJU19XeJf4n0u_30iA64hlQLXgffJe1SrL3llRhCaFPtRoRbs9A"
+    },
+    {
+      "service_id": "facility:health:161",
+      "name": "ICATT Maldives- Medical Services",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "ICATT Maldives- Medical Services (23350)",
+      "address": "5C, 5th Floor, Sakaimoo Building, Haveeree Hingun, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8ByR37H3t_j0zRkhFJ-PCSSs3cuzW5QTrLH-EH1YOidf8BXiPgW4E5bQsXVIdBFPle8Tzj71HF-f1tRqk5wQf2SvBhI1TLFt3UyALSlypQiIw"
+    },
+    {
+      "service_id": "facility:health:165",
+      "name": "Valley Dental",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Valley Dental (AS387)",
+      "address": "M. Sailaa, Izzuddeen Magu, Male' Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BdSN94YQP19r0MlDxNpkOhovLO8Wqb6xkD2DlhZChtyg8Ms4CSwATZj5Fa1KRZ28GXTEFEHU6iegnRD6p_FwjHdsR8AiY86IZL4rpxO9MDVA"
+    },
+    {
+      "service_id": "facility:health:172",
+      "name": "Dhugethi Dhivehibeys clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Dhugethi dhivehibeys clinic (22328)",
+      "address": "Ma. Forsythia, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Dr7_3_P9YLPJRrf6Lxw73awQ3hcnJlbd1t6dJj2piaXhzMYtucuwwyzcAC8nVqtXGhev0ijGUVb3iT7r4CD0Cd_TseGBJeknNbpgfh_UJWmw"
+    },
+    {
+      "service_id": "facility:health:173",
+      "name": "Oracare Dental",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Oracare dental (22321)",
+      "address": "Oracare Dental, Lot #10110, Hulhumale'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BJc2Mg_Rg2NVcgijNG9Oy69_wTOgR703R3s0ZRUW4EjrHXRThof8PsP5TJVE38REF4ekHQdJYNdAXgAnogfMC0FulYLMU9G6aDGjp-rfSXkQ"
+    },
+    {
+      "service_id": "facility:health:174",
+      "name": "Stem Center Closed",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Stem Center (22335)",
+      "address": "R-14-01, Hithigas Magu, Hulhumale",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DR00jaxnGDXGp5c1qbnh7NhNXM7ixUFJ5jupppQPyfsOo-6J7JyHKASUAHunVpz0okySHZ1JOaYyhMVRFdb5JV4OpY18waDCl7680YkVKnZg"
+    },
+    {
+      "service_id": "facility:health:178",
+      "name": "You & Me Clinic",
+      "island_id": "island:1040",
+      "island_name": "Uthurumaafaru",
+      "atoll_id": "R",
+      "directory_name": "You & Me Clinic (23371)",
+      "address": "R. Uthurumaafaru",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D97Ut-dxJp8FzaGXDZSVm2FJuFpqvy3iq3exg3EPhVE3UuOW2lzbOcdXP-BJK7opxaKJSmPowgwSJF_OHQw5fEdUoosJMQ0TuxtVv-GleUzQ"
+    },
+    {
+      "service_id": "facility:health:184",
+      "name": "Soneva Jani Clinic",
+      "island_id": "island:925",
+      "island_name": "Medhufaru",
+      "atoll_id": "N",
+      "directory_name": "Soneva Jani Clinic (22266)",
+      "address": "Soneva Jani, Noonu Atoll, Medhufaru",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bd6wsMqC8iDwoJ2LiHmOjwBmoat4n_e-fENMGb8g3wr7zd8Vvw6OW1HehPK35Do-yfmQlM_Fo05LiYlUxkXyP7aAKl7k6rUnTJrKb1nTC-vg"
+    },
+    {
+      "service_id": "facility:health:185",
+      "name": "Rx Medicare",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Rx Medicare (23343)",
+      "address": "Kalaj- Hulhumale (Lot no: 10057)",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CPikTm1RjMhjkXFmhtFe01_KY8qpeUBpmfP5YOMpVXM8UxAl_WrqJaRhUnwsVIfnNGSCygQWeIMf6hjnHmg5PRHPhGA9C7M-Bl9trmq7HLJQ"
+    },
+    {
+      "service_id": "facility:health:186",
+      "name": "Synergy Care",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Synergy Care (22304)",
+      "address": "H6-G01 in H6 Tower Hulhumale Phase 2",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DT8wmnNEZ1fYvamX0ttKGo6gLa6AZLRfIgeyUKUjVjH3hJeqGJLTa-lIlixp8Dp61W2_vVl_zjIt5uHTO46w4QAaKR7OLc9js7BTfXXuLUaA"
+    },
+    {
+      "service_id": "facility:health:187",
+      "name": "Early Intervention Therapy Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Early Intervention Therapy Centre (22255)",
+      "address": "G. Kakaage Aage, K.Male’, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8ChCFCO_7oIPPJKxw6I5rsfRdzXBLpVfbWDcQmAud1-Jd8h6mMJp2QnVY-0M5Ciof7XkT54WwOiMIXnRIR4ScHC32bQ5QSp4Xi5INRF0RW7eQ"
+    },
+    {
+      "service_id": "facility:health:193",
+      "name": "Tiny Drops Medical Services",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Tiny Drops Medical Services (22246)",
+      "address": "Ma. Dhunbuge, K. Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Cr1XF2jp_V5escjwu2Xfk2vT1658Q7Ivys30kjgbdt9beZ0igNA3Vn64g_JfDch-HBrDB1r_15nnZbjgmRnf6Acvh-PaVMqLvKpKb5BlTuUw"
+    },
+    {
+      "service_id": "facility:health:196",
+      "name": "Nafsu Psychological Services",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Nafsu Psychological Services (22263)",
+      "address": "Hiya 11, Ground Floor Unit no: H11-G-02, Ruwaa Maa Higun 20390, Hulhumale Phase 2",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8C3-KY0ECliUrUN2FZCdJZJBD81eGJCvxg_UbDG11IVAHkds8MN_UH-7-ZcSPgyusSzy7P8TUk9pO00zJ4bUVMQCFB0SpZmrLWU7cdyGmNoMQ"
+    },
+    {
+      "service_id": "facility:health:198",
+      "name": "Nova Clinic",
+      "island_id": "island:71",
+      "island_name": "Vakarufalhi",
+      "atoll_id": "Adh",
+      "directory_name": "Nova Clinic (22230)",
+      "address": "Nova Resorts, Adh Vakarufalhi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D3cAft5xXUl8qdOi3Il0gYOKd1ocobnnGCtAQ4mAWt7wgTvjMiPXYQql33iYXvvKrn8PZ8gQqZ9lmbZsbLJFjChX7w-RzKtgtRGvkpI-IndQ"
+    },
+    {
+      "service_id": "facility:health:206",
+      "name": "Anantara Kihavah Villas Clinic",
+      "island_id": "island:809",
+      "island_name": "Huravalhi",
+      "atoll_id": "Lh",
+      "directory_name": "Anantara Kihavah Villas Clinic (22198)",
+      "address": "Anantara Kihavah Villas, B. Kihavah Huravalhi, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AUPXL2alaJzP6Qm1VkWO8uHbr3xGZEkPSEQZIbSHFfx0qjTpqwNnZUfKBCfVbrDrNlj-NqJwVy_vH_hvj2T3kOxYVBb5FPgEszANt-s3ZaAA"
+    },
+    {
+      "service_id": "facility:health:208",
+      "name": "Revive Medical Centre",
+      "island_id": "island:612",
+      "island_name": "Hoarafushi",
+      "atoll_id": "HA",
+      "directory_name": "Revive Medical Centre (22194)",
+      "address": "Dheedhaaru, HA. Hoarafushi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BaELW-l4n7ZFrksNI6-x9lLlKr0D5SyGqZ2CoIq1E7Ig0p7V8ATuUcIXtSSF_Lr-ymX8jpYNYdKUt4qy0noaoPZA912dGpCbuHrM7uDmvZMQ"
+    },
+    {
+      "service_id": "facility:health:209",
+      "name": "Clinica",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Clinica (22193)",
+      "address": "G. Malvina, 1st and ground floor, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8C6hB8C5D0GgiUwAV5gAYwX90kb1_Bo-HLjvOs10ZQ6j_Rw9WFvvSQnEbCkViYd-Hwl7QBfMu0dSGKXSX7xZQmM8zu-8-L0RBu-VQGHG_lN4Q"
+    },
+    {
+      "service_id": "facility:health:218",
+      "name": "Maldives Diagnostic Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Maldives Diagnostic Centre (22165)",
+      "address": "G. Velagala, Ground Floor, K. Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AJ9V6Onw2Zo95b6e4WOtAJIy9hqWkjql111uSyRxVMvQbGXlVfcrZlj1VHvnIjlr6DswATJjxbH-Ch6ki2-Bk_LDjOJ4i2iH93AO5POgVwXQ"
+    },
+    {
+      "service_id": "facility:health:219",
+      "name": "Nowall Medical Centre",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Nowall Medical Centre (22164)",
+      "address": "Hulhumale Lot, 1193",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DOHrdWhw8ZUxYlsPtdDcug6qtIoIPIJTzxCmRKNfQJN4TUgL6BPOO0YyMhHU20CAF1zeRMPnqYHt156ytx21Q2bG-GZF31QRnnDPWVgZOvmw"
+    },
+    {
+      "service_id": "facility:health:22",
+      "name": "Ilaaj Hijama & Alternative Medical Services",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Ilaaj Hijama & Alternative Medical Services (K)",
+      "address": "Dhaftharu. No Dh R 471, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DZoADKeiJ7K5V-RumCBdSXQyCdEMHjyWXcQakGilnMrMZ_bqekr2Dk4g1VnaGJXtndmQ9mNEPJ6OcaNhgrqvCZDhCEu4Wfi7vbqI3cOP53Og"
+    },
+    {
+      "service_id": "facility:health:220",
+      "name": "Cocogiri Clinic",
+      "island_id": "island:1288",
+      "island_name": "Vashugiri",
+      "atoll_id": "V",
+      "directory_name": "Cocogiri Clinic (22161)",
+      "address": "Vashugiri, Vaavu Atoll, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AH_-JDbGrmz0Wwtmbj-dmvVrd_CasiFOuI0MTAKQoswGgWLUPXj9wRttIyUtopxVMjRnvYGfq0ZSMiBVF-PC8kKaC2zbER0L3S9SEJjlQqDQ"
+    },
+    {
+      "service_id": "facility:health:223",
+      "name": "Mafhaa Diagnostic Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Mafhaa Diagnostic Centre (23215)",
+      "address": "Male' Grand, Mezzanine Floor, Waysidecom 204 & 205",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AfeZ-OmmaDhwBEFCjvI0F1MzLpmba0y56hTwU-qt0HpyOitbW8BDGS_97hnAh6B4ninUOLt1kCB0gL02DKVhvFLxjExo8TiCCBp2eBjPtg9g"
+    },
+    {
+      "service_id": "facility:health:227",
+      "name": "Novalux Diagnostics Closed",
+      "island_id": "island:1364",
+      "island_name": "Thulusdhoo",
+      "atoll_id": "K",
+      "directory_name": "Novalux Diagnostics (22155)",
+      "address": "K.Thulusdhoo, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DEv3BvlBkqeg08658hwPHWQXNDXfUlYMq-inP123Dps4-0xKYJa2aDoULqnVNKCijpchNfumLPnlAXDDy5-7pxzBHCxcm5HANi1_xcX-crvA"
+    },
+    {
+      "service_id": "facility:health:23",
+      "name": "Siyam World Maldives Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Siyam World Maldives Clinic (K)",
+      "address": "H. Sun Siyam Building, Boduthakurufaanu Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DN9oFb8K_6LglfxuKyVMrvIWO-6mSmJ4OFgxPXPWZhbW35r9ysLyZqX0GiFhb5NHVKFt4D5vPlv0lejscqWQeMr0CI5DD6d4Jkqc1aPohcPw"
+    },
+    {
+      "service_id": "facility:health:231",
+      "name": "Physio Solutions",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Physio Solutions (22142)",
+      "address": "G. Hiyaakuri, 3rd floor, Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AE67kC_kjJd_LgMorPrpcxPETWw8ZS9pqj11aThUelBznabfJQm6o392Uw326CJAOaw8L7Ygvhmlx-jYfFAbDnWQdEPUa3FR3QSi508IAmOA"
+    },
+    {
+      "service_id": "facility:health:232",
+      "name": "Dental Studio",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Dental Studio (22145)",
+      "address": "ameen avenue, reethigas magu hulhumale",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8A8QLgebAq1CaL_5_oIiemKhY_vSpXbCWeGN_Bgt8LiCZfS9mLLf1jvTiuP9ujiakC6eYZiacN61iBKAhD92fIt4wpPswgUIkpsdMZxiPgIBA"
+    },
+    {
+      "service_id": "facility:health:233",
+      "name": "Dr Usama Dental Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Dr Usama Dental Clinic (22150)",
+      "address": "H. Relic, hakuraa goalhi, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AlV8mFSg8DfFeVPyXKUcG9iH7eARzDA9eyKyHcSwdMPHGNiSE7L0ELH5xzMzfsGFsymlRIrpsxU8e6l-uFMDSo6C8jct9VkF2cyyVOyDn9uw"
+    },
+    {
+      "service_id": "facility:health:234",
+      "name": "Doctor's Clinic",
+      "island_id": "island:83",
+      "island_name": "Maafushivaru",
+      "atoll_id": "Adh",
+      "directory_name": "Doctor's Clinic (21140)",
+      "address": "Maafushivaru Maldives, Adh. Maafushivaru, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bds4KRQym8a8aJC0oWeXkKXI4vUz9mZBKLn4f3IIpMS5yF1UUOs_F-cFnKZ_5CYSBZuCXXNONS61eSZG-Mfq5XuOkk5x9ACNbvYrNcj44ShQ"
+    },
+    {
+      "service_id": "facility:health:237",
+      "name": "Physio and Autism Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Physio and Autism Clinic (22144)",
+      "address": "M. Saumaamuge, K.Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8ClstAJZfZmAg4E8LI5kYDG0kY2GqZA19prCoTKsK8em7YBbeZBr45OG4Ww0zSUUjpr0aj1kvOPvR1QdmMZoXLvA3j1cEO2Wz1wYA4T_byUyw"
+    },
+    {
+      "service_id": "facility:health:24",
+      "name": "Amilla Sihhath",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Amilla Sihhath (K)",
+      "address": "M. Irufuheyge, Maaveyomagu, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Co5Vyxk8yaWc2BFvZMHkNuSyuxZOUyX2mlmpKM7WV7Yi8AfRE2-Pzv77SkGZpTTVvRD4EDremF4jDcMoa8kxOQKRXe-aAKXZssrCjFy6s_WQ"
+    },
+    {
+      "service_id": "facility:health:241",
+      "name": "Ilaa Ali Adam Clinic",
+      "island_id": "island:680",
+      "island_name": "Kulhudhuffushi",
+      "atoll_id": "HDh",
+      "directory_name": "Ilaa Ali Adam Clinic (21088)",
+      "address": "Zureethu Irumatheebai, Hdh.Kulhudhuffushi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8B1GOC9XTc_r2Td-MiWRiYATbOVwYIBfQTcl8mrn-so9U35qC9HrJB8fpLWj6dqFVMHCc60qrx9H2Djs8P4WueMq2fwhMjEkrjW8dle6c6TsQ"
+    },
+    {
+      "service_id": "facility:health:249",
+      "name": "Mediflex Dental and Maxillofacial Surgery",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Mediflex Dental and Maxillofacial Surgery (21006)",
+      "address": "M. Maayaa, Gandakoali magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bz1w3xTC4jRKssQbFnNKw9aZ2piF7HsvpwHOSy7oA1s2Oto-CpC8gcdS43dH_VjX0xTALvlqu03Kexf0FZhaP70r7foan9LebUinY-g55I3A"
+    },
+    {
+      "service_id": "facility:health:255",
+      "name": "Maya Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Maya Clinic (21003)",
+      "address": "M.Maya, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DUxJGzWlS6Dtr-fwPGJnc59zL8kw2ApCOVDVcdCBICYFq-UMX4cJH1oVN4TRFCnAFjFVaZBBeYbnxb4uewUxqxXzZR2MsSoRJ78aIkj2Yu4w"
+    },
+    {
+      "service_id": "facility:health:26",
+      "name": "Muraka Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Muraka Clinic (K)",
+      "address": "M. DhilaasaaVilla2 Fareedheemagu, 1st floor Male; City",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DJSbotw0MK0NH0ddYdjk5-l8PzdqFzQO1m3tim6YHIgTwJ2TCoFojak77agveJu92NQO-2jaSywdo4IV-D7LPESRigO3Q_G7749qlisd0BqQ"
+    },
+    {
+      "service_id": "facility:health:261",
+      "name": "Aahiyans Medical Clinic",
+      "island_id": "island:791",
+      "island_name": "Hinnavaru",
+      "atoll_id": "Lh",
+      "directory_name": "Aahiyans Medical Clinic (21083)",
+      "address": "Aahiyaa, Lh. Hinnavaru",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AnNsSuDH5FIh2uFIwOJokYXyvp8HJHp8z0bCu3ohE6Ml-zKlpQq6GjY6hp5P04sYMcWF_5kxAcAML5DeOBAFXdkV-UWOm9ReLBuBvY-3n-wQ"
+    },
+    {
+      "service_id": "facility:health:267",
+      "name": "Coco Chic Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Coco Chic Clinic (23339)",
+      "address": "04th floor, H. Suez, Ameer Ahmed Magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8B5RdiEbiRzeiwbBVzen2VyCvMrdQ67nRnxbZpFU_DPRxrOr2jhnsEedIuqOiBasiDY338QnUB7RXWuqBAOSSiojm7YVt6jDtBdVGuIoglCjA"
+    },
+    {
+      "service_id": "facility:health:27",
+      "name": "Leaf of Life Clinic",
+      "island_id": "island:624",
+      "island_name": "Kelaa",
+      "atoll_id": "HA",
+      "directory_name": "Leaf of Life Clinic (Ha)",
+      "address": "Asseyri/ Ha. Kelaa",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AHGAs74gHNrPGc23opSKEJ0GGSx-4MxW5Di2_CD7d8YNei15pvigxBfyE2ulT56u24n6-yhnlPrHgWCdRUHLj36cGlDj-ohSW8xZcJM4hOvQ"
+    },
+    {
+      "service_id": "facility:health:274",
+      "name": "Mediflex Laboratories",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Mediflex Laboratories (21008)",
+      "address": "M. Cottage, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BmRQrnITFsh-4OluAkc23TgZvPTDcbYP9WSNotXkWMYXU3cirDuZdtQy0lFCdTT72_wlUw6akYhGs_n-So7P28PalEnB94-5d8pPFKOGUi6Q"
+    },
+    {
+      "service_id": "facility:health:278",
+      "name": "Herbal Medi Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Herbal Medi Clinic (22257)",
+      "address": "M. Mivaru, 1st floor, Karneyshan magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8C8Pd01G6OCZD4UjypLF0pvuuiKM4NsSM2YABFGwEvZtBLH4rB2pFZMa1Hk3u2UHKanbfJiiAH5jkVEgPp6zKGx6JQXJkGRo4bP0kW2tg1eVQ"
+    },
+    {
+      "service_id": "facility:health:279",
+      "name": "RMLS Lab Services",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "RMLS Lab Services (21092)",
+      "address": "New Hill, Hulhumale' Lot No.10059, K. Hulhumale', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BfyH-HZ2QhGyH6T9vU3Q3mqpbiC0KMYuYG7KmFslCxVLq45w2MCQmeJz8AUKBnBjnjpQjWnPfi9uAOsyVeKj5xXkQyCDk3sOFDEmCBg0dY5g"
+    },
+    {
+      "service_id": "facility:health:280",
+      "name": "Hope Dental Care",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Hope Dental Care (22157)",
+      "address": "1st floor H. Saahath, Filigasmagu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DBNJg0UqWihwg82SBxVXJ36rUymaTK37gJWHPuoi9BGJGWMLIwNQavDmA8YaK0TlI5_ZyUeEVnV5s60eBhBVp3cSpXdcovJzpBL4ofe7ZSlw"
+    },
+    {
+      "service_id": "facility:health:281",
+      "name": "True Care medicals",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "True care Medicals (22326)",
+      "address": "M.Spatula, Iskandharu Magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Aoga_BjraaTFsMM1VJBcegRrvENRD_uA-Pr1lVQp3iG3ZO9m-pnb10Vwa4z2fnnnScTaAkdi3IvGhcAcpm5rTwt3P3jkssLH1fLgYXoOAZWQ"
+    },
+    {
+      "service_id": "facility:health:294",
+      "name": "Asisa Medical Center",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Asisa Medical Center (22196)",
+      "address": "H. Ranveli, Ground Floor,K.Male’, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8A4EsDRM7gdRFykUu51Hzp3aZJSXhNytvo3YG05Qwy2J2rYN5aLOsD_5fnzgWeKHVVXdZymU3DyFnMjnyj9feO-2VlHxbnmn7NJ_xc1rE8aAA"
+    },
+    {
+      "service_id": "facility:health:299",
+      "name": "Child Development Clinic",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Child Development Clinic (22211)",
+      "address": "Maldives Austism Association, Lot No. 10622, Chanbeylee Magu, Hulhumale', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8B194kkgH0yeLtHhOkfro_O-x8EQgZM2e9Dy2Y_lRHcHpvwh9BM1ui4LHZJg20uiSc9eNf6Sap4OhqdMXjNP3IsLqTQA7SL3QeuydaUO-c71g"
+    },
+    {
+      "service_id": "facility:health:317",
+      "name": "Mednova Medical Center",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Mednova Medical Center (21078)",
+      "address": "M. Aadhilleege, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8B9LpTHVYjYpx5ct9fYXDbT9K-vn6n9HGbUpKaZVLGTK5cZEPKyIYkp3VFivaKUEBOCAblnE6OgeJq3u8Kyv6KD_CouoszhwoZVdBdR-wgIew"
+    },
+    {
+      "service_id": "facility:health:322",
+      "name": "Dr Didi Dental And Medical Center",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Dr Didi Dental And Medical Center (22227)",
+      "address": "Lot No. 10409, Ahigas Magu, Hulhumale', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8C0HZLEPfuFZn5zoSVJ-OBhh3j-8HEQJgBKdoZCFAlF6HGxtUMiwN9wDQo1q6Es1l4YMBJ48N4dbYq33rA2lCAw6oUKZVnLomiu_68HrqUwHQ"
+    },
+    {
+      "service_id": "facility:health:326",
+      "name": "CyMa Care",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "CyMa Care (21081)",
+      "address": "M.Naainfaruge, 2nd Floor, Jahaamuguri goalhi, Male’, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Aa2YoVdw4K8pRcsFNmolKX-NPaDZA7UPSKT4tv7ak7Xb6C7FLuCsiED8N6o_K46BCRAfj-_nukaMBgkhGbfizzfxNJyiUEIlikLf7m2kctiw"
+    },
+    {
+      "service_id": "facility:health:338",
+      "name": "Resort Medical and Laboratory Services",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Resort Medical and Laboratory Services (21117)",
+      "address": "M. Chanbeyleege, Shaariuvarudhee, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AFH-RF37nRuMicgF1eiDLwfNRDWFaLnXjIjySWg3JqpytT1bZ-Hk22hJoEQ3VdgJ1UNBMAW07HrL_2AMel8NbFP6s2lTekGKeybSyr1A46wA"
+    },
+    {
+      "service_id": "facility:health:340",
+      "name": "Advance Diagnostic Center",
+      "island_id": "island:193",
+      "island_name": "Eydhafushi",
+      "atoll_id": "B",
+      "directory_name": "Advance Diagnostic Center (22315)",
+      "address": "Meenaaz, B. Eydhafushi, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CtepHWYnysv08UQBCpLLPWQV4uJKY1BBNzizoMKZ6QKk4c_Pb36TIMqN9wwdU92b0UEXm76CXKwmreRVDZH0J-2UHyahElw07XYX-wfvBPtw"
+    },
+    {
+      "service_id": "facility:health:342",
+      "name": "Kulunu Medical Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Kulunu Medical Clinic (22203)",
+      "address": "M. Naarigugasdhoshuge, K.Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8ACbJZ7V9FH8noDirXsoKBnPkHjB4oEcjrNK3tjV2qupJp8zhnLUEj9F-EF8yunyprl09nktoyEpGPJhBED4n8IKzJMfRBzZ0hEEzUv3Tznrw"
+    },
+    {
+      "service_id": "facility:health:347",
+      "name": "Ruhgalu Clinic",
+      "island_id": "island:212",
+      "island_name": "Vakkaru",
+      "atoll_id": "B",
+      "directory_name": "Ruhgalu Clinic (23369)",
+      "address": "Vakkaru Maldives, B. Vakkaru, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DpqXRaX3c_ZugYoNTocgRkPLRZ--SffbFcQsBK1vswwb7BZZkond6RQNuENCrL8rPgtfrvjeH3x3WBoqOjXpFiM8p7Yt6LPIADkCEr1_YIfA"
+    },
+    {
+      "service_id": "facility:health:349",
+      "name": "Omega Medical Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Omega Medical Centre (22067)",
+      "address": "H.Blue Asseyri, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CPbbce3uGEcyqYlnl59iFDzrArVJOvWQKr7gfywqUc7W_mOMVvcrgkSKZsLjkToMO0s3lmNzXCwjqqPifKaoiVE5a9dbMKmuB58g9vl0c2tg"
+    },
+    {
+      "service_id": "facility:health:357",
+      "name": "Faruvaa Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Faruvaa Clinic (21126)",
+      "address": "G. Rosary West, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bl4cQGyMlXqstVh0Es7lbv1JKLwDpM9qQBQ6tbKmjmBK3LrxznvoNvljBAdt-C3vvIao6Pb8I_pdX6muKFIQlfyPKV_MvUSh6NJ--ZfgD2Cg"
+    },
+    {
+      "service_id": "facility:health:36",
+      "name": "Furana Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Furana Clinic (K)",
+      "address": "M. Dhilaasaa Villa 2 , Fareedhee Magu, 1st Floor, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AxJ7Ci-mhgNQs8UjhahGuvpMe4lLoVtXhCsFwtfzUJseYfsFFXxv4Z8NRMCxJmPbNdIGZL6SNd53hLB8n65HyDtx7axAd_k2MIWRqlhGxAUg"
+    },
+    {
+      "service_id": "facility:health:361",
+      "name": "Noo Clinic",
+      "island_id": "island:937",
+      "island_name": "Orivaru",
+      "atoll_id": "N",
+      "directory_name": "Noo Clinic (22200)",
+      "address": "Robinson Noonu, N.Orivaru, N.Atoll, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AkxiNwk0_zLZwaoLHQ7BOLP3r5ghB-hzxlsW71R-V-OT9WW_AS7DOgJSQ9Hd7CE2v3fVGQeYuws_ljgGTTPPIWAIiiSMmTxU9aIhSiBRjC9Q"
+    },
+    {
+      "service_id": "facility:health:363",
+      "name": "Ananatara Dhigu Clinic",
+      "island_id": "island:1436",
+      "island_name": "Dhigufinolhu",
+      "atoll_id": "K",
+      "directory_name": "Ananatara Dhigu Clinic (23344)",
+      "address": "Anantara Resort and Spa Maldives, K. Dhigufinolhu",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CrnR5K18k6m5kM44KOlLbBvYC-QvVbg6DO3UFpcBKq9bRWqeG9HsGCkoTZRlZa1JO4jABUM_-uvuQ6JKUc545Ckbz2_djIJDZvmVDrUiGPqQ"
+    },
+    {
+      "service_id": "facility:health:366",
+      "name": "Family Relationship Services",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Family Relationship Services (21084)",
+      "address": "H. Maafolhey Villa, ground floor, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AJWfkgWIQODM9mOkEFcUJ3bjk43Rf_S-LQdSN3xf2VjdXmQhqURErKhW2kvSNTpxhTCyqlxEFa-xV7WCWAf57mTunQQrI-HqtU2Uesq6uR8Q"
+    },
+    {
+      "service_id": "facility:health:37",
+      "name": "Raaya Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Raaya Clinic (K)",
+      "address": "Ma. Dawn Shine, Zamaanee Goalhi, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CzH04_6PLkvGpXDDMdkWPE-hC4bhRebJ_siUIJYWOECLniVlYgA7gOu318B4QNmB86JXAqcyp-cGYaxH0pV0B7ktiuTS_fLOWGbkdV0KwQfg"
+    },
+    {
+      "service_id": "facility:health:376",
+      "name": "Master Dental Care Centro",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Master Dental Care Centro (23355)",
+      "address": "Centro Mini Hall, Hulhumale', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CLokdXplgBPX0D4RD2XSkQk-THgi9ILOD7lWJt59jLWhL5qjbQ_KRmX4YIbLpGnNIIyR-KwzJHE_F4plp_Y768Hd91wxhgIQTgzMV2ZdorAQ"
+    },
+    {
+      "service_id": "facility:health:377",
+      "name": "Dr. Usama's Clinic Maafannu",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Dr. Usama's Clinic Maafannu (21136)",
+      "address": "M. Green Life, K. Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CWYPJ4dqZqz71aXaV4n_jv5l3WN3XRMkN6mr6dreo5-q8miqD8cwNn-2fUUO-Wj0PZEae2-CI2PLvOH4e941w7j71YXVma1GTQ2czyzMXMWA"
+    },
+    {
+      "service_id": "facility:health:38",
+      "name": "My Care Medical Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "My Care Medical Centre (K)",
+      "address": "Ma. Kinaaraa House, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CBxXpTcWoakjed_NtaGdU-Do6yuMRZ5SG03XoniHiidkgmnzTe88ydr5-6m607th2RxrO2OOYkqwvVdzJZQ5YVsZz9PAtz5Dg9X3pYGjrtNg"
+    },
+    {
+      "service_id": "facility:health:382",
+      "name": "Physio Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Physio Clinic (22143)",
+      "address": "M. Finifaru (3rd Floor), K. Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AEWTZumuNa2GBePUnVeVQ9IpDWJA67-nsYKMRNpH3nxfjrS3bwpVlWo55Vv-WKx1Eo0FC89i0wBNkVhO7_eLFVwHS8U24tLM2ZFuVkY-VIUA"
+    },
+    {
+      "service_id": "facility:health:385",
+      "name": "Medhope Medical Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Medhope Medical Centre (22163)",
+      "address": "Ma. Pinnacle, Chaandhanee Magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BenomdKthb2Ibqj6BwQl69eYddhiB2KdHLbjUERjIZPKHKTB0MIPLmpqh-TZtucmbXFWtCjs1mKAm_RPdx9qxDbazRNzAJu-zApLRu7RypeA"
+    },
+    {
+      "service_id": "facility:health:39",
+      "name": "NazaHealth",
+      "island_id": "island:777",
+      "island_name": "Naifaru",
+      "atoll_id": "Lh",
+      "directory_name": "NazaHealth (Lh)",
+      "address": "Hilihilaage, Lh. Naifaru",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AD1zrdCJ_GPC2P096eFWUydnTnGC0uTLSJyVwdZJfPQGILZ4tpvENdovlVS3B-tCX6u4BS7bzKxdzcCTwjzxOdYY1MtOyWnO22KMX0hS-ABA"
+    },
+    {
+      "service_id": "facility:health:395",
+      "name": "Finolhu Clinic Plus",
+      "island_id": "island:833",
+      "island_name": "Kanifushi",
+      "atoll_id": "Lh",
+      "directory_name": "Finolhu Clinic Plus (22213)",
+      "address": "B. Kanifushi, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Airs8ARJQXXcr4eCYiKeb_ibOoxiEFvD2EWfUdZt73u4z7KtnhnqABJZa9-S0fgajU0siJu-qp0__M4pnK_Ft3YGU_-rlWKCzXeoDpO4fHyw"
+    },
+    {
+      "service_id": "facility:health:4",
+      "name": "Grand Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Grand Clinic (K)",
+      "address": "Centara Grand Lagoon Maldives, North Male Atoll (Kaafu Atoll), Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DkuCo5p7pqj5tOK7zuyzWAuCllwEDoQfhUAbORAm6TJ3JSxH0CTwshLUeCXSo9UH45K8GGaxCjd-xgBa7TWv3z1wBqlqsQ4ipBAk7mhAgXPg"
+    },
+    {
+      "service_id": "facility:health:402",
+      "name": "Crystal Medicals",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Crystal Medicals (22220)",
+      "address": "M. Zefelin, Dhambu Goalhi, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D8ygGSrHkBJ_MAKqSkOpZj3pOAkAgKRZ0TUCG5Kt-JbFKUFPFP8R6fWIXZJGVBhuN4lnTpIMMV0ebkEhr0-jgBdcfZbuT4FZwWlDy9AEzEgA"
+    },
+    {
+      "service_id": "facility:health:41",
+      "name": "Emerald Maldives Resort Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Emerald Maldives Resort Clinic (K)",
+      "address": "6th Floor, H. Aage, Boduthakurufaanu Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8A2XanJGE4k97GlVVPaO2rNJYw9k-bhxMMC_XtU9l290wSQjLY_pVavfQFAx4NPrYqhxbCkxlAAw4LGOomkHDsbi2OBGjcil0-ulTDhiCs-Ig"
+    },
+    {
+      "service_id": "facility:health:418",
+      "name": "Finolhu Clinic",
+      "island_id": "island:1468",
+      "island_name": "Gasfinolhu",
+      "atoll_id": "K",
+      "directory_name": "Finolhu Clinic (22320)",
+      "address": "Club Med Finolhu Villas, K. Gasfinolhu, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BP8aeJjqIBMTP0SZXAC1GBPmox6SJdyu2wR1C0yeVWuqZDQoE_7bqoSOujafEtDt7h7RDFYL21vR-gUG-33w6J-mIa8WDFlUFlcfpLeBYGGg"
+    },
+    {
+      "service_id": "facility:health:419",
+      "name": "Noosandha",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Noosandha (21125)",
+      "address": "M. Iskandharu Koshi, K.Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DL4WoPNqpkvrg1suEhBwlQEJ6-AfX3wLn3-PT8lLAWaQd01XMHWHEv_mtK1TS02H56kTQFRynqX-rxavWRZOechPz0Am1jY9k5dt1EP-8s5w"
+    },
+    {
+      "service_id": "facility:health:420",
+      "name": "Care Trust Multi Speciality Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Care Trust Multi Speciality Clinic (21121)",
+      "address": "Hm Commercial Unit, Huvandhumaa Hingun, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CFJ7Ukj6mIsfxTm5O3Tc-x9xdfmzoeF13VU40C2UtSmU87TEm2Cxyz3b_AF_KoOhp9qYfZgkJ9Lyn5Fh7OCDN6UVUMZVGGjkLKisc9xMoT8A"
+    },
+    {
+      "service_id": "facility:health:427",
+      "name": "Unique Dental",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Unique Dental (22244)",
+      "address": "C1-03, Hulhumale', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BHkRQOfSiNBX-fTzL2yhYQV0P1WqD3Y8wMdfXFkvyFLzEDkw4Bo2wP6WYWApbBYcANfKB4N2xlvakTogMYdcDCQYaIqRsCl0CTbJ5DIauAug"
+    },
+    {
+      "service_id": "facility:health:434",
+      "name": "Pro Care Clinic & Dental Centre",
+      "island_id": "island:1531",
+      "island_name": "Mahibadhoo",
+      "atoll_id": "Adh",
+      "directory_name": "Pro Care Clinic and Dental Centre (21079)",
+      "address": "Champaamaage, ADH. Mahibadhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8ChshGe5d8wH3WeJ38PdJbEcx_Q4_uU9NvK-TO2aKNgz0gsz5hPGKUxZgGGo3Bk_yn99b0xmExSz0Njz-CY-O8DBw07aniC01QEmRodEvedig"
+    },
+    {
+      "service_id": "facility:health:443",
+      "name": "Ali Rasheed Dhivehi Beys Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Ali Rasheed Dhivehi Beys Clinic (23358)",
+      "address": "H. Veliraalhuge, Male",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AQyHNXtgyQ4PHspd-m7iLZ10CTtmCGZBfk1qzTUb_nKJC9iP-sCBxbe5z05_F3qzvI6nN69R2SqFpMEuTY0z3eufz664NCf_qbQrBgNzFrYQ"
+    },
+    {
+      "service_id": "facility:health:446",
+      "name": "Dhivehi Beys Clinic",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Dhivehi Beys Clinic (23353)",
+      "address": "Lot No 10176, Hulhumale'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AzBSJTFm0CO4aUJdHfAeTxrq2uLZ1Hy7im16ozb1SacpFixh82HBj9qs0Aa2Zk895abzMXokzUbWS8cwmkFTNVe0DdwKxAlqTOpzdLlgGJ_w"
+    },
+    {
+      "service_id": "facility:health:452",
+      "name": "Raffles Clinic",
+      "island_id": "island:426",
+      "island_name": "Meradhoo",
+      "atoll_id": "GA",
+      "directory_name": "Raffles Clinic (22233)",
+      "address": "Raffled Maldives Meradhoo Resort , Ga Atoll",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CsA8zzc9Qhgu5hZunMnvq-dezmF99aO_IbWlYumKJjmxdEaWwyUlOsNPFLLeYcOOgr7PZEUH8BGNWErt2mcxpPMDxVCnxWiGwXVvNlTNkT6w"
+    },
+    {
+      "service_id": "facility:health:46",
+      "name": "Eye to Eye Opticals & Clinic 2",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Eye to Eye Opticals & Clinic 2 (K)",
+      "address": "M. Sooraj, Handhuvaree Hingun, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BVMP4aJ7qKsCM8CHhfPST7rZc5JPp1OQgjPtnH5UPAtqK5QlpfF0-VvwsmHnEh0svX45RothuEZfoh7Ze9oo9YSiyE5Moy-xQiBidos12U-w"
+    },
+    {
+      "service_id": "facility:health:47",
+      "name": "Moving Cure",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Moving Cure (K)",
+      "address": "Baandosge, Dhunbugas Magu 20002, K. Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Demxr_Ol_3JnhXzgwlhKYuiW4dq1KcVoGkj_KXR1EZj-JJHg6af2z3vcLwRoqi075ftV8wHA-MikijEOkKQik74PdjGhxD2XcVu0jbrGvmnw"
+    },
+    {
+      "service_id": "facility:health:472",
+      "name": "Ayada Maldives Resort Clinic",
+      "island_id": "island:525",
+      "island_name": "Maguhdhuvaa",
+      "atoll_id": "GDh",
+      "directory_name": "Ayada Maldives Resort Clinic (22306)",
+      "address": "GDh. Maguhdhuvaa Island, Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8A-c8zukCv4obHsqFv5g0MLXZRhvFl1XFk4jDY0XQd0ayon8RcwnYmuEs4NC5SuXRLLJTZtslherpsVMDLMjXsxgcQ_LmGnZI5Pagp_3DTjbA"
+    },
+    {
+      "service_id": "facility:health:473",
+      "name": "Kurumba Clinic",
+      "island_id": "island:1472",
+      "island_name": "Vihamanaafushi",
+      "atoll_id": "K",
+      "directory_name": "Kurumba Clinic (22192)",
+      "address": "Kurumba Maldives, K. Vihamanaafushi, Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8C9bynTVerao6xf7k3a4qAIMOF5EsKcvYrPgM8-V2s44UJ0qATQ-3agVgQF-HNBoF1iG1UDUHNkD_3Fq1pniQDSDK7stJ4uq_KAg1kN1wnQ4g"
+    },
+    {
+      "service_id": "facility:health:48",
+      "name": "CareOne Dental & Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Careone Dental & Clinic (K)",
+      "address": "M. Hudhukaneeruge, 1st Floor, 1A, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CzYAdnKD5yLWWB8JPcBH6_9XYboj6wQDw0sRItZ3lU-HUQTcnLZ_N4cXjxEa2FAmoGv9ufFkzKA_csWKtqB-0YNwM87HQuN89oGNadIB7xFg"
+    },
+    {
+      "service_id": "facility:health:5",
+      "name": "SC Dental Care",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "SC Dental Care (K)",
+      "address": "4th Floor, Lot No 11240, 5 Rabarugas Magu, Hulhumale'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AgV0ObrndrLaaJ3O5OWI21Qdh7zgIxdxa1PrBbuN3RiKYHhpHrHMl2nvbSEsH8iocDNZ4b3lXMkH2DDZJ7ei06a36sloYancnzohQyzXz-gQ"
+    },
+    {
+      "service_id": "facility:health:517",
+      "name": "Master Dental Care Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Master Dental Care Centre (22189)",
+      "address": "G. Kudhithiyara, Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D3lXvFjmVb9MEt-RaAV29NqL7Dpu5ZWrOQNJQLt1N6GHH3OqNh-F-A0Oyb3hW8KcrfbwGHVMgkgy0hmJJjgG8IW6Phjn3Dhnm8amiyDyOiXA"
+    },
+    {
+      "service_id": "facility:health:520",
+      "name": "Pearl Medical Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Pearl Medical Centre (21118)",
+      "address": "M. Chanbeyleege, Shaariuvarudhee, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DF6Zx6RZz2SHC1Thnh3KNRQLk4KL43BNBjAikmmOB9nSiGgSYJKv3a6AgdFCavIazDzTUQM4zjx-8lbR55-DvZ6yTmS0O9Bzw5iX8KFKhL8w"
+    },
+    {
+      "service_id": "facility:health:522",
+      "name": "Vision Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Vision Clinic (22261)",
+      "address": "M. Shura Manzil, Fareedhee Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AoUpulaJFbBa6buYdmAb1lWEU5y7-NcL7aX4h5kT2G7sThGgsRvNJ3-OiuNJS0wNeH6kSBlivI6UQQYEhUSf-P8uGh_IWTvylSv1GwG2AiWw"
+    },
+    {
+      "service_id": "facility:health:523",
+      "name": "Vital Care",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Vital Care (21076)",
+      "address": "G. Kanduvaige, K.Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Dllp38eAPJ4hX-n31arSIyGDPQXH_iPI9JMbWIbXJyeFeVknJ4lxCwpTiR0h31X1vAFqIreibQrO7EEzKQu-Q-I6FOg3dKkm9jKdS2OkLe9A"
+    },
+    {
+      "service_id": "facility:health:53",
+      "name": "Heart Care",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Heart Care (K)",
+      "address": "Aidhooge, Faashana Killege Magu 20132, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BpJWSaMWw1qeC6neuAACqadDJwnpzP2gvGWHWCl5iczS1qQdMNfltE-7k6AUGVKuQsiqpvkrCx-fLJ6oapohNfqTxD07zMuCcjnY-o-nry9Q"
+    },
+    {
+      "service_id": "facility:health:54",
+      "name": "Modern Medical Centre",
+      "island_id": "island:704",
+      "island_name": "Fonadhoo",
+      "atoll_id": "L",
+      "directory_name": "Modern Medical Centre (L)",
+      "address": "Fehifarudhaage, L. Fonadhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bxd-Vd9Vj8AZr0p774_N9y4v1qNwjCnbRQUHRulAcdeCy12f_uHG9lNxkxIliuT28am6bFzUZn-xSGs-vY24Z6VkazB0exe5jWhSeleTGF0Q"
+    },
+    {
+      "service_id": "facility:health:551",
+      "name": "My Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "My Clinic (21124)",
+      "address": "Ma. Milano, Ground Floor, K.Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Aahlxxo6-Quropc2P4tnNiTeFio-z2alOYiNjjrM3vYuOUaFyIfoGnqcRoSt6NtSqoh8AHvOYEHqTplCsIqJ7XUSE8jnzYTtazJrXYMBL52A"
+    },
+    {
+      "service_id": "facility:health:575",
+      "name": "Noonu Atoll hospital",
+      "island_id": "island:945",
+      "island_name": "Manadhoo",
+      "atoll_id": "N",
+      "directory_name": "Noonu Atoll Hospital (AH)",
+      "address": "Noonu Manadhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BE2Y2bnmxHYOTndN9P3fico5CsKmUGTI-FSLAVk7zeIbSoQhSDZEZWsBwTixkz-0lAQzn9x2yOjHtWDMaLdHv7jaVMnN6R15oY9HttAymgfw"
+    },
+    {
+      "service_id": "facility:health:58",
+      "name": "Recovery Room",
+      "island_id": "island:1409",
+      "island_name": "Kalhuhuraa",
+      "atoll_id": "K",
+      "directory_name": "Recovery Room (K)",
+      "address": "H. Nishan Plaza, Kalhuhuraa Magu",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AxK3F4i0FgY__ZfqIE3VDpZy35FJSaCt2cpJzguC5o1tdxfUzOmdCYrGpZTrMOdz3UsV8I4UxmwLceCAYAs1Kv_tsjyup_JvZZ1UF7mlHR-g"
+    },
+    {
+      "service_id": "facility:health:6",
+      "name": "Sangeli Clinic",
+      "island_id": "island:1496",
+      "island_name": "Akirifushi",
+      "atoll_id": "K",
+      "directory_name": "Sangeli Clinic (K)",
+      "address": "Oblu Select by Atmosphere at Sangeli, Akirifushi, K. Atoll",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Db4Sh4R6rxsY3Gokqp6jHTztIqQmsJmstvPpvtsljtkHhD7l_qYvWmTEapb0P-Mfyi9NZ7bbe729aIcKtXXHdTS_mEjqO37iWunHr8qmANXg"
+    },
+    {
+      "service_id": "facility:health:64",
+      "name": "Master Medical and Dental Care Centre",
+      "island_id": "island:458",
+      "island_name": "Gadhdhoo",
+      "atoll_id": "GDh",
+      "directory_name": "Master Medical and Dental Care Centre (24503)",
+      "address": "Jihaadh, Gdh. Gadhdhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BC0yiD3S_NJQZ6mmkpSKK-wBv9P4iEzRuzc1etUKEctDXgG_6fGGVvq85tmMUsUaF1GFx4PLb5Uvg46HqKVIo9srnbCXYfUP3PpgpQmGx7xA"
+    },
+    {
+      "service_id": "facility:health:67",
+      "name": "Wellcare Physiotherapy & Sports Rehabilitation",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Wellcare Physiotherapy & Sports Rehabilitation (24500)",
+      "address": "R14/05, Ground Floor, Hithigas Magu Goalhi 6, Hulhumale'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AEFj_k1Jm1sFZb4D5dXV2uAZVLfgLAGXT50hVmvK0VjsnbUWz7XQkvw57YUnC36LumVCxabvTCKNKrzly0QRrV2ptf7MTVX4oZqXRvZAfBuA"
+    },
+    {
+      "service_id": "facility:health:694",
+      "name": "I wear",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "I wear (22222)",
+      "address": "M. Blue chip, Orchid magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DkvTKr1oMCDynvq1O6CJI-qc0IxO-PE1JAxHdKLWqezj9_p3VjXu8TE6GVAApdpYu4Jv03YlnE1CHMpTzNAiz6p3MIvWYHlTlDG6MOkObysA"
+    },
+    {
+      "service_id": "facility:health:7",
+      "name": "My Medical Center",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "My Medical Center (K)",
+      "address": "H. Rasmaadhooge, Ground Floor, Abadhahfehi Magu, Male', Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BvLcbfuYlg4BUIdW5bfilmLEDX0YFjPWZHRdZ0wnrZqoT5i2omqr06PpBc3a3oY6CznYFxHStFCJz9l0MEV3WQHXru52o7r2ScA8uCV5kyMw"
+    },
+    {
+      "service_id": "facility:health:70",
+      "name": "Sun Siyam Vilu Reef Maldives Clinic",
+      "island_id": "island:255",
+      "island_name": "Meedhuffushi",
+      "atoll_id": "Dh",
+      "directory_name": "Sun Siyam Vilu Reef Maldives CLinic (24498)",
+      "address": "Sun Siyam Vilu Reef Maldives, Dh. Meedhuffushi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8COhrqiCIwPeAGpNLwI019JTmqGht7IYAHHsV8X8C06GUe6Jhlyn8V50gA7WXxKGgp2gTAJMMQP9HaAnXBZLE4h63Vus45ZiJor1ofOBWgpiA"
+    },
+    {
+      "service_id": "facility:health:73",
+      "name": "Sukoon Clinic",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Sukoon Clinic (K)",
+      "address": "H-16-08-13, Hulhumale Phase 2",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CIKcfQhsvYOJaNNP-aCshgiHf8CaLZKohQ5rlH0ZLTgzwyy6Fs0beKW8ComsCuCPnbGo5DwGvmzK2b42a9FkMHPLQ8qEXXOy2lIQwSRUdKQQ"
+    },
+    {
+      "service_id": "facility:health:760",
+      "name": "Eve Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Eve Clinic (21077)",
+      "address": "M. Kovarik, K.Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CD3L5YJWnCBcnK7ukZlFxReusvPhi0Jm1A2EUSbVVT6lpYfb-oxMcxmITIg3B6ZpRM79uhB_sz1Cs3R8Ogdpj6p6mqUm_Gwn63woksNxkjQQ"
+    },
+    {
+      "service_id": "facility:health:762",
+      "name": "Listen Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Listen Clinic (22138)",
+      "address": "G. Koaheenoor, 1st Floor, K.Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BJGiikNT8lfsnHNIauFtNXY9R5P6Ce-YyiHlpTZnHhWTcnIREFOb7Gnqt6GNImAtPiQ3DOGEh2zzTyBswPYKHoS3g3xCfBseWQSYVn26gOwg"
+    },
+    {
+      "service_id": "facility:health:795",
+      "name": "D.S.M Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "D.S.M Clinic (22317)",
+      "address": "H. Dhiggaamaage, Male' Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8A-StIMj2p-aEw7-sY_Q5dQWYKKD302rHppyfDuK9Ej0a-j_0gYIoZo5qhU3tgGV9SD1344ldZwux-N4EMAc5cKswM-y1xBsxmdkP3wkmgbVA"
+    },
+    {
+      "service_id": "facility:health:8",
+      "name": "MIOT Rehab Centre - Maldives",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "MIOT Rehab Centre - Maldives (K)",
+      "address": "G. Moonimaage, 1st Floor, K. Male', Maldives'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D6shqpYXlJ0Dr1BJJFdwzDBIAFQYcQnlyFnjEoqU-TFI86-dbUg5WmNZaL8SzmDsgT1y1vAuYunIinc_P_dpz3706TbbK209I1fXEY-o-dUw"
+    },
+    {
+      "service_id": "facility:health:80",
+      "name": "Maldives Alternative Medical Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Maldives Alternative Medical Centre (24487)",
+      "address": "M. Aluvimaage Aage, Nedhun Goalhi, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DLUWVZQJFdXWlqnpG9_9nRV4EGbaNpORgCsfhB-5-QL9kk62dbnFqZN2aLX3BVCFs3Koyh5x7qDdbewoBF_PUS0Y78PEUM6wFmKW5FdvoE-A"
+    },
+    {
+      "service_id": "facility:health:802",
+      "name": "Dr. Didi Dental Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Dr. Didi Dental Centre (22219)",
+      "address": "G. Dhathuge, K. Male', Republic of Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DdSvqgy0WDjV6XXCurdi5IQtdLBm8rTsFVR7N32ZxLgSVwwKVfcei3s1GYE7MCvoh-AlRQmxVFRbf47VZ8MEwAN8igTyDG5Q27ytXe7p8hAQ"
+    },
+    {
+      "service_id": "facility:health:807",
+      "name": "Eye Care Hospital",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Eye care hospital (22148)",
+      "address": "M.Usha, orchid magu , K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CC0UiJGm2bYwcPNEPl7Uoa91wMVje_GJ2Uy4Mc-CEaKS4NDIFeYA1rrgHvfWlaK_9Q3qiTg2FntbBlRDEYbm9qCZhQhSMolDYMYHJi7nYadA"
+    },
+    {
+      "service_id": "facility:health:81",
+      "name": "Mind Space",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Mind Space (24486)",
+      "address": "M. Lodge, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D3XUSCRooYRlkwqSeypzIRBwvfEuslAaH3Uwj1zhsjxnCxrTssOcDCTM1IvCD-CHYRakkrinvLw3FMlgeaNnZCwH3iAfZMPMyowZZYJOR0eg"
+    },
+    {
+      "service_id": "facility:health:815",
+      "name": "Imperial Medicare Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Imperial Medicare Centre (21087)",
+      "address": "G. Chaman, K.Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AHVsp6VBBKOMw2QYOSTtEyRc-dxvoOiSBiBXDphMK_Mqk_f8yDKKrVSLP4Iw65hMKesvvHRU1fsRuy2_EgxC35FRfuJhZ6p7AMgqX2Rbrvxw"
+    },
+    {
+      "service_id": "facility:health:828",
+      "name": "Azmi Naeem Medical and Diagnostic Centre",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Azmi Naeem Medical & Diagnostic Centre (21123)",
+      "address": "M. Misruvaage, Shaariuvarudhee Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AiSApT5BixRUHhylQkas-Se78XpJYIACEngSiHHqM-sQNjRHOKv3lvYl7yB6udgbPQJr8mYCoA_r4ivZiZdky2GFGvLbchRJ1U1eUcIUObYg"
+    },
+    {
+      "service_id": "facility:health:858",
+      "name": "Pulse Medical and Diagnostics",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Pulse Medical and Diagnostics (K)",
+      "address": "Gr, Ma. Reeds, Sayyid Kilegefaanu Magu, K. Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CUu5yBbjff5g1ajxcjbAbas9llBeHuN3FI5gcMb1W06rPZXT8XkZm-pK-NVYRKiSOQMCKUhfu3W9z_A7DMvtJQqm7wUX4bPOn30TzxnYTEaA"
+    },
+    {
+      "service_id": "facility:health:869",
+      "name": "Island Polyclinic",
+      "island_id": "island:684",
+      "island_name": "Hanimaadhoo",
+      "atoll_id": "HDh",
+      "directory_name": "Island Polyclinic (HDh.)",
+      "address": "Bulaa Fair / Hdh. Hanimaadhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bz81a4AF5m3QnoP5HQlMNbVLHjdzI-BnmyX7xEN-uO5BEGeNVYKmEajyhFVTefV4eAbzIQtatDGJ2nwgep3_YoFWWntHeeUH2tl78hrf00kw"
+    },
+    {
+      "service_id": "facility:health:87",
+      "name": "Knowhub",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Knowhub (24496)",
+      "address": "G. Hiyaakuri, Alikilegefaanu Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8Bg1QrrG7ocQDevL9slYrEhGE9ee7ylYXlEuDMy2AgCkI3INNgnzGu9dt9HgbiLy4-ZXtDQ6oSR4ZATwDgVYCJX7Ijt0MF-KuBekWi55S7tfA"
+    },
+    {
+      "service_id": "facility:health:884",
+      "name": "Gynova",
+      "island_id": "island:680",
+      "island_name": "Kulhudhuffushi",
+      "atoll_id": "HDh",
+      "directory_name": "Gynova (HDh.)",
+      "address": "Taaza, HDh. Kulhudhuffushi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8B2c33zOyOziXlUipKK--spyQIC2lze92hLX_HViNfwZqq1cnUqGta5F4KZIUg059tb_k9DBsYlDDmLwQrq5K_m-opkxxex-aEF71pDuWXLXA"
+    },
+    {
+      "service_id": "facility:health:885",
+      "name": "Bluspan Care",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Bluspan Care (K)",
+      "address": "M. Finifaru, Male' Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8DYcdOZl1UK1klTpYRd0NHsM0if5pA8E3cCfja4B2YwOlne8q-LLwiIzIcIaqMUGsY-Ms34zZzX0JBJW7koCIL5v9VcYlElvmexhVE54UVMhA"
+    },
+    {
+      "service_id": "facility:health:889",
+      "name": "Surgicare Clinic",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Surgicare Clinic (K)",
+      "address": "M.Rihaab, Shaheedhuali Hingun, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8B2MOn-LwmU_DVb0Rv6a1JBXoRQkvv39ml_PxBv5OVmVBFCfq6bY0zc4E-rjk0uWDjk8yTdlITrCNYq80U_IKPYA2zLrJpo8MbZuCtcsX5kAA"
+    },
+    {
+      "service_id": "facility:health:89",
+      "name": "Healing Care Medical Center",
+      "island_id": "island:680",
+      "island_name": "Kulhudhuffushi",
+      "atoll_id": "HDh",
+      "directory_name": "Healing Care Medical Center (24479)",
+      "address": "Mathivaru, Maalihaa Magu, Kulhudhuffushi City",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8C0o97w_OARpZXALZvXNGOaJQsKXwbq-OE0gFMMnzQ-MEjwDniz6TH5uJKWB8G3NgiMbWMynJ5xYnu11hy5x-SOdugVdVaQQoyIDKyLxSiFCw"
+    },
+    {
+      "service_id": "facility:health:891",
+      "name": "Bluspan Care Annex - 1",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Bluspan Care Annex - 1 (K)",
+      "address": "FW Residence, Hulhumale' phase 1",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BjqFetJ1Fz_0x9rn3pbdJ1PDZtSRQlpGPGe1X6aFaO4IU4GBlfRVJIDTC7bQHUWISPHPsqpx6gVTG8jGx0Ao1ymemb8pYobneyQ68oHy5uOg"
+    },
+    {
+      "service_id": "facility:health:9",
+      "name": "WTE Medical Clinic",
+      "island_id": "island:1456",
+      "island_name": "Thilafushi",
+      "atoll_id": "K",
+      "directory_name": "WTE Medical Clinic (K)",
+      "address": "WTE Facility, Thilafushi",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CojLsTX4sDOtxti7IFFXXLy0pfonByGw3suAyILVt3sYTg2SoXVxCzN2qwopzWnuJdMHRlndYzgM2oPSGHNV1I6JajKGC3JeZ90i9r46BwJA"
+    },
+    {
+      "service_id": "facility:health:91",
+      "name": "The Standard Clinic",
+      "island_id": "island:1004",
+      "island_name": "Huruvalhi",
+      "atoll_id": "R",
+      "directory_name": "The Standard Clinic (24478)",
+      "address": "The Standard Huruvalhi Maldives",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8AC-GLF3N_iqdBsq42iVTYjXC2ZBmj4CEM19whf4sn5ZxS6h7ojrDDuUf7r5csiU_AQ3K4W38kVUIewA3lVDeQBneIkA0bD4MPEuvL9VEGtIQ"
+    },
+    {
+      "service_id": "facility:health:917",
+      "name": "Pulse Point Medical Center",
+      "island_id": "island:635",
+      "island_name": "Ihavandhoo",
+      "atoll_id": "HA",
+      "directory_name": "Pulse Point Medical Center (Ha.)",
+      "address": "Fulmoon, Ha. Ihavandhoo",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8D9w8veetV1ppzbyk_k15LaEs8wi583oIn6C_VD8Ag-Ff8l2StuVx0krNBFOpHwXwsv7hCApJcdfsZfN8wyV6ci9DPavIeOvz1Y62sqKfxTPA"
+    },
+    {
+      "service_id": "facility:health:92",
+      "name": "Eve Clinic West Park",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Eve Clinic West Park (24495)",
+      "address": "M. Laalpoolge Aage, Boduthakurufaanu Magu, Block 333, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CPbjHSI0wrn3Cw-hEpLGp6r3RPuHsfY1ggkKl2k0ktz4nAXBBQnMzXDMQyNaOqXOh1o3DlpzjpAalNu3cB_gpOtMKElh4Gc8Rv42oMOofV0Q"
+    },
+    {
+      "service_id": "facility:health:98",
+      "name": "Life Wellness Clinic",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "atoll_id": "MLE",
+      "directory_name": "Life Wellness Clinic (24452)",
+      "address": "Hiyaa Flat,H-5,G-2,2300,Hulhumale'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8CSm_m8YA2LZY4MeoZn1TCdkvt5bo8JiyGtm5FotewnJGPEJ-wV_hYQRjTNzsMq7jwU-QVZRDycjjrOz5-v_uEurVAun4iCXklf77mQhuMzow"
+    },
+    {
+      "service_id": "facility:health:99",
+      "name": "Chinese Health Care",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "atoll_id": "MLE",
+      "directory_name": "Chinese Health Care (23449)",
+      "address": "G. Maajehige, 1st Floor, Lily Magu, Male'",
+      "source_url": "https://maaharaa.health.gov.mv/Public/Home/FacilityDetail/CfDJ8AJyxbhq2bFBiNctT-05c8BzUAbhEEAq7mo_uXSicjTyuYQvGbRO3L5koiImFq02kTRDg7r95XUN7jokFefFSx_3G7TrHB2T23ax7k25sgbnTGm5R0ibxYqQWOF0pKObpA"
+    }
+  ]
+}

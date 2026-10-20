@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-10-19T19:31:06Z",
+  "matched_records": 1,
+  "matches": [
+    {
+      "service_id": "facility:health:422",
+      "name": "Maalifushi By COMO",
+      "directory_name": "Maalifushi by Como (22225)",
+      "similarity": 1.0,
+      "returned_address": "Restaurant at Maalifushi by COMO, ކޮޅުމަޑުލު, ދިވެހިރާއްޖެ",
+      "island_id": "island:1271",
+      "island_name": "Maalefushi",
+      "atoll_id": "Th",
+      "source_url": "https://nominatim.openstreetmap.org/search?q=Maalifushi+by+Como+%2822225%29+COMO+Maalifushi+Maldives&format=jsonv2&limit=5&addressdetails=1"
+    }
+  ]
+}

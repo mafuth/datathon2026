@@ -1,0 +1,470 @@
+{
+  "centara clinic (adh.) adh. machchafushi maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Centara+Clinic+%28ADh.%29+ADh.+Machchafushi+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:47Z"
+  },
+  "jawakara clinic (23421) mabinhura island, lahviyan atoll, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Jawakara+Clinic+%2823421%29+Mabinhura+Island%2C+Lahviyan+Atoll%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:49Z"
+  },
+  "medplus dental (23420) handhuvareege / r. ungoofaaru maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Medplus+Dental+%2823420%29+Handhuvareege+%2F+R.+Ungoofaaru+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:50Z"
+  },
+  "atoll clinic (24481) hulhumale lot 10133, halaveli magu, hulhumale' maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Atoll+Clinic+%2824481%29+Hulhumale+Lot+10133%2C+Halaveli+Magu%2C+Hulhumale%27+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:53Z"
+  },
+  "mpi clinique (23414) madifushi private island, meemu madifushi, 11020, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=MPI+Clinique+%2823414%29+Madifushi+Private+Island%2C+Meemu+Madifushi%2C+11020%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:55Z"
+  },
+  "noosandha - addu (23402) national college of policing and law enforcement, addu city maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Noosandha+-+Addu+%2823402%29+National+College+of+Policing+and+Law+Enforcement%2C+Addu+City+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:57Z"
+  },
+  "amg clinic (23410) vinavi, r. meedhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=AMG+Clinic+%2823410%29+Vinavi%2C+R.+Meedhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:28:58Z"
+  },
+  "cinnamon dhonveli maldives medical clinic (23396) cinnamon dhonveli maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Cinnamon+Dhonveli+Maldives+Medical+Clinic+%2823396%29+Cinnamon+Dhonveli+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:00Z"
+  },
+  "the clinic at sirru fen fushi (23394) sh. gaakoshibee, fairmont maldives sirru fen fushi maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=The+Clinic+At+Sirru+Fen+Fushi+%2823394%29+Sh.+Gaakoshibee%2C+Fairmont+Maldives+Sirru+fen+Fushi+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:02Z"
+  },
+  "taj exotica clinic (23450) taj exotica resort and spa maldives, k. emboodhoo finolhu, maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Taj+Exotica+Clinic+%2823450%29+Taj+Exotica+Resort+and+Spa+Maldives%2C+K.+Emboodhoo+Finolhu%2C+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:04Z"
+  },
+  "kandolhu clinic (23388) a.a. kandolhudhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Kandolhu+Clinic+%2823388%29+A.A.+Kandolhudhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:06Z"
+  },
+  "komandoo clinic (23386) komandoo maldives island resort maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Komandoo+Clinic+%2823386%29+Komandoo+Maldives+Island+Resort+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:08Z"
+  },
+  "island health clinic (k) the ritz-carlton maldives, fari islands maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Island+Health+Clinic+%28K%29+The+Ritz-Carlton+Maldives%2C+Fari+Islands+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:09Z"
+  },
+  "sun siyam iruveli maldives clinic (23377) sunsiyam iruveli maldives resort maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Sun+Siyam+Iruveli+Maldives+Clinic+%2823377%29+Sunsiyam+Iruveli+Maldives+Resort+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:11Z"
+  },
+  "vadoo clinic (23381) adaaran prestige vadoo, k. vadoo, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Vadoo+Clinic+%2823381%29+Adaaran+Prestige+Vadoo%2C+K.+Vadoo%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:13Z"
+  },
+  "veligandu clinic (23384) veligandu island resort and spa maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Veligandu+Clinic+%2823384%29+Veligandu+Island+resort+and+spa+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:15Z"
+  },
+  "avani clinic (23375) avani + fares maldives resort, fares island maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Avani+Clinic+%2823375%29+Avani+%2B+Fares+Maldives+Resort%2C+Fares+Island+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:17Z"
+  },
+  "paradise medical center (23403) k. lankafinolhu, paradise island resorts & spa maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Paradise+Medical+Center+%2823403%29+K.+Lankafinolhu%2C+Paradise+Island+Resorts+%26+Spa+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:19Z"
+  },
+  "care max clinic 1 (23338) taj coral reef and spa , maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Care+max+clinic+1+%2823338%29+Taj+coral+reef+and+spa+%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:21Z"
+  },
+  "sun siyam irufushi maldives clinic (22330) sun siyam iru fushi maldives, noonu atoll, medhafushi maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Sun+Siyam+Irufushi+Maldives+Clinic+%2822330%29+Sun+Siyam+Iru+Fushi+Maldives%2C+Noonu+Atoll%2C+Medhafushi+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:23Z"
+  },
+  "farook healthcare villingili (22318) blue house, ga. villingili maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Farook+Healthcare+Villingili+%2822318%29+Blue+House%2C+GA.+Villingili+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:25Z"
+  },
+  "blyss multi-speciality therapy centre (22309) hulhumale', lot 10505 maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Blyss+multi-speciality+therapy+Centre+%2822309%29+Hulhumale%27%2C+Lot+10505+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:27Z"
+  },
+  "aarah clinic (22249) aarah, raa atoll maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Aarah+Clinic+%2822249%29+Aarah%2C+Raa+Atoll+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:29Z"
+  },
+  "city opticals (22252) r9-05 2nd floor, hithigas magu, hulhumale' maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=City+Opticals+%2822252%29+R9-05+2nd+Floor%2C+Hithigas+Magu%2C+Hulhumale%27+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:31Z"
+  },
+  "hiyaa medical centre (22223) hiyaa tower 12, hulhumale phase 2 maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Hiyaa+Medical+Centre+%2822223%29+Hiyaa+Tower+12%2C+Hulhumale+phase+2+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:32Z"
+  },
+  "amingiri clinic (22210) hilton maldives amingiri resort & spa maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Amingiri+Clinic+%2822210%29+Hilton+Maldives+Amingiri+Resort+%26+SPA+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:34Z"
+  },
+  "emerald dental care (22265) lot no: 11157 hulhumale', k. male' maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Emerald+Dental+Care+%2822265%29+Lot+No%3A+11157+Hulhumale%27%2C+K.+Male%27+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:36Z"
+  },
+  "cinnamon velifushi maldives medical clinic (22221) cinnamon velifushi maldives, v. aarah, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Cinnamon+Velifushi+Maldives+Medical+Clinic+%2822221%29+Cinnamon+Velifushi+Maldives%2C+V.+Aarah%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:38Z"
+  },
+  "maadhoo clinic (22202) ozen by atmosphere at maadhoo, k. maadhoo, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Maadhoo+Clinic+%2822202%29+Ozen+by+Atmosphere+at+Maadhoo%2C+K.+Maadhoo%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:40Z"
+  },
+  "southern care clinic (22160) araairu, s. hithadhoo, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Southern+Care+Clinic+%2822160%29+Araairu%2C+S.+Hithadhoo%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:42Z"
+  },
+  "sandies bathala infirmary (22159) aa. atoll, sandies bathala resort, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Sandies+Bathala+Infirmary+%2822159%29+AA.+Atoll%2C+Sandies+Bathala+Resort%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:44Z"
+  },
+  "joali being clinic (22162) joali being bodufushi, raa bodufushi, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Joali+Being+Clinic+%2822162%29+Joali+Being+Bodufushi%2C+Raa+Bodufushi%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:46Z"
+  },
+  "mindcare clinic (22149) h. meedhoo, finihiyaa goalhi, male' maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Mindcare+Clinic+%2822149%29+H.+Meedhoo%2C+finihiyaa+goalhi%2C+Male%27+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:48Z"
+  },
+  "eriyadu clinic (23351) eriyadu island resort, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Eriyadu+Clinic+%2823351%29+Eriyadu+Island+Resort%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:50Z"
+  },
+  "great minds (23370) vavathi building, 2a, male', maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Great+Minds+%2823370%29+vavathi+building%2C+2A%2C+Male%27%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:52Z"
+  },
+  "angsana velavaru medical centre (21069) angsana resort & spa maldives velavaru maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Angsana+Velavaru+Medical+Centre+%2821069%29+Angsana+Resort+%26+Spa+Maldives+Velavaru+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:53Z"
+  },
+  "eye zone clinic (gdh) finivairoalhi, fandiyaaru magu, gdh. thinadhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Eye+Zone+Clinic+%28Gdh%29+Finivairoalhi%2C+Fandiyaaru+Magu%2C+GDh.+Thinadhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:55Z"
+  },
+  "f&c medicare, meedhoo (23365) mirihaana, s. meedhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=F%26C+Medicare%2C+Meedhoo+%2823365%29+Mirihaana%2C+S.+Meedhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:57Z"
+  },
+  "atoll guest clinic (22212) gadifaru-maafushi island maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Atoll+Guest+Clinic+%2822212%29+Gadifaru-Maafushi+Island+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:29:59Z"
+  },
+  "reethi faru clinic (22329) reethi faru resort, r. fillaidhoo, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Reethi+Faru+Clinic+%2822329%29+Reethi+Faru+Resort%2C+R.+Fillaidhoo%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:00Z"
+  },
+  "uro medical care (22195) h. filitheyo, ground floor, k. male', republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Uro+Medical+Care+%2822195%29+H.+Filitheyo%2C+Ground+Floor%2C+K.+Male%27%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:02Z"
+  },
+  "resort clinic (22236) four seasons resort maldives at landa giraavaru , baa atoll maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Resort+Clinic+%2822236%29+Four+Seasons+Resort+Maldives+at+Landa+Giraavaru+%2C+Baa+Atoll+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:04Z"
+  },
+  "huvadhoo therapy clinic (gdh) hindhoos, gdh. thinadhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Huvadhoo+Therapy+Clinic+%28Gdh%29+Hindhoos%2C+GDh.+Thinadhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:06Z"
+  },
+  "jp memorial clinic (22201) robinson maldives, ga. funamaudda, huvadhu atoll, rep.of.maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=JP+Memorial+Clinic+%2822201%29+Robinson+maldives%2C+GA.+Funamaudda%2C+Huvadhu+Atoll%2C+Rep.of.maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:08Z"
+  },
+  "guest and staff clinic (22248) gdh. konotta, gdh. atoll, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Guest+and+Staff+Clinic+%2822248%29+GDh.+Konotta%2C+Gdh.+Atoll%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:10Z"
+  },
+  "institute for mental wellbeing (22158) h. hulhugali, 2nd floor, k. male', republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Institute+for+Mental+Wellbeing+%2822158%29+H.+Hulhugali%2C+2nd+Floor%2C+K.+Male%27%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:11Z"
+  },
+  "maalifushi by como (22225) como maalifushi maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Maalifushi+by+Como+%2822225%29+COMO+Maalifushi+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [
+      {
+        "place_id": 257005686,
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "node",
+        "osm_id": 3645449019,
+        "lat": "2.3112945",
+        "lon": "73.2985118",
+        "category": "amenity",
+        "type": "restaurant",
+        "place_rank": 30,
+        "importance": 4.0000762951049326e-5,
+        "addresstype": "amenity",
+        "name": "Restaurant at Maalifushi by COMO",
+        "display_name": "Restaurant at Maalifushi by COMO, ކޮޅުމަޑުލު, ދިވެހިރާއްޖެ",
+        "address": {
+          "amenity": "Restaurant at Maalifushi by COMO",
+          "state": "ކޮޅުމަޑުލު",
+          "ISO3166-2-lvl4": "MV-08",
+          "country": "ދިވެހިރާއްޖެ",
+          "country_code": "mv"
+        },
+        "boundingbox": ["2.3112445", "2.3113445", "73.2984618", "73.2985618"]
+      }
+    ],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:13Z"
+  },
+  "athuruga medical clinic (22086) diamonds athuruga island resort, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Athuruga+Medical+Clinic+%2822086%29+Diamonds+Athuruga+Island+Resort%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:15Z"
+  },
+  "velaa private island clinic (22191) velaa private island maldives, n.fushivelaavaru, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Velaa+Private+Island+Clinic+%2822191%29+Velaa+Private+Island+Maldives%2C+N.Fushivelaavaru%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:17Z"
+  },
+  "sha therapy dhivehibeys centre (k) funoas, k. kaashidhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Sha+Therapy+Dhivehibeys+Centre+%28K%29+Funoas%2C+K.+Kaashidhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:19Z"
+  },
+  "aims diagnostic care (22141) rihaab, s. feydhoo, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Aims+Diagnostic+Care+%2822141%29+Rihaab%2C+S.+Feydhoo%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:21Z"
+  },
+  "f & c medicare and scan center (23367) ehaaru, s. hithadhoo, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=F+%26+C+Medicare+and+Scan+Center+%2823367%29+Ehaaru%2C+S.+Hithadhoo%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:23Z"
+  },
+  "physio cure (k) vasmeerufiya, k. villingili maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Physio+Cure+%28K%29+Vasmeerufiya%2C+K.+Villingili+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:25Z"
+  },
+  "gdh. hoandedhoo health centre (hc) hoandehdhoo health centre maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=GDh.+Hoandedhoo+Health+Centre+%28HC%29+Hoandehdhoo+Health+Centre+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:26Z"
+  },
+  "shaviyani atoll hospital (ah) funadhoo atoll hospital maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Shaviyani+Atoll+hospital+%28AH%29+Funadhoo+Atoll+hospital+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:28Z"
+  },
+  "rasfushi clinic (24504) centara rasfushi resort & spa maldives, giraavaru island, north male' atoll maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Rasfushi+Clinic+%2824504%29+Centara+Rasfushi+Resort+%26+Spa+Maldives%2C+Giraavaru+Island%2C+North+Male%27+Atoll+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:30Z"
+  },
+  "meeru clinic (22245) meeru island resort and spa maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Meeru+Clinic+%2822245%29+Meeru+island+resort+and+spa+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:32Z"
+  },
+  "kandooma clinic (22237) holiday inn resort kandooma maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Kandooma+Clinic+%2822237%29+Holiday+Inn+Resort+Kandooma+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:34Z"
+  },
+  "niyama resort clinic (24499) niyama maldives, dh. olhuveli and emboodhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Niyama+Resort+Clinic+%2824499%29+Niyama+Maldives%2C+Dh.+Olhuveli+and+Emboodhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:35Z"
+  },
+  "bandos medical clinic and hyperbaric treatment centre (22205) bandos maldives, k.bandos maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Bandos+medical+clinic+and+hyperbaric+treatment+centre+%2822205%29+Bandos+Maldives%2C+K.Bandos+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:37Z"
+  },
+  "lux maldives resort clinic (24497) adh. dhidhdhoofinolhu maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Lux+Maldives+Resort+Clinic+%2824497%29+Adh.+DhidhdhooFinolhu+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:39Z"
+  },
+  "bcare (24492) barcelo whale lagoon maldives, adh. bodufinolhu maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=BCare+%2824492%29+Barcelo+Whale+Lagoon+Maldives%2C+Adh.+Bodufinolhu+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:41Z"
+  },
+  "ha. alifu atoll hospital (ha) ha.alifu atoll hospital maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Ha.+Alifu+Atoll+Hospital+%28HA%29+Ha.Alifu+Atoll+Hospital+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:43Z"
+  },
+  "eye care clinic (addu branch) (22310) silver leaf, hiyfaseyha magu, s.hithadhoo. maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Eye+Care+Clinic+%28Addu+Branch%29+%2822310%29+Silver+Leaf%2C+Hiyfaseyha+Magu%2C+S.Hithadhoo.+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:45Z"
+  },
+  "varu medical centre (24488) varu by atmosphere, k. madivaru, north male' maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Varu+Medical+Centre+%2824488%29+Varu+by+Atmosphere%2C+K.+Madivaru%2C+North+Male%27+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:47Z"
+  },
+  "my family dentist (24494) unit h3-g-10, hiyaa hulhumale', male' maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=My+Family+Dentist+%2824494%29+Unit+H3-G-10%2C+Hiyaa+Hulhumale%27%2C+Male%27+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:49Z"
+  },
+  "f&c medicare (23366) bageechaage/ s.maradhoo feydhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=F%26C+Medicare+%2823366%29+Bageechaage%2F+S.Maradhoo+Feydhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:51Z"
+  },
+  "smiles dental care (23451) ma. vavathi, ground floor, male', maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Smiles+Dental+Care+%2823451%29+Ma.+Vavathi%2C+Ground+Floor%2C+Male%27%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:53Z"
+  },
+  "so/ maldives clinic (24485) emboodhoo lagoon, kaafu atoll, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=SO%2F+Maldives+Clinic+%2824485%29+Emboodhoo+Lagoon%2C+Kaafu+Atoll%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:54Z"
+  },
+  "abuharee medical centre (22240) kulee bin 9a/f2/1 , s. hithadhoo, addu city maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Abuharee+Medical+Centre+%2822240%29+Kulee+Bin+9A%2FF2%2F1+%2C+S.+Hithadhoo%2C+Addu+City+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:57Z"
+  },
+  "the residence maldives at dhigurah clinic (24482) the residence maldives dhigurah, ga. dhigurah, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=The+Residence+Maldives+at+Dhigurah+Clinic+%2824482%29+The+Residence+Maldives+Dhigurah%2C+Ga.+Dhigurah%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:30:59Z"
+  },
+  "mavericks care (k) k. feydhoo finolhu, maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Mavericks+Care+%28K%29+K.+Feydhoo+Finolhu%2C+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:31:01Z"
+  },
+  "olive medical centre (24491) alidhoadhi, gdh. thinadhoo maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Olive+Medical+Centre+%2824491%29+Alidhoadhi%2C+Gdh.+Thinadhoo+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:31:03Z"
+  },
+  "fushi clinic (24453) lh. fushifaru, republic of maldives maldives": {
+    "url": "https://nominatim.openstreetmap.org/search?q=Fushi+Clinic+%2824453%29+Lh.+Fushifaru%2C+Republic+of+Maldives+Maldives&format=jsonv2&limit=5&addressdetails=1",
+    "results": [],
+    "status": "ok",
+    "retrieved_at": "2026-10-19T19:31:05Z"
+  }
+}

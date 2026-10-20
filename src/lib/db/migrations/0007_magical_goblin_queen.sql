@@ -1,0 +1,1 @@
+ALTER TABLE `island` ADD `land_area_km2` real;
