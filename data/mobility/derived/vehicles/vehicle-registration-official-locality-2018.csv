@@ -1,0 +1,41 @@
+vehicle_category,vehicle_category_label,registration_scope,amount_type,source_locality,source_year,amount,estimated
+total,Total,official_locality_aggregate,official_observed,Male',2018,71813,False
+total,Total,official_locality_aggregate,official_observed,Hulhumale',2018,2675,False
+total,Total,official_locality_aggregate,official_observed,Addu,2018,8940,False
+total,Total,official_locality_aggregate,official_observed,Other atolls,2018,25104,False
+motor_cycle,Motor cycle,official_locality_aggregate,official_observed,Male',2018,63379,False
+motor_cycle,Motor cycle,official_locality_aggregate,official_observed,Hulhumale',2018,1665,False
+motor_cycle,Motor cycle,official_locality_aggregate,official_observed,Addu,2018,6545,False
+motor_cycle,Motor cycle,official_locality_aggregate,official_observed,Other atolls,2018,18308,False
+car,Car,official_locality_aggregate,official_observed,Male',2018,3329,False
+car,Car,official_locality_aggregate,official_observed,Hulhumale',2018,358,False
+car,Car,official_locality_aggregate,official_observed,Addu,2018,1438,False
+car,Car,official_locality_aggregate,official_observed,Other atolls,2018,1200,False
+bus,Bus,official_locality_aggregate,official_observed,Male',2018,96,False
+bus,Bus,official_locality_aggregate,official_observed,Hulhumale',2018,18,False
+bus,Bus,official_locality_aggregate,official_observed,Addu,2018,46,False
+bus,Bus,official_locality_aggregate,official_observed,Other atolls,2018,38,False
+pick_up,Pick-Up,official_locality_aggregate,official_observed,Male',2018,1493,False
+pick_up,Pick-Up,official_locality_aggregate,official_observed,Hulhumale',2018,193,False
+pick_up,Pick-Up,official_locality_aggregate,official_observed,Addu,2018,264,False
+pick_up,Pick-Up,official_locality_aggregate,official_observed,Other atolls,2018,981,False
+lorry,Lorry,official_locality_aggregate,official_observed,Male',2018,450,False
+lorry,Lorry,official_locality_aggregate,official_observed,Hulhumale',2018,22,False
+lorry,Lorry,official_locality_aggregate,official_observed,Addu,2018,53,False
+lorry,Lorry,official_locality_aggregate,official_observed,Other atolls,2018,270,False
+van,Van,official_locality_aggregate,official_observed,Male',2018,765,False
+van,Van,official_locality_aggregate,official_observed,Hulhumale',2018,111,False
+van,Van,official_locality_aggregate,official_observed,Addu,2018,205,False
+van,Van,official_locality_aggregate,official_observed,Other atolls,2018,468,False
+jeep,Jeep,official_locality_aggregate,official_observed,Male',2018,294,False
+jeep,Jeep,official_locality_aggregate,official_observed,Hulhumale',2018,23,False
+jeep,Jeep,official_locality_aggregate,official_observed,Addu,2018,83,False
+jeep,Jeep,official_locality_aggregate,official_observed,Other atolls,2018,89,False
+battery_scooter,Battery Scooter,official_locality_aggregate,official_observed,Male',2018,686,False
+battery_scooter,Battery Scooter,official_locality_aggregate,official_observed,Hulhumale',2018,84,False
+battery_scooter,Battery Scooter,official_locality_aggregate,official_observed,Addu,2018,60,False
+battery_scooter,Battery Scooter,official_locality_aggregate,official_observed,Other atolls,2018,537,False
+other,Other vehicles,official_locality_aggregate,official_observed,Male',2018,1321,False
+other,Other vehicles,official_locality_aggregate,official_observed,Hulhumale',2018,201,False
+other,Other vehicles,official_locality_aggregate,official_observed,Addu,2018,246,False
+other,Other vehicles,official_locality_aggregate,official_observed,Other atolls,2018,3213,False

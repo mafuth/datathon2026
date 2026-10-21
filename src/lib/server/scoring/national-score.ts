@@ -1,6 +1,8 @@
 import type {
   DemandMetric,
   DemandSummary,
+  EmploymentCategory,
+  EmploymentScoreResult,
   InboundDemandSource,
   IslandScoreResult,
   NationalScoreResult,
@@ -20,6 +22,10 @@ function average(values: Array<number | null>): number | null {
 
 function sum(values: number[]): number {
   return Number(values.reduce((total, value) => total + value, 0).toFixed(2));
+}
+
+function round(value: number): number {
+  return Number(value.toFixed(2));
 }
 
 function aggregateDemandMetric(
@@ -158,6 +164,62 @@ function aggregateCrowdedness(results: IslandScoreResult[]): ScoreComponent {
   return aggregateComponents(components);
 }
 
+function aggregateEmployment(results: IslandScoreResult[]): EmploymentScoreResult {
+  const foreignPopulation = sum(results.map((result) => result.employment.foreignPopulation));
+  const workingAgeValues = results
+    .map((result) => result.employment.workingAgePopulation)
+    .filter((value): value is number => value !== null);
+  const workingAgePopulation = workingAgeValues.length > 0 ? sum(workingAgeValues) : null;
+  const jobLocationCount = results.reduce((total, result) => total + result.employment.jobLocationCount, 0);
+  const score = average(results.map((result) => result.employment.score));
+  const categories = new Map<string, EmploymentCategory>();
+  for (const result of results) {
+    for (const category of result.employment.categories) {
+      const current = categories.get(category.key) ?? {
+        key: category.key,
+        label: category.label,
+        count: 0,
+        subcategories: []
+      };
+      current.count += category.count;
+      for (const subcategory of category.subcategories) {
+        const currentSubcategory = current.subcategories.find((entry) => entry.key === subcategory.key);
+        if (currentSubcategory) currentSubcategory.count += subcategory.count;
+        else current.subcategories.push({ ...subcategory });
+      }
+      current.subcategories.sort((left, right) => right.count - left.count || left.key.localeCompare(right.key));
+      categories.set(category.key, current);
+    }
+  }
+  return {
+    baseScore: score,
+    score,
+    adjustmentFactor: score === null ? null : 1,
+    status: score === null ? 'unavailable' : 'partial',
+    coverageRatio: average(results.map((result) => result.employment.coverageRatio)) ?? 0,
+    denominatorPopulation: workingAgePopulation,
+    numericPopulation: score === null ? null : workingAgePopulation,
+    evidenceCount: jobLocationCount,
+    limitations: [...new Set(results.flatMap((result) => result.employment.limitations))],
+    foreignPopulation,
+    foreignPopulationSource: results.some((result) => result.employment.foreignPopulationSource === 'assumed_zero')
+      ? 'assumed_zero'
+      : 'observed',
+    workingAgePopulation,
+    jobLocationCount,
+    foreignPerWorkingAge:
+      workingAgePopulation && workingAgePopulation > 0 ? round(foreignPopulation / workingAgePopulation) : null,
+    foreignPerJobLocation: round(foreignPopulation / Math.max(1, jobLocationCount)),
+    jobLocationsPerThousandWorkingAge:
+      workingAgePopulation && workingAgePopulation > 0 ? round((jobLocationCount / workingAgePopulation) * 1000) : null,
+    pressureScore: average(results.map((result) => result.employment.pressureScore)),
+    supplyScore: average(results.map((result) => result.employment.supplyScore)),
+    categories: [...categories.values()].sort(
+      (left, right) => right.count - left.count || left.key.localeCompare(right.key)
+    )
+  };
+}
+
 function externalDemandComponent(results: IslandScoreResult[]): ScoreComponent {
   return {
     baseScore: average(
@@ -200,6 +262,7 @@ export async function getNationalScore(): Promise<NationalScoreResult> {
   const numericScores = scores.filter((result) => result.overall.score !== null);
   const health = aggregateComponent(numericScores, (result) => result.health);
   const education = aggregateComponent(numericScores, (result) => result.education);
+  const employment = aggregateEmployment(scores);
   const transport = aggregateComponent(numericScores, (result) => result.transport);
   const land = aggregateComponent(numericScores, (result) => result.transport.land);
   const marine = aggregateComponent(numericScores, (result) => result.transport.marine);
@@ -218,6 +281,7 @@ export async function getNationalScore(): Promise<NationalScoreResult> {
     status,
     health,
     education,
+    employment,
     transport: { ...transport, land, marine, air },
     crowdedness: aggregateCrowdedness(numericScores),
     demand: aggregateDemand(scores),

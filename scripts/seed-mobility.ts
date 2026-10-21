@@ -1,16 +1,25 @@
 import type {
   NewAtoll,
   NewIsland,
+  NewJobLocation,
   NewPopulation,
   NewService,
   NewTransportConnection,
   NewTransportRoute
 } from '../src/lib/db/models';
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-import { Atoll, Island, Population, Service, TransportConnection, TransportRoute } from '../src/lib/db/models';
+import {
+  Atoll,
+  Island,
+  JobLocation,
+  Population,
+  Service,
+  TransportConnection,
+  TransportRoute
+} from '../src/lib/db/models';
 import db from '../src/lib/server/database';
 
 type Position = [number, number];
@@ -29,8 +38,12 @@ type BaselineArtifact = {
   islands: NewIsland[];
   population: NewPopulation[];
   services: NewService[];
+  jobLocations?: NewJobLocation[];
   transportRoutes: NewTransportRoute[];
   transportConnections: NewTransportConnection[];
+};
+type ForeignPopulationArtifact = {
+  rows?: Array<{ island_id?: unknown; amount?: unknown }>;
 };
 type OSMService = {
   id: string;
@@ -96,6 +109,9 @@ const SEARCH_LINEAR_MULTIPLIER = Math.sqrt(SEARCH_AREA_MULTIPLIER);
 const MAX_EXPANDED_SEARCH_DISTANCE_DEGREES = 1.5;
 const baselinePath = resolve(process.env.MOBILITY_BASELINE_PATH ?? 'data/mobility/normalized/current-db-baseline.json');
 const osmServicesPath = resolve(process.env.MOBILITY_OSM_SERVICES_PATH ?? 'data/mobility/normalized/osm-services.json');
+const foreignPopulationPath = resolve(
+  process.env.MOBILITY_FOREIGN_POPULATION_PATH ?? 'data/mobility/derived/foregner-population-island-insert.json'
+);
 const osmMarinePath = resolve(process.env.MOBILITY_OSM_MARINE_PATH ?? 'data/mobility/normalized/osm-marine.json');
 const osmConnectionsPath = resolve(
   process.env.MOBILITY_OSM_CONNECTIONS_PATH ?? 'data/mobility/normalized/transport-connections.json'
@@ -300,6 +316,16 @@ if (!baseline.schema_version.startsWith('current-db-mobility-baseline-')) {
   throw new Error(`Unsupported mobility baseline: ${baseline.schema_version}`);
 }
 const osmServices = readJson<OSMServicesArtifact>(osmServicesPath).services;
+if (!existsSync(foreignPopulationPath)) {
+  throw new Error(`Missing foreign-population artifact: ${foreignPopulationPath}`);
+}
+const foreignPopulationRows = (readJson<ForeignPopulationArtifact>(foreignPopulationPath).rows ?? []).flatMap((row) => {
+  const islandId = typeof row.island_id === 'string' ? row.island_id : null;
+  const amount = typeof row.amount === 'number' ? row.amount : null;
+  return islandId && amount !== null && Number.isInteger(amount) && amount >= 0
+    ? [{ islandId, ageCategory: 'foregner', amount } satisfies NewPopulation]
+    : [];
+});
 const osmMarine = readJson<OSMMarineArtifact>(osmMarinePath);
 const osmConnections = readJson<OSMConnectionsArtifact>(osmConnectionsPath).connections;
 const rtlFerry = readJson<RtlFerryArtifact>(rtlFerryPath);
@@ -316,6 +342,11 @@ const islandShapes: IslandShape[] = baseline.islands.flatMap((island) => {
 const inhabitedIslandIds = new Set(
   baseline.islands.filter((island) => island.islandType === 'inhabited').map((island) => island.id)
 );
+const population = [
+  ...baseline.population.filter((record) => record.ageCategory !== 'foregner'),
+  ...foreignPopulationRows
+];
+const jobLocations = baseline.jobLocations ?? [];
 const services: NewService[] = baseline.services.map((service) => ({ ...service }));
 const baselineServiceById = new Map(baseline.services.map((service) => [service.id, service] as const));
 const patchedServiceIds = new Set<string>();
@@ -649,6 +680,7 @@ for (const route of rtlFerry.routes) {
 }
 
 await db.transaction(async (tx) => {
+  await tx.delete(JobLocation);
   await tx.delete(TransportConnection);
   await tx.delete(TransportRoute);
   await tx.delete(Service);
@@ -658,8 +690,9 @@ await db.transaction(async (tx) => {
 
   await insertChunks(baseline.atolls, async (chunk) => tx.insert(Atoll).values(chunk));
   await insertChunks(baseline.islands, async (chunk) => tx.insert(Island).values(chunk));
-  await insertChunks(baseline.population, async (chunk) => tx.insert(Population).values(chunk));
+  await insertChunks(population, async (chunk) => tx.insert(Population).values(chunk));
   await insertChunks(services, async (chunk) => tx.insert(Service).values(chunk));
+  await insertChunks(jobLocations, async (chunk) => tx.insert(JobLocation).values(chunk));
   await insertChunks(transportRoutes, async (chunk) => tx.insert(TransportRoute).values(chunk));
   await insertChunks(transportConnections, async (chunk) => tx.insert(TransportConnection).values(chunk));
 });
@@ -671,8 +704,9 @@ console.log(
       inserted: {
         atolls: baseline.atolls.length,
         islands: baseline.islands.length,
-        population: baseline.population.length,
+        population: population.length,
         services: services.length,
+        jobLocations: jobLocations.length,
         transportRoutes: transportRoutes.length,
         transportConnections: transportConnections.length,
         rtlFerryRoutes: rtlFerryRouteIds.size,
@@ -682,7 +716,8 @@ console.log(
       servicePatch: {
         patchedExisting: patchedServiceIds.size,
         addedMissing: addedServiceIds.length,
-        unmappedOsmServices: unmappedOsmServices.length
+        unmappedOsmServices: unmappedOsmServices.length,
+        foreignPopulationRows: foreignPopulationRows.length
       },
       marineCoverage: {
         inhabitedIslands: coverageRows.length,

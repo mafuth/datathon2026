@@ -1,0 +1,45 @@
+{
+  "schema_version": "vehicle-registration-source-review-v1",
+  "reviewed_at": "2026-10-21",
+  "question": "Is there a public official island-level list of vehicles registered in Maldives?",
+  "conclusion": "No public official island-by-island vehicle-registration table was located in the reviewed sources.",
+  "official_sources_reviewed": [
+    {
+      "source": "Maldives Bureau of Statistics Statistical Yearbook 2024, Table 11.6",
+      "url": "https://statisticsmaldives.gov.mv/yearbook/2024/wp-content/uploads/sites/11/2024/09/11.6.pdf",
+      "result": "Official vehicle counts are published for Male', Hulhumale', Addu and Other atolls only; the table does not provide one row per island.",
+      "status": "official_aggregate_only"
+    },
+    {
+      "source": "Maldives Bureau of Statistics yearbook vehicle-registration tables",
+      "url": "https://statisticsmaldives.gov.mv/yearbook/",
+      "result": "The located vehicle-registration tables provide national, locality or atoll-level aggregates rather than a complete island-level registry.",
+      "status": "official_aggregate_only"
+    },
+    {
+      "source": "Ministry of Transport SIMS portal",
+      "url": "https://sims.transport.gov.mv/",
+      "result": "This is the official vehicle-registration system domain, but no public downloadable island-level aggregate was exposed during the review. Automated access reached a Cloudflare security-verification page.",
+      "status": "official_system_no_public_export_verified"
+    }
+  ],
+  "current_prepared_dataset": {
+    "official_observed_geography": ["Male'", "Hulhumale'", "Addu", "Other atolls"],
+    "island_level_rows": "estimated_population_allocation for Addu and Other atolls; not official observed registrations",
+    "data_directory": "D:/datathon/new/data/mobility/derived/vehicles"
+  },
+  "recommended_official_request": {
+    "recipient": "Transport Authority / Ministry of Transport",
+    "request": "A de-identified aggregate extract of active vehicle registrations by island and vehicle category, with reference date and registration-status definition.",
+    "requested_fields": [
+      "island_name",
+      "island_id_or_council",
+      "atoll",
+      "vehicle_category",
+      "registered_amount",
+      "reference_date",
+      "active_or_total_status"
+    ],
+    "privacy_constraint": "Request aggregate counts only; no plate numbers, owner names, addresses, or personal identifiers."
+  }
+}

@@ -366,6 +366,23 @@ function buildIslandProfile(
         islandName: airportIsland?.name ?? null
       }
     },
+    employment: {
+      score: score.employment.score,
+      status: score.employment.status,
+      coverageRatio: score.employment.coverageRatio,
+      evidenceCount: score.employment.evidenceCount,
+      foreignPopulation: score.employment.foreignPopulation,
+      foreignPopulationSource: score.employment.foreignPopulationSource,
+      workingAgePopulation: score.employment.workingAgePopulation,
+      jobLocationCount: score.employment.jobLocationCount,
+      foreignPerWorkingAge: score.employment.foreignPerWorkingAge,
+      foreignPerJobLocation: score.employment.foreignPerJobLocation,
+      jobLocationsPerThousandWorkingAge: score.employment.jobLocationsPerThousandWorkingAge,
+      pressureScore: score.employment.pressureScore,
+      supplyScore: score.employment.supplyScore,
+      categories: score.employment.categories,
+      limitations: score.employment.limitations
+    },
     demand: demandProfile(populationRecords, total, score, islandServices, snapshot.islands)
   };
 }

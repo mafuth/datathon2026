@@ -2,6 +2,7 @@
   import type { IslandProfile } from './island-profile';
   import type { AnalyticsIsland } from './national-analytics-card.svelte';
 
+  import Briefcase from '@lucide/svelte/icons/briefcase';
   import Bus from '@lucide/svelte/icons/bus';
   import Plane from '@lucide/svelte/icons/plane';
   import Route from '@lucide/svelte/icons/route';
@@ -41,6 +42,7 @@
     { key: 'health', label: 'Health', note: 'Population-weighted health access' },
     { key: 'education', label: 'Education', note: 'Population-weighted school access' },
     { key: 'transport', label: 'Transport', note: 'Land, marine, and air connections' },
+    { key: 'employment', label: 'Employment', note: 'Foreign residents balanced against recorded workplaces' },
     { key: 'crowdedness', label: 'Crowdedness', note: 'Population density pressure' },
     { key: 'demand', label: 'Service demand', note: 'Combined local and inbound demand pressure' }
   ] as const;
@@ -51,6 +53,7 @@
   const connectionRowSkeletons = Array.from({ length: 3 }, (_, index) => index);
   const healthDemandSkeletons = Array.from({ length: 8 }, (_, index) => index);
   const educationDemandSkeletons = Array.from({ length: 6 }, (_, index) => index);
+  const employmentDemandSkeletons = Array.from({ length: 5 }, (_, index) => index);
   const transportDemandSkeletons = Array.from({ length: 12 }, (_, index) => index);
   const transportStopSkeletons = Array.from({ length: 2 }, (_, index) => index);
   const inboundSourceSkeletons = Array.from({ length: 3 }, (_, index) => index);
@@ -60,6 +63,9 @@
   }
   function number(value: number | null | undefined): string {
     return value === null || value === undefined ? 'N/A' : Math.round(value).toLocaleString();
+  }
+  function decimal(value: number | null | undefined): string {
+    return value === null || value === undefined ? 'N/A' : value.toFixed(2);
   }
   function driverScore(key: (typeof drivers)[number]['key']): number | null {
     if (!island) return null;
@@ -72,11 +78,18 @@
     if (key === 'health') return island.health.coverageRatio;
     if (key === 'education') return island.education.coverageRatio;
     if (key === 'transport') return island.transport.coverageRatio;
+    if (key === 'employment') return island.employment.coverageRatio;
     if (key === 'demand') return island.demand.coverageRatio;
     return 0;
   }
   function titleCase(value: string): string {
-    return value.replaceAll('_', ' ').replace(/\b\w/g, (character) => character.toUpperCase());
+    return value
+      .replaceAll('_', ' ')
+      .replaceAll(':', ' / ')
+      .replace(/\b\w/g, (character) => character.toUpperCase());
+  }
+  function categoryShare(count: number, total: number): number {
+    return total > 0 ? Math.min(100, (count / total) * 100) : 0;
   }
   function connectionIcon(type: string) {
     if (type === 'air') return Plane;
@@ -151,6 +164,21 @@
                   </div>
                 {/each}
               </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card employment-card island-loading-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="island-loading-panel-heading" />
+              </div>
+              <div class="island-loading-demand-metrics">
+                {#each employmentDemandSkeletons as row (row)}
+                  <div>
+                    <Skeleton class="island-loading-demand-label" />
+                    <Skeleton class="island-loading-demand-value" />
+                  </div>
+                {/each}
+              </div>
+              <Skeleton class="island-loading-demand-progress" />
             </Card.Root>
 
             <div class="detail-grid">
@@ -246,6 +274,23 @@
                     </div>
                   {/each}
                 </div>
+                <Skeleton class="island-loading-demand-progress" />
+              </Card.Root>
+
+              <Card.Root class="insight-card demand-card island-loading-card" size="sm">
+                <div class="card-heading demand-heading">
+                  <Skeleton class="island-loading-panel-heading" />
+                  <Skeleton class="island-loading-demand-percentage" />
+                </div>
+                <div class="island-loading-demand-metrics">
+                  {#each employmentDemandSkeletons as row (row)}
+                    <div>
+                      <Skeleton class="island-loading-demand-label" />
+                      <Skeleton class="island-loading-demand-value" />
+                    </div>
+                  {/each}
+                </div>
+                <Skeleton class="island-loading-demand-progress" />
                 <Skeleton class="island-loading-demand-progress" />
               </Card.Root>
 
@@ -366,6 +411,41 @@
                   </div>
                 {:else}
                   <p class="empty-state">No population breakdown is available.</p>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card employment-card" size="sm">
+              <div class="card-heading">
+                <div>
+                  <h3>Workplace inventory</h3>
+                </div>
+                <Briefcase size={17} strokeWidth={2.2} />
+              </div>
+              <div class="employment-scoreline">
+                <strong>{number(profile.employment.jobLocationCount)}</strong>
+                <span>recorded workplace records</span>
+              </div>
+              <div class="employment-breakdown">
+                {#each profile.employment.categories as category (category.key)}
+                  <div class="employment-category">
+                    <div class="employment-category-heading">
+                      <span>{titleCase(category.label)}</span>
+                      <strong>{number(category.count)}</strong>
+                    </div>
+                    <Progress
+                      value={categoryShare(category.count, profile.employment.jobLocationCount)}
+                      max={100}
+                      aria-label={`${titleCase(category.label)} workplace share`}
+                    />
+                    <div class="employment-subcategory-list">
+                      {#each category.subcategories as subcategory (subcategory.key)}
+                        <span><b>{titleCase(subcategory.label)}</b><strong>{number(subcategory.count)}</strong></span>
+                      {/each}
+                    </div>
+                  </div>
+                {:else}
+                  <span class="empty-inline">No workplace categories are available.</span>
                 {/each}
               </div>
             </Card.Root>
@@ -493,6 +573,53 @@
                   max={100}
                   aria-label="Education service demand percentage"
                 />
+              </Card.Root>
+
+              <Card.Root class="insight-card demand-card employment-demand-card" size="sm">
+                <div class="card-heading demand-heading">
+                  <div>
+                    <h3>Job demand & population</h3>
+                  </div>
+                  <strong class="demand-percentage"
+                    >{percentage(
+                      profile.employment.foreignPerWorkingAge === null
+                        ? null
+                        : profile.employment.foreignPerWorkingAge * 100
+                    )}</strong
+                  >
+                </div>
+                <div class="demand-metrics">
+                  <span>Foreign residents <b>{number(profile.employment.foreignPopulation)}</b></span>
+                  <span>Working age 15-64 <b>{number(profile.employment.workingAgePopulation)}</b></span>
+                  <span>Workplace records <b>{number(profile.employment.jobLocationCount)}</b></span>
+                  <span
+                    >Workplaces / 1,000 working age <b
+                      >{decimal(profile.employment.jobLocationsPerThousandWorkingAge)}</b
+                    ></span
+                  >
+                  <span>Foreign / workplace <b>{decimal(profile.employment.foreignPerJobLocation)}</b></span>
+                </div>
+                <div class="employment-balance-bars">
+                  <div>
+                    <span>Demand balance <b>{percentage(profile.employment.pressureScore)}</b></span>
+                    <Progress
+                      value={profile.employment.pressureScore ?? 0}
+                      max={100}
+                      aria-label="Job demand balance score"
+                    />
+                  </div>
+                  <div>
+                    <span>Supply balance <b>{percentage(profile.employment.supplyScore)}</b></span>
+                    <Progress
+                      value={profile.employment.supplyScore ?? 0}
+                      max={100}
+                      aria-label="Job supply balance score"
+                    />
+                  </div>
+                </div>
+                {#if profile.employment.foreignPopulationSource === 'assumed_zero'}
+                  <p class="employment-assumption">Missing `foregner` row treated as zero.</p>
+                {/if}
               </Card.Root>
 
               <Card.Root class="insight-card demand-card transport-demand-card" size="sm">
@@ -735,6 +862,88 @@
     margin: 0;
     font-size: 1.25rem;
     letter-spacing: -0.04em;
+  }
+  .employment-scoreline {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.72rem;
+  }
+  .employment-scoreline strong {
+    color: #09090b;
+    font-size: 1.35rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .employment-scoreline span,
+  .employment-assumption {
+    color: #71717a;
+    font-size: 0.56rem;
+  }
+  .employment-breakdown {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.7rem;
+    color: #71717a;
+    font-size: 0.57rem;
+  }
+  .employment-category {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .employment-category-heading,
+  .employment-subcategory-list span,
+  .employment-balance-bars span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .employment-category-heading {
+    color: #09090b;
+    font-size: 0.6rem;
+    font-weight: 700;
+  }
+  .employment-category-heading strong,
+  .employment-subcategory-list strong,
+  .employment-balance-bars b {
+    color: #09090b;
+    font-variant-numeric: tabular-nums;
+  }
+  :global(.employment-category [data-slot='progress']) {
+    height: 0.3rem;
+    background: #e4e4e7;
+  }
+  :global(.employment-category [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  .employment-subcategory-list {
+    display: grid;
+    gap: 0.2rem;
+    padding-left: 0.5rem;
+    color: #71717a;
+    font-size: 0.54rem;
+  }
+  .employment-balance-bars {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #e4e4e7;
+    color: #71717a;
+    font-size: 0.57rem;
+  }
+  :global(.employment-balance-bars [data-slot='progress']) {
+    height: 0.3rem;
+    margin-top: 0.25rem;
+    background: #e4e4e7;
+  }
+  :global(.employment-balance-bars [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  .employment-assumption {
+    margin: 0.65rem 0 0;
   }
   .population-list {
     display: grid;

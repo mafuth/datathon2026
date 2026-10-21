@@ -1,0 +1,189 @@
+{
+  "schema_version": "job-location-service-education-health-reconcile-v1",
+  "created_at": "2026-10-21T13:49:31.857482+00:00",
+  "rules": {
+    "only_named_mapped_services": "true",
+    "dedupe": "existing service job id first, then same island/category and physical coordinate within 60m",
+    "unnamed": "not inserted"
+  },
+  "counts": {
+    "mapped_named_services": 962,
+    "already_exact_job_ids": 740,
+    "already_physical_matches": 205,
+    "job_locations_inserted": 17,
+    "readback_inserted": 17
+  },
+  "inserted": [
+    {
+      "id": "job:osm:n:11185404561",
+      "service_id": "osm:node:11185404561",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "education:college",
+      "name": "Atelier Academy of the Creative Arts",
+      "latitude": 4.1762545,
+      "longitude": 73.5141991
+    },
+    {
+      "id": "job:osm:n:11183603641",
+      "service_id": "osm:node:11183603641",
+      "island_id": "island:1442",
+      "type": "public_service",
+      "subtype": "education:school",
+      "name": "Stem Center",
+      "latitude": 4.2175848,
+      "longitude": 73.5425013
+    },
+    {
+      "id": "job:osm:w:1317060227",
+      "service_id": "osm:way:1317060227",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "education:school",
+      "name": "Billabong High International School",
+      "latitude": 4.17130476,
+      "longitude": 73.50933769999999
+    },
+    {
+      "id": "job:osm:w:1317932598",
+      "service_id": "osm:way:1317932598",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "education:university",
+      "name": "Faculty of Engineering, Science & Technology",
+      "latitude": 4.17658052,
+      "longitude": 73.51486248
+    },
+    {
+      "id": "job:service:facility:health:1448",
+      "service_id": "facility:health:1448",
+      "island_id": "island:1512",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Fari Campus",
+      "latitude": 4.5944502,
+      "longitude": 73.5849714
+    },
+    {
+      "id": "job:service:facility:health:251",
+      "service_id": "facility:health:251",
+      "island_id": "island:1442",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Huvadhoo PCR lab Closed",
+      "latitude": 4.2177501,
+      "longitude": 73.5453327
+    },
+    {
+      "id": "job:service:facility:health:415",
+      "service_id": "facility:health:415",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Institute Of Mental Well Being",
+      "latitude": 4.1710514,
+      "longitude": 73.5129711
+    },
+    {
+      "id": "job:service:facility:health:432",
+      "service_id": "facility:health:432",
+      "island_id": "island:1129",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "AIMS Diagnostic Care",
+      "latitude": -0.6819634,
+      "longitude": 73.1342072
+    },
+    {
+      "id": "job:service:facility:health:108",
+      "service_id": "facility:health:108",
+      "island_id": "island:1075",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Medplus Dental",
+      "latitude": 5.6679312,
+      "longitude": 73.0286865
+    },
+    {
+      "id": "job:service:facility:health:416",
+      "service_id": "facility:health:416",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Mipstar Clinic",
+      "latitude": 4.1727041,
+      "longitude": 73.5176704
+    },
+    {
+      "id": "job:service:facility:health:61",
+      "service_id": "facility:health:61",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "One Medical Care",
+      "latitude": 4.1731285,
+      "longitude": 73.5026403
+    },
+    {
+      "id": "job:service:facility:health:57",
+      "service_id": "facility:health:57",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Physio Cure",
+      "latitude": 4.172508,
+      "longitude": 73.5167594
+    },
+    {
+      "id": "job:service:facility:health:343",
+      "service_id": "facility:health:343",
+      "island_id": "island:1013",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Reethi Faru Clinic",
+      "latitude": 5.4926216,
+      "longitude": 72.9373468
+    },
+    {
+      "id": "job:service:facility:health:429",
+      "service_id": "facility:health:429",
+      "island_id": "island:931",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Velaa Private Island Clinic",
+      "latitude": 5.831371,
+      "longitude": 73.209457
+    },
+    {
+      "id": "job:service:facility:health:31",
+      "service_id": "facility:health:31",
+      "island_id": "island:1152",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Bulbul Multi Rehab Clinic",
+      "latitude": -0.608009,
+      "longitude": 73.0901314
+    },
+    {
+      "id": "job:service:facility:health:626",
+      "service_id": "facility:health:626",
+      "island_id": "island:1443",
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "name": "Dr. Jihad's Dental and Medical Centre",
+      "latitude": 4.1725173,
+      "longitude": 73.5061044
+    },
+    {
+      "id": "job:service:facility:health:593",
+      "service_id": "facility:health:593",
+      "island_id": "island:1171",
+      "type": "public_service",
+      "subtype": "health:hospital",
+      "name": "Shaviyani Atoll Hospital",
+      "latitude": 6.1508219,
+      "longitude": 73.2906023
+    }
+  ],
+  "backup": "D:\\datathon\\new\\local.db.bak-before-job-location-service-education-health-reconcile-20261021"
+}

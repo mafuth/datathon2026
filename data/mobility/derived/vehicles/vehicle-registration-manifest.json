@@ -1,0 +1,46 @@
+{
+  "schema_version": "vehicle-registration-prepared-v1",
+  "generated_at": "2026-10-21T13:58:30.030896+00:00",
+  "source": {
+    "title": "MBS Statistical Yearbook 2024, Table 11.6: Selected Vehicles According to Registration, 2018 end",
+    "publisher": "Maldives Bureau of Statistics",
+    "underlying_registration_source": "Transport Authority",
+    "url": "https://statisticsmaldives.gov.mv/yearbook/2024/wp-content/uploads/sites/11/2024/09/11.6.pdf",
+    "local_copy": "D:\\datathon\\new\\data\\mobility\\raw\\official\\mbs\\vehicles-registration-table-11-6-2018.pdf",
+    "sha256": "1f145bf57b08ed19c42adb5d34231c47711fec11e7399ddb0a7ebdea0c331b5d",
+    "reference_year": 2018,
+    "published_geography": ["Male'", "Hulhumale'", "Addu", "Other atolls"]
+  },
+  "scope": {
+    "official_observation": "Vehicle counts are officially published only for Male, Hulhumale, Addu and Other atolls.",
+    "island_table": "Male and Hulhumale retain official locality counts. Addu and Other atolls are allocated across inhabited islands for planning use only.",
+    "not_claimed": "The estimated island rows are not an island-level vehicle registry and must not be described as observed registration records.",
+    "zero_population_islands": "Excluded from the allocation because the population-proportional method has no defensible denominator; resort, industrial and uninhabited island registrations remain unknown."
+  },
+  "counts": {
+    "official_locality_rows": 40,
+    "island_rows": 1900,
+    "island_count_with_vehicle_rows": 190,
+    "addu_islands_allocated": 6,
+    "other_atoll_islands_allocated": 182,
+    "official_total_vehicles_2018": 108532
+  },
+  "category_totals": {
+    "total": 108532,
+    "motor_cycle": 89897,
+    "car": 6325,
+    "bus": 198,
+    "pick_up": 2931,
+    "lorry": 795,
+    "van": 1549,
+    "jeep": 489,
+    "battery_scooter": 1367,
+    "other": 4981
+  },
+  "population_group_totals": {
+    "Male'": 137238,
+    "Hulhumale'": 65714,
+    "Addu": 25062,
+    "Other atolls": 219406
+  }
+}

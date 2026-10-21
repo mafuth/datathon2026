@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm';
 
 import { Atoll } from './atoll';
 import { Island } from './island';
+import { JobLocation } from './job-location';
 import { Population } from './population';
 import { Service } from './service';
 import { TransportConnection } from './transport-connection';
@@ -16,6 +17,7 @@ export const islandRelations = relations(Island, ({ one, many }) => ({
     fields: [Island.atollId],
     references: [Atoll.id]
   }),
+  jobLocations: many(JobLocation),
   population: many(Population),
   services: many(Service),
   outgoingConnections: many(TransportConnection, { relationName: 'fromIsland' }),
@@ -25,6 +27,13 @@ export const islandRelations = relations(Island, ({ one, many }) => ({
 export const populationRelations = relations(Population, ({ one }) => ({
   island: one(Island, {
     fields: [Population.islandId],
+    references: [Island.id]
+  })
+}));
+
+export const jobLocationRelations = relations(JobLocation, ({ one }) => ({
+  island: one(Island, {
+    fields: [JobLocation.islandId],
     references: [Island.id]
   })
 }));

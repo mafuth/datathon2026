@@ -1,5 +1,5 @@
 export const scoringConfig = {
-  domainWeights: { health: 1 / 3, education: 1 / 3, transport: 1 / 3 },
+  domainWeights: { health: 1 / 4, education: 1 / 4, transport: 1 / 4, employment: 1 / 4 },
   transportWeights: { land: 1 / 3, marine: 1 / 3, air: 1 / 3 },
   healthQuality: { hospital: 1, health_center: 0.65, clinic: 0.35 },
   healthDemandPolicy: {

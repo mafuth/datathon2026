@@ -1,0 +1,2958 @@
+{
+  "schema_version": "service-education-health-osm-reconcile-v1",
+  "created_at": "2026-10-21T13:38:34.848403+00:00",
+  "source": "D:\\datathon\\new\\data\\mobility\\raw\\osm\\maldives-job-candidates-from-pbf.json",
+  "buffer_m": 1000.0,
+  "rules": {
+    "unnamed": "ignored",
+    "generic_only_osm_names": "ignored for new inserts",
+    "island_match": "exact polygon first, then a unique 1km buffer hit; overlapping buffers remain unresolved",
+    "existing_updates": "only null island_id values were updated; existing non-null island_id values were not overwritten",
+    "dedupe": "same island and normalized name within 100m, then physical/name overlap against existing services"
+  },
+  "counts": {
+    "raw_education_health_named_with_geometry": 362,
+    "generic_names_ignored": 13,
+    "mapped_candidates": 329,
+    "canonical_osm_candidates": 309,
+    "osm_duplicate_objects_removed": 20,
+    "existing_service_updates": 1,
+    "new_service_inserts": 186,
+    "skipped_existing_or_physical": 122,
+    "ambiguous_island_matches": 20,
+    "readback_updates": 1,
+    "readback_inserts": 186
+  },
+  "updates": [
+    {
+      "service_id": "facility:health:316",
+      "island_id": "island:1442",
+      "name": "My Dentist",
+      "latitude": 4.2161698,
+      "longitude": 73.5437166,
+      "fields": ["island_id"],
+      "match": "physical_name_coordinate"
+    }
+  ],
+  "inserts": [
+    {
+      "id": "osm:node:2990393947",
+      "island_id": "island:1286",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Vaavu Atoll School",
+      "latitude": 3.6806186,
+      "longitude": 73.4170865,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:3979113457",
+      "island_id": "island:387",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 0.6202903,
+      "longitude": 73.4618559,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4117074200",
+      "island_id": "island:16",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Sto Pharmacy",
+      "latitude": 4.4381898,
+      "longitude": 72.9621339,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4340333890",
+      "island_id": "island:868",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "MAEC",
+      "latitude": 2.9205858,
+      "longitude": 73.5806953,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4565179389",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "City Pharmacy",
+      "latitude": 4.2162258,
+      "longitude": 73.5434435,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:4584491564",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "Poli Clinic & Medicals",
+      "latitude": 4.1739241,
+      "longitude": 73.5086607,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4735485322",
+      "island_id": "island:680",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Jalaluddin School",
+      "latitude": 6.6268663,
+      "longitude": 73.0702023,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4800490223",
+      "island_id": "island:8",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Rasdhoo hospital",
+      "latitude": 4.2625744,
+      "longitude": 72.9906215,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4823463622",
+      "island_id": "island:680",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Asrafee chemist",
+      "latitude": 6.6174865,
+      "longitude": 73.0691417,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:4824126825",
+      "island_id": "island:680",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Afeefuddin School",
+      "latitude": 6.6152056,
+      "longitude": 73.0703274,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:5144875868",
+      "island_id": "island:1338",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Zaas Pharmacy",
+      "latitude": 4.9595207,
+      "longitude": 73.4630091,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:5157162189",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Everyone's Learning Centre",
+      "latitude": -0.6001528,
+      "longitude": 73.0858673,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:5157162191",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Noorani School",
+      "latitude": -0.6008287,
+      "longitude": 73.0868168,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:5636226150",
+      "island_id": "island:777",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Madhrasathul Ifthithaah",
+      "latitude": 5.4443473,
+      "longitude": 73.3644046,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6117494691",
+      "island_id": "island:1431",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Dhiraagu",
+      "latitude": 3.9416434,
+      "longitude": 73.489988,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6117494710",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Hulhumalé",
+      "latitude": 4.2158541,
+      "longitude": 73.5433414,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:6117496029",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Sto",
+      "latitude": 4.2158407,
+      "longitude": 73.5433961,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:6178583033",
+      "island_id": "island:1427",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 3.9022467,
+      "longitude": 73.4671549,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6294957686",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "clinic",
+      "name": "Family Care",
+      "latitude": 4.1708825,
+      "longitude": 73.5159113,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6294958141",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Avid College",
+      "latitude": 4.171026,
+      "longitude": 73.5129293,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:715214251",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Kangaroo Kids",
+      "latitude": -0.59651978,
+      "longitude": 73.08302160000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6722533043",
+      "island_id": "island:1152",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Hithadhoo Regional Hospital",
+      "latitude": -0.5999618,
+      "longitude": 73.081352,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6723361843",
+      "island_id": "island:1152",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "IMDC",
+      "latitude": -0.6019436,
+      "longitude": 73.0872262,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:715658084",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "MNU - Maldives National University",
+      "latitude": -0.6096524124999999,
+      "longitude": 73.0931376875,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:715658085",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "MNU Accomodation",
+      "latitude": -0.6079075,
+      "longitude": 73.09266656,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6725854815",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Medhevali School",
+      "latitude": -0.607979,
+      "longitude": 73.0873089,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6725854817",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Hira School",
+      "latitude": -0.6067862,
+      "longitude": 73.0920972,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:6823692106",
+      "island_id": "island:948",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Noonu Atoll Education Centre",
+      "latitude": 5.6660579,
+      "longitude": 73.2727488,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:7208742088",
+      "island_id": "island:1291",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 3.4711742,
+      "longitude": 73.5461258,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:7297096388",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Kangaroo Kids",
+      "latitude": 4.1720396,
+      "longitude": 73.5150429,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:8392088123",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Mohamed Jamaaludheen School (MJS)",
+      "latitude": -0.2912265,
+      "longitude": 73.4157223,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:8517246083",
+      "island_id": "island:1366",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "First Aid Centre",
+      "latitude": 4.348396,
+      "longitude": 73.6172355,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:8526293513",
+      "island_id": "island:510",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Jamaaluddin School",
+      "latitude": 0.2256304,
+      "longitude": 73.2719821,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317060228",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "Maldives National University",
+      "latitude": 4.17051632,
+      "longitude": 73.50918326,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:8980958406",
+      "island_id": "island:1480",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "Rock Spa Maldives",
+      "latitude": 4.1253091,
+      "longitude": 73.4729494,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:9283732117",
+      "island_id": "island:8",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Jerrys Dive Club and Watersports Rasdhoo",
+      "latitude": 4.2642526,
+      "longitude": 72.9907341,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:9517105542",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Brightway international school",
+      "latitude": -0.2973645,
+      "longitude": 73.424268,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:9532890185",
+      "island_id": "island:1334",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Drug treatment and detoxification centre - Gn Fuvahmulah",
+      "latitude": -0.2957668,
+      "longitude": 73.4244751,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:9886526802",
+      "island_id": "island:1152",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Abuharee Pharmacy 2",
+      "latitude": -0.6224494,
+      "longitude": 73.0972706,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:9886526803",
+      "island_id": "island:1152",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "F & C Chemist 3",
+      "latitude": -0.6225353,
+      "longitude": 73.0971294,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:9886526809",
+      "island_id": "island:1152",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "ICM Pharmacy",
+      "latitude": -0.6211853,
+      "longitude": 73.0944935,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:10012560119",
+      "island_id": "island:1559",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO pharmacy",
+      "latitude": -0.5883875,
+      "longitude": 73.2273044,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:10196475671",
+      "island_id": "island:639",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Madharusathul Shaheedh Ali Thakurufaan",
+      "latitude": 6.842382,
+      "longitude": 72.995369,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:10289176410",
+      "island_id": "island:1152",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "National College of Policing and Law Enforcement",
+      "latitude": -0.634986,
+      "longitude": 73.1008494,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11183603543",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Med City Pharmacy",
+      "latitude": 4.2163886,
+      "longitude": 73.5429475,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11183603546",
+      "island_id": "island:1442",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "learnium training centre",
+      "latitude": 4.2160513,
+      "longitude": 73.5441222,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11183603641",
+      "island_id": "island:1442",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Stem Center",
+      "latitude": 4.2175848,
+      "longitude": 73.5425013,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11183603939",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 4.2165156,
+      "longitude": 73.5425045,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11183604038",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "city pharmacy 4",
+      "latitude": 4.2164578,
+      "longitude": 73.542767,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11183604042",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "Pine Tree Health Care",
+      "latitude": 4.1774472,
+      "longitude": 73.5128807,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11183604237",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "Care Trust",
+      "latitude": 4.2163645,
+      "longitude": 73.5430155,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11183604238",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "pharmacy plus",
+      "latitude": 4.2162424,
+      "longitude": 73.5434038,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11185404447",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "Nujoom Preschool",
+      "latitude": 4.1756883,
+      "longitude": 73.5178379,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404449",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "dentist",
+      "name": "Hope Dental Care",
+      "latitude": 4.1756396,
+      "longitude": 73.5172892,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404543",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Kaaki Pharmacy",
+      "latitude": 4.1714718,
+      "longitude": 73.5165238,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404548",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "ILM Institute for Islamic Studies",
+      "latitude": 4.1763337,
+      "longitude": 73.5174547,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404556",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "ދިވެހިރާއްޖޭގެ އިސްލާމީ އުނިވަރސިޓީ",
+      "latitude": 4.1759043,
+      "longitude": 73.5150644,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1320069203",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "ދަރުމަވަންތަ ސްކޫލް",
+      "latitude": 4.169741971428572,
+      "longitude": 73.50958451428572,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404561",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Atelier Academy of the Creative Arts",
+      "latitude": 4.1762545,
+      "longitude": 73.5141991,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404645",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "dentist",
+      "name": "Dr Usama Dental Clinic",
+      "latitude": 4.1773762,
+      "longitude": 73.5131802,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404751",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Hiraasa chemist 3",
+      "latitude": 4.1766082,
+      "longitude": 73.5150227,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404756",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "The Clinic",
+      "latitude": 4.1768088,
+      "longitude": 73.5133692,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185404842",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Point Twelve Pharmacy",
+      "latitude": 4.1761234,
+      "longitude": 73.5149988,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11185407740",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "My chemist",
+      "latitude": 4.1750521,
+      "longitude": 73.514721,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:11186258448",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "clinic",
+      "name": "European Clinic",
+      "latitude": 4.2194254,
+      "longitude": 73.5461254,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:11221710523",
+      "island_id": "island:193",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Baa Atoll Education Centre",
+      "latitude": 5.1039385,
+      "longitude": 73.0702702,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12196297366",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Villa International High School",
+      "latitude": 4.1695551,
+      "longitude": 73.5090432,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12215579644",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Point Three Pharmacy",
+      "latitude": 4.1747615,
+      "longitude": 73.5146533,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12215579646",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Hiraasaa Chemist 4",
+      "latitude": 4.1750129,
+      "longitude": 73.5147109,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12215626432",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Atolls pharmacy",
+      "latitude": 4.1750685,
+      "longitude": 73.5146484,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12215627837",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Sosun Chemist",
+      "latitude": 4.1748676,
+      "longitude": 73.5146801,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12215837790",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "G.S.A. Pharmacy",
+      "latitude": 4.1748153,
+      "longitude": 73.5146859,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12249955489",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "GKT Pharmacy",
+      "latitude": 4.1745803,
+      "longitude": 73.5147651,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12270922565",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Faith Pharmacy",
+      "latitude": 4.1752682,
+      "longitude": 73.5151923,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12271007850",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Health and Glow Pharmacy 3",
+      "latitude": 4.1749841,
+      "longitude": 73.5147043,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1339309388",
+      "island_id": "island:680",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Mazi Chemist Pharmacy",
+      "latitude": 6.617701340000001,
+      "longitude": 73.06939890000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12388769921",
+      "island_id": "island:680",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 6.6181484,
+      "longitude": 73.0689269,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12388814780",
+      "island_id": "island:680",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Akarakara Pharmacy",
+      "latitude": 6.6184337,
+      "longitude": 73.0689836,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12388814788",
+      "island_id": "island:680",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "The Maldives National University - Kulhudhuffushi Campus",
+      "latitude": 6.6237927,
+      "longitude": 73.0675529,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12388814789",
+      "island_id": "island:680",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Edhurukaleyfaanu Dhanaalu",
+      "latitude": 6.6229341,
+      "longitude": 73.0673864,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12407286042",
+      "island_id": "island:78",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 3.5350172,
+      "longitude": 72.9285803,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12444229667",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Point Ten Pharmacy",
+      "latitude": 4.1776537,
+      "longitude": 73.5075024,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12584499285",
+      "island_id": "island:1364",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Kaafu Atoll Education Centre",
+      "latitude": 4.3742796,
+      "longitude": 73.6517804,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:12996649325",
+      "island_id": "island:620",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "Utheemu Health center",
+      "latitude": 6.8352895,
+      "longitude": 73.1118438,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13124553508",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Clinica",
+      "latitude": 4.1721122,
+      "longitude": 73.5126504,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13415031079",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "curemax pharmacy",
+      "latitude": 4.2157098,
+      "longitude": 73.544169,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:13430562045",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "health & beauty",
+      "latitude": 4.2141602,
+      "longitude": 73.5417159,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:13439820920",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "adk",
+      "latitude": 4.2160884,
+      "longitude": 73.5425397,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:node:13463462969",
+      "island_id": "island:1364",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Unicare Pharmacy",
+      "latitude": 4.3752265,
+      "longitude": 73.651291,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13586575557",
+      "island_id": "island:1070",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Fainu Pharmacy",
+      "latitude": 5.4650727,
+      "longitude": 73.0348388,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13591962002",
+      "island_id": "island:1129",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Mazi Chemist-9",
+      "latitude": -0.6812367,
+      "longitude": 73.1358067,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13591965704",
+      "island_id": "island:1129",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "S. Feydhoo Pharmacy",
+      "latitude": -0.6813438,
+      "longitude": 73.1361082,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13591967607",
+      "island_id": "island:1129",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Alphard Medicals 2",
+      "latitude": -0.6814065,
+      "longitude": 73.136127,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13823271983",
+      "island_id": "island:1045",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "R. Angolhitheemu School",
+      "latitude": 5.7940756,
+      "longitude": 73.0063491,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13907139818",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "MNU College of Fisheries and Ocean Sciences",
+      "latitude": 4.1752603,
+      "longitude": 73.5146668,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13970065170",
+      "island_id": "island:260",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Dhaal Atoll Hospital",
+      "latitude": 2.6746844,
+      "longitude": 72.8937596,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13979701125",
+      "island_id": "island:260",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 2.6751383,
+      "longitude": 72.8935323,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:13999662501",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Lobby A",
+      "latitude": 4.1751159,
+      "longitude": 73.5148796,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1554432119",
+      "island_id": "island:670",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "ކުމުންދޫ ސިއްޙީ މަރުކަޒު",
+      "latitude": 6.5744885687500005,
+      "longitude": 73.05001066249999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:14157427004",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Ayya Pharmacy - 2",
+      "latitude": 4.17384,
+      "longitude": 73.5106856,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:14189433223",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Point Four Pharmacy",
+      "latitude": 4.1746366,
+      "longitude": 73.5143735,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:14260705902",
+      "island_id": "island:188",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "Mazi Chemist-18",
+      "latitude": 5.1577748,
+      "longitude": 73.1346493,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:node:14268681501",
+      "island_id": "island:227",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 4.8841982,
+      "longitude": 72.9377062,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:114956617",
+      "island_id": "island:73",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "Medical Center",
+      "latitude": 3.4836296384615375,
+      "longitude": 72.80161234615385,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:145252285",
+      "island_id": "island:1009",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "Arzt",
+      "latitude": 5.454923858823529,
+      "longitude": 72.98003273529412,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:151403710",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Indira Gandhi Memorial Hospital",
+      "latitude": 4.173330730120481,
+      "longitude": 73.50152475783132,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:298555837",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College East Wing",
+      "latitude": 4.16959608,
+      "longitude": 73.50926156,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:364852691",
+      "island_id": "island:704",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Laamu Atoll Education Centre",
+      "latitude": 1.8334087571428572,
+      "longitude": 73.50078041428571,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:364852998",
+      "island_id": "island:704",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "ARAFA Preschool Ground",
+      "latitude": 1.83031022,
+      "longitude": 73.49899572,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:364882221",
+      "island_id": "island:692",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Hamadh School Ground",
+      "latitude": 1.9199617199999999,
+      "longitude": 73.54647568,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:364882222",
+      "island_id": "island:692",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Dhanaal (Hamadh School)",
+      "latitude": 1.9199305,
+      "longitude": 73.54539152,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:364976761",
+      "island_id": "island:704",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "Barru Preschool",
+      "latitude": 1.8360718400000002,
+      "longitude": 73.50339386,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:365036439",
+      "island_id": "island:692",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "Maahinna Preschool",
+      "latitude": 1.9309152600000001,
+      "longitude": 73.54130174000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:365036442",
+      "island_id": "island:692",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Mandhu College",
+      "latitude": 1.9355558000000002,
+      "longitude": 73.54375456,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:383751026",
+      "island_id": "island:1442",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "ހުޅުމާލެ ހޮސްޕިޓަލް",
+      "latitude": 4.215819640000001,
+      "longitude": 73.54310778000001,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:way:477466312",
+      "island_id": "island:1442",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "ލިޓިލް ޖެމްސް ޕްރީސްކޫލް",
+      "latitude": 4.219410752380952,
+      "longitude": 73.54460433809524,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:way:436189997",
+      "island_id": "island:1442",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Brightway International School",
+      "latitude": 4.21859244,
+      "longitude": 73.54386772000001,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:way:465261224",
+      "island_id": "island:1531",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "South Ari District Medical Center",
+      "latitude": 3.7575734333333335,
+      "longitude": 72.9664002111111,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:485066760",
+      "island_id": "island:624",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Madharasathul Sheikh Ibrahim",
+      "latitude": 6.959869816666668,
+      "longitude": 73.21179865,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:529663160",
+      "island_id": "island:1338",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Kaafu Atoll School",
+      "latitude": 4.958735516666667,
+      "longitude": 73.46344306666667,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:614086853",
+      "island_id": "island:9",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "sto Pharmacy",
+      "latitude": 4.052780820000001,
+      "longitude": 72.72481458,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:616114847",
+      "island_id": "island:1249",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 2.189790416666667,
+      "longitude": 73.09366273333335,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:622011138",
+      "island_id": "island:1528",
+      "service_type": "health",
+      "subtype": "doctors",
+      "name": "Olhuveli Clinic",
+      "latitude": 3.8519675999999996,
+      "longitude": 73.45555418,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:651280999",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "GN. AEC",
+      "latitude": -0.29583415999999996,
+      "longitude": 73.4234156,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:651281003",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "ޏ.އަތޮޅު ތައުލީމީ މަރުކަޒު",
+      "latitude": -0.295454,
+      "longitude": 73.42357342857143,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:651281005",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "GN. AEC Hall",
+      "latitude": -0.29526441999999997,
+      "longitude": 73.42380872,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:672670311",
+      "island_id": "island:16",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Thoddoo Hospital",
+      "latitude": 4.438485160000001,
+      "longitude": 72.96188766,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:744604398",
+      "island_id": "island:1559",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Shamsuddin School",
+      "latitude": -0.5841005166666667,
+      "longitude": 73.23200603333333,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:784129786",
+      "island_id": "island:618",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Uligamu Health Center",
+      "latitude": 7.083076440000001,
+      "longitude": 72.92583294,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:784655397",
+      "island_id": "island:680",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Afeefudheen School hall",
+      "latitude": 6.61486666,
+      "longitude": 73.0698381,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:791616201",
+      "island_id": "island:1252",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Tha Atoll Education Centre",
+      "latitude": 2.2058198142857144,
+      "longitude": 73.14237458571428,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:814112443",
+      "island_id": "island:673",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Vaikaradhoo Health Center",
+      "latitude": 6.5480206875,
+      "longitude": 72.9523000375,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:814508888",
+      "island_id": "island:673",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "StatePharma (Vaikaradhoo)",
+      "latitude": 6.5482046,
+      "longitude": 72.95223312,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:814904252",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Mauhadhu Dhiraasaathil Qraniya Vaikaradhoo Campus",
+      "latitude": 6.551013,
+      "longitude": 72.9525045,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:824027655",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Staff Room",
+      "latitude": 6.549556959999999,
+      "longitude": 72.95322269999998,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:824027656",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "3 Story Building",
+      "latitude": 6.54971868,
+      "longitude": 72.95278634,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:849713608",
+      "island_id": "island:1012",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Maduvvari School",
+      "latitude": 5.48528446,
+      "longitude": 72.89645064000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:896545719",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Hall",
+      "latitude": 6.549399199999999,
+      "longitude": 72.95317516,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:908907992",
+      "island_id": "island:188",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Baa Atoll School",
+      "latitude": 5.158496466666667,
+      "longitude": 73.13078516666667,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:924568541",
+      "island_id": "island:25",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 4.215801900000001,
+      "longitude": 72.86283332000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:938748740",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Library",
+      "latitude": 6.54939478,
+      "longitude": 72.9527545,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:938748742",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Warehouse",
+      "latitude": 6.54940476,
+      "longitude": 72.95293387999999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:962507713",
+      "island_id": "island:470",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Gaaf Dhaal Atoll Education Centre",
+      "latitude": 0.53054152,
+      "longitude": 72.99866514,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:965501992",
+      "island_id": "island:1559",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Seenu Atoll School",
+      "latitude": -0.58892788,
+      "longitude": 73.22741918,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:966076709",
+      "island_id": "island:1560",
+      "service_type": "health",
+      "subtype": "rehabilitation",
+      "name": "Hulhumeedhoo Rehabilitation Center",
+      "latitude": -0.5929756833333333,
+      "longitude": 73.23317765,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:966340691",
+      "island_id": "island:1559",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "Asriyya Preschool",
+      "latitude": -0.5835660199999999,
+      "longitude": 73.2321217,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:969492568",
+      "island_id": "island:470",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "Dr. Abdul Samadh Memorial Hospital",
+      "latitude": 0.5283859166666667,
+      "longitude": 72.99861706666667,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1001579095",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "hospital",
+      "name": "National Drug Agency of the Maldives",
+      "latitude": 4.17456198,
+      "longitude": 73.51196792,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1034859436",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Ideal school",
+      "latitude": -0.2953761,
+      "longitude": 73.42151992000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1046827532",
+      "island_id": "island:8",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 4.26232748,
+      "longitude": 72.99039066,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1066958751",
+      "island_id": "island:9",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Alif ALif Atoll School",
+      "latitude": 4.0518714,
+      "longitude": 72.72766794,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1067584641",
+      "island_id": "island:1334",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Fuvamulah School",
+      "latitude": -0.3070874909090909,
+      "longitude": 73.43743843636364,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1069276534",
+      "island_id": "island:5",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 4.19363776,
+      "longitude": 72.74705983999999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1075340742",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Ahmadhiyya International School",
+      "latitude": 4.1720068999999995,
+      "longitude": 73.5088276,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1122024254",
+      "island_id": "island:1072",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "Wellness & beauty SPA",
+      "latitude": 5.508604978571428,
+      "longitude": 73.04214458571428,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1122050482",
+      "island_id": "island:1072",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "Clinic & health center",
+      "latitude": 5.510712533333335,
+      "longitude": 73.04024138888889,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1122050484",
+      "island_id": "island:1072",
+      "service_type": "health",
+      "subtype": "yes",
+      "name": "Foot SPA",
+      "latitude": 5.51029228,
+      "longitude": 73.04006142,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1126419152",
+      "island_id": "island:697",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Laamu Hithadhoo School",
+      "latitude": 1.7995263142857143,
+      "longitude": 73.38723181428573,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1201901731",
+      "island_id": "island:952",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "N.Maafaru School",
+      "latitude": 5.830929828571428,
+      "longitude": 73.480493,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1207054212",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Al Madhrasathul Arabiyyathul Islamiyya",
+      "latitude": 4.177797033333333,
+      "longitude": 73.51316371666667,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1207067797",
+      "island_id": "island:952",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 5.83253176,
+      "longitude": 73.47874058000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1210925026",
+      "island_id": "island:1442",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Fiyavathi",
+      "latitude": 4.2190126545454545,
+      "longitude": 73.54423906363637,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:way:1284786685",
+      "island_id": "island:219",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 4.87708212,
+      "longitude": 72.99546722,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1287345181",
+      "island_id": "island:618",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "STO Pharmacy",
+      "latitude": 7.0830629,
+      "longitude": 72.92614322,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317060226",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College Hospitality Building",
+      "latitude": 4.1696263714285715,
+      "longitude": 73.50901287142857,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317060227",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Billabong High International School",
+      "latitude": 4.17130476,
+      "longitude": 73.50933769999999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317793001",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College North Wing",
+      "latitude": 4.169740881818182,
+      "longitude": 73.50914403636364,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317793002",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College West Wing",
+      "latitude": 4.1696336,
+      "longitude": 73.50880889999999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317793003",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College AA2 Tower",
+      "latitude": 4.169395406666665,
+      "longitude": 73.50922903333336,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317793004",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College Main Hall",
+      "latitude": 4.169776216666666,
+      "longitude": 73.5088849,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317793005",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College AA1 Tower",
+      "latitude": 4.169405240000001,
+      "longitude": 73.50882422000001,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317793006",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Villa College",
+      "latitude": 4.169521572,
+      "longitude": 73.5090696,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317929085",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "kindergarten",
+      "name": "Ameeru Ahmed",
+      "latitude": 4.171719914285714,
+      "longitude": 73.51522804285715,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317932598",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "Faculty of Engineering, Science & Technology",
+      "latitude": 4.17658052,
+      "longitude": 73.51486248,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1317950376",
+      "island_id": "island:1382",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Muhiyyidin school",
+      "latitude": 4.173094722222223,
+      "longitude": 73.48555707777778,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1320052745",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "university",
+      "name": "MNU Business School",
+      "latitude": 4.175317400000001,
+      "longitude": 73.5145594,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1322873196",
+      "island_id": "island:988",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "މޭނާ ސްކޫލް",
+      "latitude": 5.75585748,
+      "longitude": 73.26423214,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:way:1322873197",
+      "island_id": "island:988",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "މޭނާ ސްކޫލް",
+      "latitude": 5.75434622,
+      "longitude": 73.26326612,
+      "source_match_mode": "within_1km_buffer"
+    },
+    {
+      "id": "osm:way:1339314249",
+      "island_id": "island:680",
+      "service_type": "education",
+      "subtype": "college",
+      "name": "Kulhudhuffushi Campus",
+      "latitude": 6.62371492,
+      "longitude": 73.06719835999999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1478463933",
+      "island_id": "island:1073",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Vaadhoo School Ground",
+      "latitude": 5.8578861625,
+      "longitude": 72.991420675,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1532937539",
+      "island_id": "island:260",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Dhaalu Atoll Education Centre",
+      "latitude": 2.67111008,
+      "longitude": 72.89454922,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1539383006",
+      "island_id": "island:673",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Multipurpose Hall",
+      "latitude": 6.54942988,
+      "longitude": 72.95359976,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1548122368",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Galolhu School",
+      "latitude": 4.1720969,
+      "longitude": 73.5119200142857,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1548274029",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "vaccination_centre",
+      "name": "Dhamanaveshi",
+      "latitude": 4.174708600000001,
+      "longitude": 73.51541793999999,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1548274030",
+      "island_id": "island:1443",
+      "service_type": "health",
+      "subtype": "pharmacy",
+      "name": "henveru pharmacy",
+      "latitude": 4.17469366,
+      "longitude": 73.51557728,
+      "source_match_mode": "inside_polygon"
+    },
+    {
+      "id": "osm:way:1550190846",
+      "island_id": "island:1443",
+      "service_type": "education",
+      "subtype": "school",
+      "name": "Ghiyasuddin International School",
+      "latitude": 4.171461320000001,
+      "longitude": 73.5073361,
+      "source_match_mode": "inside_polygon"
+    }
+  ],
+  "duplicates": [
+    {
+      "kept": "osm:way:1033583587",
+      "dropped": "osm:node:2479149209",
+      "name": "Hafiz Ahmed School"
+    },
+    {
+      "kept": "osm:way:298204766",
+      "dropped": "osm:node:3021044220",
+      "name": "Milandhoo School"
+    },
+    {
+      "kept": "osm:way:1197569810",
+      "dropped": "osm:node:4174150458",
+      "name": "Mathiveri School"
+    },
+    {
+      "kept": "osm:way:1066957223",
+      "dropped": "osm:node:4174150465",
+      "name": "Mathiveri Health centre"
+    },
+    {
+      "kept": "osm:way:715008220",
+      "dropped": "osm:node:6722271975",
+      "name": "Hithadhoo School"
+    },
+    {
+      "kept": "osm:way:715214251",
+      "dropped": "osm:node:6722274299",
+      "name": "Kangaroo Kids"
+    },
+    {
+      "kept": "osm:way:715658084",
+      "dropped": "osm:node:6725735676",
+      "name": "MNU - Maldives National University"
+    },
+    {
+      "kept": "osm:way:715658085",
+      "dropped": "osm:node:6725735681",
+      "name": "MNU Accomodation"
+    },
+    {
+      "kept": "osm:way:531757805",
+      "dropped": "osm:node:6773621346",
+      "name": "Maradhoo School"
+    },
+    {
+      "kept": "osm:way:1317060228",
+      "dropped": "osm:node:8935561366",
+      "name": "Maldives National University"
+    },
+    {
+      "kept": "osm:way:1167904137",
+      "dropped": "osm:node:10861839404",
+      "name": "L.Isdhoo Health Centre (IHC)"
+    },
+    {
+      "kept": "osm:way:1201906805",
+      "dropped": "osm:way:783616549",
+      "name": "Maafaru Health Center"
+    },
+    {
+      "kept": "osm:way:1201906805",
+      "dropped": "osm:node:11184933792",
+      "name": "Maafaru Health Center"
+    },
+    {
+      "kept": "osm:way:1339309388",
+      "dropped": "osm:node:12388769917",
+      "name": "Mazi Chemist Pharmacy"
+    },
+    {
+      "kept": "osm:way:715658099",
+      "dropped": "osm:node:13305840607",
+      "name": "Addu Equatorial Hospital"
+    },
+    {
+      "kept": "osm:way:651280999",
+      "dropped": "osm:way:651281001",
+      "name": "GN. AEC"
+    },
+    {
+      "kept": "osm:way:1066958751",
+      "dropped": "osm:way:1066958752",
+      "name": "Alif ALif Atoll School"
+    },
+    {
+      "kept": "osm:way:1066958751",
+      "dropped": "osm:way:1066958753",
+      "name": "Alif ALif Atoll School"
+    },
+    {
+      "kept": "osm:way:1067584641",
+      "dropped": "osm:way:1067584643",
+      "name": "Fuvamulah School"
+    },
+    {
+      "kept": "osm:way:1067584641",
+      "dropped": "osm:way:1067584644",
+      "name": "Fuvamulah School"
+    }
+  ],
+  "skips": [
+    {
+      "candidate_id": "osm:node:437134594",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:437134594"
+    },
+    {
+      "candidate_id": "osm:node:1677799555",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:573"
+    },
+    {
+      "candidate_id": "osm:way:1033583587",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:624"
+    },
+    {
+      "candidate_id": "osm:way:298204766",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:469"
+    },
+    {
+      "candidate_id": "osm:node:3979112656",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:3979112656"
+    },
+    {
+      "candidate_id": "osm:node:3979113229",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:3979113229"
+    },
+    {
+      "candidate_id": "osm:node:3979113477",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:607"
+    },
+    {
+      "candidate_id": "osm:node:4016346106",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:734"
+    },
+    {
+      "candidate_id": "osm:node:4117073010",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:4117073010"
+    },
+    {
+      "candidate_id": "osm:way:1197569810",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:537"
+    },
+    {
+      "candidate_id": "osm:node:4174150463",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:4174150463"
+    },
+    {
+      "candidate_id": "osm:way:1066957223",
+      "reason": "existing_physical_match",
+      "service_id": "osm:node:4174150465"
+    },
+    {
+      "candidate_id": "osm:node:4721519795",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:440"
+    },
+    {
+      "candidate_id": "osm:node:4735490021",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:451"
+    },
+    {
+      "candidate_id": "osm:node:4823302223",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:612"
+    },
+    {
+      "candidate_id": "osm:node:4823483321",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:4823483321"
+    },
+    {
+      "candidate_id": "osm:node:4866622621",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:637"
+    },
+    {
+      "candidate_id": "osm:node:5156483846",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:5156483846"
+    },
+    {
+      "candidate_id": "osm:node:5163050680",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:549"
+    },
+    {
+      "candidate_id": "osm:node:5200094223",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:628"
+    },
+    {
+      "candidate_id": "osm:node:5574309273",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:489"
+    },
+    {
+      "candidate_id": "osm:node:5599539381",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:5599539381"
+    },
+    {
+      "candidate_id": "osm:way:715008220",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:626"
+    },
+    {
+      "candidate_id": "osm:way:531757805",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:629"
+    },
+    {
+      "candidate_id": "osm:node:7208742187",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:508"
+    },
+    {
+      "candidate_id": "osm:node:8439398536",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:8439398536"
+    },
+    {
+      "candidate_id": "osm:node:9621817425",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:501"
+    },
+    {
+      "candidate_id": "osm:node:9889458135",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:625"
+    },
+    {
+      "candidate_id": "osm:node:9951457715",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:471"
+    },
+    {
+      "candidate_id": "osm:node:9951500245",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:809"
+    },
+    {
+      "candidate_id": "osm:node:9951513836",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:327"
+    },
+    {
+      "candidate_id": "osm:node:10025963494",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:484"
+    },
+    {
+      "candidate_id": "osm:node:10142752042",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:10142752042"
+    },
+    {
+      "candidate_id": "osm:way:1167904137",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:547"
+    },
+    {
+      "candidate_id": "osm:node:11183603940",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:427"
+    },
+    {
+      "candidate_id": "osm:way:1201906805",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:643"
+    },
+    {
+      "candidate_id": "osm:node:11185404340",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:11185404340"
+    },
+    {
+      "candidate_id": "osm:node:11185404564",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:775"
+    },
+    {
+      "candidate_id": "osm:node:11221812118",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:619"
+    },
+    {
+      "candidate_id": "osm:node:11222055209",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:578"
+    },
+    {
+      "candidate_id": "osm:node:11633175417",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:11633175417"
+    },
+    {
+      "candidate_id": "osm:node:12163204712",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:12163204712"
+    },
+    {
+      "candidate_id": "osm:node:12194258435",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:12194258435"
+    },
+    {
+      "candidate_id": "osm:node:12387739028",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:12387739028"
+    },
+    {
+      "candidate_id": "osm:node:12462668301",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:12462668301"
+    },
+    {
+      "candidate_id": "osm:node:12996649328",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:12996649328"
+    },
+    {
+      "candidate_id": "osm:way:715658099",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:610"
+    },
+    {
+      "candidate_id": "osm:node:13586575558",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:735"
+    },
+    {
+      "candidate_id": "osm:node:13823271980",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:13823271980"
+    },
+    {
+      "candidate_id": "osm:node:13970117730",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:13970117730"
+    },
+    {
+      "candidate_id": "osm:node:14152834523",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:14152834523"
+    },
+    {
+      "candidate_id": "osm:node:14267725202",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:42"
+    },
+    {
+      "candidate_id": "osm:node:14268681101",
+      "reason": "already_existing_service",
+      "service_id": "osm:node:14268681101"
+    },
+    {
+      "candidate_id": "osm:node:14268849901",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:510"
+    },
+    {
+      "candidate_id": "osm:way:216221235",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:216221235"
+    },
+    {
+      "candidate_id": "osm:way:216221260",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:526"
+    },
+    {
+      "candidate_id": "osm:way:216221368",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:216221368"
+    },
+    {
+      "candidate_id": "osm:way:249332177",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:249332177"
+    },
+    {
+      "candidate_id": "osm:way:364839738",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:600"
+    },
+    {
+      "candidate_id": "osm:way:364840338",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:784"
+    },
+    {
+      "candidate_id": "osm:way:364852970",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:364852970"
+    },
+    {
+      "candidate_id": "osm:way:364882220",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:591"
+    },
+    {
+      "candidate_id": "osm:way:365036428",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:365036428"
+    },
+    {
+      "candidate_id": "osm:way:365036430",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:365036430"
+    },
+    {
+      "candidate_id": "osm:way:371295897",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:515"
+    },
+    {
+      "candidate_id": "osm:way:384227881",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:384227881"
+    },
+    {
+      "candidate_id": "osm:way:415931663",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:648"
+    },
+    {
+      "candidate_id": "osm:way:420371033",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:634"
+    },
+    {
+      "candidate_id": "osm:way:465261680",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:465261680"
+    },
+    {
+      "candidate_id": "osm:way:465261759",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:465261759"
+    },
+    {
+      "candidate_id": "osm:way:485054780",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:485054780"
+    },
+    {
+      "candidate_id": "osm:way:508266761",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:633"
+    },
+    {
+      "candidate_id": "osm:way:590298924",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:561"
+    },
+    {
+      "candidate_id": "osm:way:614086854",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:614086854"
+    },
+    {
+      "candidate_id": "osm:way:616114846",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:709"
+    },
+    {
+      "candidate_id": "osm:way:616114850",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:616114850"
+    },
+    {
+      "candidate_id": "osm:way:616114858",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:579"
+    },
+    {
+      "candidate_id": "osm:way:650454845",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:650454845"
+    },
+    {
+      "candidate_id": "osm:way:656657124",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:641"
+    },
+    {
+      "candidate_id": "osm:way:659921836",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:659921836"
+    },
+    {
+      "candidate_id": "osm:way:665479493",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:529"
+    },
+    {
+      "candidate_id": "osm:way:672670306",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:536"
+    },
+    {
+      "candidate_id": "osm:way:672670307",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:672670307"
+    },
+    {
+      "candidate_id": "osm:way:677448171",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:677448171"
+    },
+    {
+      "candidate_id": "osm:way:677448182",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:574"
+    },
+    {
+      "candidate_id": "osm:way:679843731",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:679843731"
+    },
+    {
+      "candidate_id": "osm:way:679844566",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:679844566"
+    },
+    {
+      "candidate_id": "osm:way:679844567",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:527"
+    },
+    {
+      "candidate_id": "osm:way:683081961",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:528"
+    },
+    {
+      "candidate_id": "osm:way:744245617",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:744245617"
+    },
+    {
+      "candidate_id": "osm:way:751742951",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:751742951"
+    },
+    {
+      "candidate_id": "osm:way:762119227",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:459"
+    },
+    {
+      "candidate_id": "osm:way:783239341",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:783239341"
+    },
+    {
+      "candidate_id": "osm:way:813816973",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:452"
+    },
+    {
+      "candidate_id": "osm:way:924568542",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:924568542"
+    },
+    {
+      "candidate_id": "osm:way:935256114",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:452"
+    },
+    {
+      "candidate_id": "osm:way:953821186",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:617"
+    },
+    {
+      "candidate_id": "osm:way:962507715",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:612"
+    },
+    {
+      "candidate_id": "osm:way:966340689",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:966340689"
+    },
+    {
+      "candidate_id": "osm:way:966341644",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:966341644"
+    },
+    {
+      "candidate_id": "osm:way:976103994",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:976103994"
+    },
+    {
+      "candidate_id": "osm:way:976103995",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:606"
+    },
+    {
+      "candidate_id": "osm:way:1000424183",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1000424183"
+    },
+    {
+      "candidate_id": "osm:way:1000764503",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:554"
+    },
+    {
+      "candidate_id": "osm:way:1001991808",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:531"
+    },
+    {
+      "candidate_id": "osm:way:1032953203",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:235"
+    },
+    {
+      "candidate_id": "osm:way:1032953205",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1032953205"
+    },
+    {
+      "candidate_id": "osm:way:1118550871",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1118550871"
+    },
+    {
+      "candidate_id": "osm:way:1122700184",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:732"
+    },
+    {
+      "candidate_id": "osm:way:1126434800",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1126434800"
+    },
+    {
+      "candidate_id": "osm:way:1155312673",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:194"
+    },
+    {
+      "candidate_id": "osm:way:1201915782",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1201915782"
+    },
+    {
+      "candidate_id": "osm:way:1217771657",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1217771657"
+    },
+    {
+      "candidate_id": "osm:way:1287079702",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:448"
+    },
+    {
+      "candidate_id": "osm:way:1314127765",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:572"
+    },
+    {
+      "candidate_id": "osm:way:1317921914",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:635"
+    },
+    {
+      "candidate_id": "osm:way:1317929099",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:827"
+    },
+    {
+      "candidate_id": "osm:way:1320350102",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:458"
+    },
+    {
+      "candidate_id": "osm:way:1323678631",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:638"
+    },
+    {
+      "candidate_id": "osm:way:1323805892",
+      "reason": "already_existing_service",
+      "service_id": "osm:way:1323805892"
+    },
+    {
+      "candidate_id": "osm:way:1535333527",
+      "reason": "existing_physical_match",
+      "service_id": "facility:school:502"
+    },
+    {
+      "candidate_id": "osm:way:1548839614",
+      "reason": "existing_physical_match",
+      "service_id": "facility:health:34"
+    }
+  ],
+  "ambiguous": [
+    {
+      "osm_type": "n",
+      "osm_id": 9559349216,
+      "id": "osm:n:9559349216",
+      "name": "Araaby Pharmacy",
+      "latitude": 4.1233433,
+      "longitude": 73.4634029,
+      "type": "public_service",
+      "subtype": "health:pharmacy",
+      "tags": {
+        "amenity": "pharmacy",
+        "dispensing": "yes",
+        "healthcare": "pharmacy",
+        "name": "Araaby Pharmacy"
+      },
+      "candidate_islands": ["island:1469", "island:1479", "island:1480"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 9559425955,
+      "id": "osm:n:9559425955",
+      "name": "Marina Clinic",
+      "latitude": 4.1238569,
+      "longitude": 73.4634643,
+      "type": "public_service",
+      "subtype": "health:hospital",
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Marina Clinic"
+      },
+      "candidate_islands": ["island:1469", "island:1479", "island:1480"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 11173516705,
+      "id": "osm:n:11173516705",
+      "name": "In-house medical clinic",
+      "latitude": 4.2864865,
+      "longitude": 73.5538025,
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "tags": {
+        "amenity": "clinic",
+        "healthcare": "clinic",
+        "name": "In-house medical clinic",
+        "opening_hours": "Mo-Su 09:00-12:00, 14:00-18:00, 20:00-22:00"
+      },
+      "candidate_islands": ["island:1381", "island:1494", "island:1495"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 11186258644,
+      "id": "osm:n:11186258644",
+      "name": "ހުޅުމާލެ އިސްއެރި ފާމަސީ",
+      "latitude": 4.2095994,
+      "longitude": 73.5400399,
+      "type": "public_service",
+      "subtype": "health:pharmacy",
+      "tags": {
+        "addr:street": "Rabarugas Magu",
+        "amenity": "pharmacy",
+        "check_date": "2024-10-09",
+        "healthcare": "pharmacy",
+        "name": "ހުޅުމާލެ އިސްއެރި ފާމަސީ",
+        "name:dv": "ހުޅުމާލެ އިސްއެރި ފާމަސީ",
+        "name:en": "Hulhumale Iseri Pharmacy"
+      },
+      "candidate_islands": ["island:1442", "island:1483"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 11186258646,
+      "id": "osm:n:11186258646",
+      "name": "MI College",
+      "latitude": 4.2089786,
+      "longitude": 73.5398823,
+      "type": "public_service",
+      "subtype": "education:college",
+      "tags": {
+        "amenity": "college",
+        "name:en": "MI College"
+      },
+      "candidate_islands": ["island:1442", "island:1483"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 11186280941,
+      "id": "osm:n:11186280941",
+      "name": "Care Plus Pharmacy",
+      "latitude": 4.2133608,
+      "longitude": 73.5403625,
+      "type": "public_service",
+      "subtype": "health:pharmacy",
+      "tags": {
+        "amenity": "pharmacy",
+        "healthcare": "pharmacy",
+        "name:en": "Care Plus Pharmacy"
+      },
+      "candidate_islands": ["island:1442", "island:1483"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 11190861038,
+      "id": "osm:n:11190861038",
+      "name": "MACL Medical Clinic",
+      "latitude": 4.1883365,
+      "longitude": 73.5268796,
+      "type": "public_service",
+      "subtype": "health:clinic",
+      "tags": {
+        "amenity": "clinic",
+        "healthcare": "clinic",
+        "name:en": "MACL Medical Clinic"
+      },
+      "candidate_islands": ["island:1461", "island:1483"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 13006103401,
+      "id": "osm:n:13006103401",
+      "name": "ކާމިލް ދީދީ ޕްރީސްކޫލް",
+      "latitude": 4.2300161,
+      "longitude": 73.5483008,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "amenity": "school",
+        "name": "ކާމިލް ދީދީ ޕްރީސްކޫލް",
+        "name:en": "Kaamil Didi Pre School"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 13006103601,
+      "id": "osm:n:13006103601",
+      "name": "ހުރަވީ ސްކޫލް",
+      "latitude": 4.2196377,
+      "longitude": 73.5442303,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "amenity": "school",
+        "name": "ހުރަވީ ސްކޫލް",
+        "name:en": "Huravee School"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 13846123402,
+      "id": "osm:n:13846123402",
+      "name": "PORT RESIDENCE TOWER M",
+      "latitude": 4.2261383,
+      "longitude": 73.5439634,
+      "type": "public_service",
+      "subtype": "health:sample_collection",
+      "tags": {
+        "healthcare": "sample_collection",
+        "name": "PORT RESIDENCE TOWER M"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 13846123503,
+      "id": "osm:n:13846123503",
+      "name": "PORT RESIDENCE TOWER P",
+      "latitude": 4.2257842,
+      "longitude": 73.5440299,
+      "type": "public_service",
+      "subtype": "health:sample_collection",
+      "tags": {
+        "healthcare": "sample_collection",
+        "name": "PORT RESIDENCE TOWER P"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 13846123602,
+      "id": "osm:n:13846123602",
+      "name": "PORT RESIDENCE TOWER L",
+      "latitude": 4.2254492,
+      "longitude": 73.5442235,
+      "type": "public_service",
+      "subtype": "health:sample_collection",
+      "tags": {
+        "healthcare": "sample_collection",
+        "name": "PORT RESIDENCE TOWER L"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 14202124601,
+      "id": "osm:n:14202124601",
+      "name": "The Creek View",
+      "latitude": 4.2220136,
+      "longitude": 73.5418224,
+      "type": "public_service",
+      "subtype": "health:sample_collection",
+      "tags": {
+        "healthcare": "sample_collection",
+        "name": "The Creek View"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "n",
+      "osm_id": 14268489201,
+      "id": "osm:n:14268489201",
+      "name": "Shaheed Ali School",
+      "latitude": 4.2340514,
+      "longitude": 73.5481447,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "amenity": "school",
+        "name": "Shaheed Ali School"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "w",
+      "osm_id": 697262511,
+      "id": "osm:w:697262511",
+      "name": "Ghaazee School",
+      "latitude": 4.213235833333333,
+      "longitude": 73.5414393,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "addr:city": "Hulhumalé",
+        "addr:street": "ބޯގަންވިލާ މަގު",
+        "amenity": "school",
+        "grades": "1-10",
+        "name": "Ghaazee School",
+        "operator": "Government of Maldives",
+        "operator:type": "government",
+        "religion": "muslim",
+        "website": "https://ghaazee.edu.mv/",
+        "wikidata": "Q16905629",
+        "wikipedia": "en:Ghaazee School"
+      },
+      "candidate_islands": ["island:1442", "island:1483"]
+    },
+    {
+      "osm_type": "w",
+      "osm_id": 1210924794,
+      "id": "osm:w:1210924794",
+      "name": "ރެހެންދި ސްކޫލް",
+      "latitude": 4.2093931,
+      "longitude": 73.54139792,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "amenity": "school",
+        "check_date": "2024-10-12",
+        "email": "admin@rehendi.edu.mv",
+        "name": "ރެހެންދި ސްކޫލް",
+        "name:dv": "ރެހެންދި ސްކޫލް",
+        "name:en": "Rehendhi School",
+        "operator": "Ministry of Education",
+        "operator:type": "public",
+        "source": "local knowledge"
+      },
+      "candidate_islands": ["island:1442", "island:1483"]
+    },
+    {
+      "osm_type": "w",
+      "osm_id": 1210925123,
+      "id": "osm:w:1210925123",
+      "name": "CHSE Hulhumale",
+      "latitude": 4.220748370588235,
+      "longitude": 73.54154036470588,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "addr:street": "Kurikeela Magu",
+        "building": "school",
+        "building:levels": "4",
+        "name": "CHSE Hulhumale",
+        "name:dv": "ސެންޓަރ ފޯރ ހަޔަރ ސެކަންޑަރީ އެޑިއުކޭޝަން ހުޅުމާލެ",
+        "name:en": "Centre for Higher Secondary Education Hulhumale'",
+        "official_name": "Centre for Higher Secondary Education"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    },
+    {
+      "osm_type": "w",
+      "osm_id": 1330634428,
+      "id": "osm:w:1330634428",
+      "name": "Ajiyal International School",
+      "latitude": 4.21997102,
+      "longitude": 73.53973328,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "addr:street": "Moonima Magu",
+        "amenity": "school",
+        "name:en": "Ajiyal International School"
+      },
+      "candidate_islands": ["island:1442", "island:1483", "island:1538"]
+    },
+    {
+      "osm_type": "w",
+      "osm_id": 1448574099,
+      "id": "osm:w:1448574099",
+      "name": "Tree Top Hospital",
+      "latitude": 4.212707235294117,
+      "longitude": 73.53901245882352,
+      "type": "public_service",
+      "subtype": "health:hospital",
+      "tags": {
+        "addr:city": "Hulhumalé",
+        "addr:housenumber": "Lot 10608",
+        "addr:postcode": "23000",
+        "addr:street": "Asurumaa Hingun",
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "Tree Top Hospital"
+      },
+      "candidate_islands": ["island:1442", "island:1483"]
+    },
+    {
+      "osm_type": "w",
+      "osm_id": 1547305510,
+      "id": "osm:w:1547305510",
+      "name": "CHSE Hulhumale",
+      "latitude": 4.220599616666667,
+      "longitude": 73.54158853333333,
+      "type": "public_service",
+      "subtype": "education:school",
+      "tags": {
+        "amenity": "school",
+        "education": "school",
+        "name": "CHSE Hulhumale"
+      },
+      "candidate_islands": ["island:1442", "island:1538"]
+    }
+  ],
+  "backup": "D:\\datathon\\new\\local.db.bak-before-service-education-health-osm-reconcile-20261021"
+}

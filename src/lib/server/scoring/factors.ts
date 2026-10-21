@@ -29,6 +29,7 @@ import {
   totalPopulation,
   transportServices
 } from './demand-allocation';
+import { calculateEmploymentScore } from './employment-score';
 import { calculateTransportDemand } from './transport-demand';
 
 function finite(value: number | null | undefined): number | null {
@@ -390,24 +391,28 @@ export function calculateIslandScore(
     'Education relocation support and approved travel times are not stored in the current database; same-atoll and central overlays are demand evidence rather than invented route access.'
   ]);
   const transport = transportScores(island, snapshot, population, airport, transportDemand);
+  const employment = calculateEmploymentScore(island.id, snapshot);
   const overallScore = weightedMean([
     { value: health.score, weight: scoringConfig.domainWeights.health },
     { value: education.score, weight: scoringConfig.domainWeights.education },
-    { value: transport.score, weight: scoringConfig.domainWeights.transport }
+    { value: transport.score, weight: scoringConfig.domainWeights.transport },
+    { value: employment.score, weight: scoringConfig.domainWeights.employment }
   ]);
   const limitations = [
     ...(crowding.status === 'unavailable' ? ['Land area or population is unavailable for crowdedness.'] : []),
     ...health.limitations,
     ...education.limitations,
+    ...employment.limitations,
     ...transport.limitations,
     ...transportDemand.hubImpacts.map((hub) => hub.limitation).filter((value): value is string => value !== null)
   ];
   return {
     islandId: island.id,
     islandName: island.name,
-    overall: component(overallScore, null, population, 3, limitations),
+    overall: component(overallScore, null, population, 4, limitations),
     health,
     education,
+    employment,
     transport,
     crowdedness: crowding,
     demand: islandDemand,

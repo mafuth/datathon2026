@@ -163,6 +163,10 @@ describe('database-backed analytics rankings', () => {
           health: 40,
           education: 30,
           transport: 10,
+          employment: 80,
+          jobDensity: 10,
+          jobDemand: 0.1,
+          jobSupply: 10,
           demand: 5,
           outboundDemand: 25,
           pressure: 0.1
@@ -173,6 +177,10 @@ describe('database-backed analytics rankings', () => {
           health: 10,
           education: 50,
           transport: 40,
+          employment: 10,
+          jobDensity: 20,
+          jobDemand: 0.8,
+          jobSupply: 5,
           demand: 20,
           outboundDemand: 10,
           pressure: 0.2
@@ -183,6 +191,10 @@ describe('database-backed analytics rankings', () => {
           health: null,
           education: null,
           transport: null,
+          employment: null,
+          jobDensity: null,
+          jobDemand: null,
+          jobSupply: null,
           demand: 0,
           outboundDemand: 0,
           pressure: 0
@@ -195,7 +207,10 @@ describe('database-backed analytics rankings', () => {
       overall: ['a', 'b'],
       health: ['b', 'a'],
       education: ['a', 'b'],
-      transport: ['a', 'b']
+      transport: ['a', 'b'],
+      employment: ['b', 'a'],
+      jobRichLowPopulation: ['b', 'a'],
+      jobDemandGaps: ['b', 'a']
     });
   });
 });

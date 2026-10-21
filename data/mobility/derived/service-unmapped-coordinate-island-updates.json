@@ -1,0 +1,176 @@
+{
+  "schema_version": "service-unmapped-coordinate-island-updates-v1",
+  "created_at": "2026-10-21T13:39:11.470095+00:00",
+  "buffer_m": 1000.0,
+  "scope": "existing unmapped education and health services with coordinates",
+  "counts": {
+    "examined": 22,
+    "updated": 19,
+    "ambiguous": 3,
+    "unmatched": 0,
+    "readback": 19
+  },
+  "updates": [
+    {
+      "service_id": "facility:health:457",
+      "island_id": "island:1152",
+      "island_name": "Hithadhoo",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:1448",
+      "island_id": "island:1512",
+      "island_name": "Fariiruhuraa",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:403",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "distance_to_polygon_m": 149.05,
+      "match_mode": "within_1km_buffer"
+    },
+    {
+      "service_id": "facility:health:251",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "distance_to_polygon_m": 79.43,
+      "match_mode": "within_1km_buffer"
+    },
+    {
+      "service_id": "facility:health:415",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:400",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:432",
+      "island_id": "island:1129",
+      "island_name": "Feydhoo",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:337",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:108",
+      "island_id": "island:1075",
+      "island_name": "Un'goofaaru",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:416",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:61",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:57",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:343",
+      "island_id": "island:1013",
+      "island_name": "Filaidhoo",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:398",
+      "island_id": "island:1442",
+      "island_name": "Hulhumalé",
+      "distance_to_polygon_m": 149.05,
+      "match_mode": "within_1km_buffer"
+    },
+    {
+      "service_id": "facility:health:593",
+      "island_id": "island:1171",
+      "island_name": "Funadhoo",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:383",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:429",
+      "island_id": "island:931",
+      "island_name": "Fushivelavaru",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:31",
+      "island_id": "island:1152",
+      "island_name": "Hithadhoo",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    },
+    {
+      "service_id": "facility:health:626",
+      "island_id": "island:1443",
+      "island_name": "Malé",
+      "distance_to_polygon_m": 0.0,
+      "match_mode": "inside_polygon"
+    }
+  ],
+  "ambiguous": [
+    {
+      "service_id": "facility:health:411",
+      "name": "Guest And Staff Clinic",
+      "candidate_islands": [
+        ["island:1442", "Hulhumalé", 297.51],
+        ["island:1483", "Hulhule", 911.92],
+        ["island:1538", "Farukolhufushi", 976.69]
+      ]
+    },
+    {
+      "service_id": "facility:health:40",
+      "name": "Huvadhoo Therapy Clinic",
+      "candidate_islands": [
+        ["island:1442", "Hulhumalé", 76.84],
+        ["island:1483", "Hulhule", 831.87]
+      ]
+    },
+    {
+      "service_id": "facility:health:43",
+      "name": "Sha Therapy Dhivehibeys Centre",
+      "candidate_islands": [
+        ["island:1442", "Hulhumalé", 76.84],
+        ["island:1483", "Hulhule", 831.87]
+      ]
+    }
+  ],
+  "unmatched": []
+}

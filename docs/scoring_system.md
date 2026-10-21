@@ -148,6 +148,26 @@ Service types are:
 The subtype must be used to match the service to the calculation. A generic
 service must not automatically satisfy every health or education need.
 
+### Job Locations
+
+Table: `job_location`
+
+Used fields:
+
+- `islandId`
+- `name`
+- `type`
+- `subtype`
+- `latitude`
+- `longitude`
+
+Job locations are island-linked workplace records. They represent places where
+work may occur, not the number of jobs, vacancies, or employment capacity. The
+employment component groups them by the stored `type` and retains `subtype` as
+source detail. Coordinates are optional and are not used to match a record to
+an island. OSM job-location ingestion and matching are intentionally out of
+scope.
+
 ### Transport Connections
 
 Table: `transport_connection`
@@ -208,17 +228,23 @@ transport score = weighted mean(land, marine, air)
 adjusted health = health base × crowding factor × external demand factor
 adjusted education = education base × crowding factor × external demand factor
 
+job demand score = inverse percentile(foreign residents / working-age residents)
+job supply score = percentile(workplace records / 1,000 working-age residents)
+employment score = mean(job demand score, job supply score)
+
 island overall = weighted mean(adjusted health,
-                              adjusted education,
-                              transport)
+                               adjusted education,
+                               transport,
+                               employment)
 ```
 
 Starting weights:
 
 ```text
-health     = 1/3
-education  = 1/3
-transport  = 1/3
+health     = 1/4
+education  = 1/4
+transport  = 1/4
+employment = 1/4
 
 land       = 1/3 of transport
 marine     = 1/3 of transport
@@ -232,6 +258,14 @@ top-level domains.
 Crowdedness and external demand are impact factors, not extra top-level
 domains. This keeps the hierarchy explainable and prevents population pressure
 from being counted twice.
+
+The employment denominator uses `working_age_population_15_64`. Foreign
+residents use the exact population category `foregner`; a missing island row is
+treated as zero and reported as an assumption. The foreign-resident ratio is a
+job-demand proxy because the source does not identify foreign workers. The
+workplace-record count is normalized per 1,000 working-age residents. The
+foreign-residents-per-workplace value remains a diagnostic metric and does not
+drive the employment score.
 
 ## Component Calculations
 
@@ -295,6 +329,27 @@ land-network distance data. These limitations must appear in the response.
 The current database can calculate local education availability and eligible
 path evidence, but it cannot fully calculate relocation burden until approved
 route-time, age, and support data are available.
+
+### Employment
+
+1. Read the island's `working_age_population_15_64` row as the working-age
+   denominator.
+2. Read the exact `foregner` population row as total foreign residents. If the
+   row is missing, use zero and expose that assumption in the limitations.
+3. Count `job_location` rows on the island. This is a workplace proxy,
+   not an employment or vacancy count.
+4. Calculate foreign residents per working-age resident, foreign residents per
+   workplace record using `max(1, jobLocationCount)` as a diagnostic, and
+   workplace records per 1,000 working-age residents.
+5. Rank islands using inverse percentile pressure for foreign residents per
+   working-age resident and positive percentile supply for workplaces per 1,000
+   working-age residents. Average the two normalized values equally.
+6. Mark the score `partial` when numeric because workplace records do not
+   provide job capacity, vacancies, or workforce participation.
+
+The national employment score is the average of inhabited-island employment
+scores. Its displayed population and workplace ratios are calculated from
+national totals, while the category breakdown sums workplace records.
 
 ### Cross-Island Service Demand
 

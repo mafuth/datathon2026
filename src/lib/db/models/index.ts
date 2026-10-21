@@ -1,6 +1,7 @@
 export * from './account';
 export * from './atoll';
 export * from './island';
+export * from './job-location';
 export * from './population';
 export * from './relations';
 export * from './session';

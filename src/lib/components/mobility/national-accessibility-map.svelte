@@ -96,6 +96,7 @@
       atollName: string;
       centroid?: Coordinate;
       score: number | null;
+      employmentScore: number | null;
       scoreStatus: 'numeric' | 'unavailable';
     };
   };
@@ -330,7 +331,8 @@
   let nationalMetrics = $derived([
     { key: 'health', label: 'Health', value: analyticsData?.national.categories.health?.score },
     { key: 'education', label: 'Schools', value: analyticsData?.national.categories.education?.score },
-    { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score }
+    { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score },
+    { key: 'employment', label: 'Jobs', value: analyticsData?.national.categories.employment?.score }
   ]);
   let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
   let selectedIslandLoading = $derived(

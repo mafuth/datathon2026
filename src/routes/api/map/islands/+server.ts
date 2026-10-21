@@ -26,6 +26,7 @@ type MapPayload = {
       atollName: string;
       centroid: [number, number];
       score: number | null;
+      employmentScore: number | null;
       scoreStatus: 'numeric' | 'unavailable';
     };
   }>;
@@ -47,9 +48,10 @@ async function buildMapPayload(): Promise<MapPayload> {
   const scores = await Promise.all(
     inhabitedIslands.map(async (island) => {
       try {
-        return [island.id, (await getIslandScore(island.id, snapshot)).overall.score] as const;
+        const result = await getIslandScore(island.id, snapshot);
+        return [island.id, { overall: result.overall.score, employment: result.employment.score }] as const;
       } catch {
-        return [island.id, null] as const;
+        return [island.id, { overall: null, employment: null }] as const;
       }
     })
   );
@@ -61,7 +63,8 @@ async function buildMapPayload(): Promise<MapPayload> {
         const geometry = JSON.parse(island.geoJson) as GeoJsonGeometry;
         if (!geometry || typeof geometry.type !== 'string' || geometry.coordinates === undefined) return [];
 
-        const score = scoreByIsland.get(island.id) ?? null;
+        const islandScores = scoreByIsland.get(island.id) ?? { overall: null, employment: null };
+        const score = islandScores.overall;
 
         return [
           {
@@ -74,6 +77,7 @@ async function buildMapPayload(): Promise<MapPayload> {
               atollName: island.atollName,
               centroid: [island.longitude, island.latitude],
               score,
+              employmentScore: islandScores.employment,
               scoreStatus: typeof score === 'number' && Number.isFinite(score) ? 'numeric' : 'unavailable'
             }
           }

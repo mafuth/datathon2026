@@ -3,6 +3,7 @@ export { getNationalScore } from './national-score';
 export { getIslandServices } from './island-services';
 export { buildDemandAllocation } from './demand-allocation';
 export { calculateTransportDemand } from './transport-demand';
+export { calculateEmploymentScore } from './employment-score';
 export { resolveEducationRouting, resolveElderlyHospitalRouting, resolveServiceRouting } from './hospital-routing';
 export type {
   EducationRoute,
@@ -23,6 +24,9 @@ export type {
   DemandAllocationResult,
   DemandMetric,
   DemandSummary,
+  EmploymentCategory,
+  EmploymentSubcategory,
+  EmploymentScoreResult,
   ExternalDemandResult,
   HubDemandImpact,
   IslandScoreResult,

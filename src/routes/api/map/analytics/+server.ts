@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import type { TransportDemandResult } from '$lib/server/scoring/types';
+import type { EmploymentScoreResult, TransportDemandResult } from '$lib/server/scoring/types';
 
 import { json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
@@ -35,6 +35,22 @@ function componentDto(component: {
     numericPopulation: component.numericPopulation,
     evidenceCount: component.evidenceCount,
     limitations: component.limitations
+  };
+}
+
+function employmentDto(employment: EmploymentScoreResult) {
+  return {
+    ...componentDto(employment),
+    foreignPopulation: employment.foreignPopulation,
+    foreignPopulationSource: employment.foreignPopulationSource,
+    workingAgePopulation: employment.workingAgePopulation,
+    jobLocationCount: employment.jobLocationCount,
+    foreignPerWorkingAge: employment.foreignPerWorkingAge,
+    foreignPerJobLocation: employment.foreignPerJobLocation,
+    jobLocationsPerThousandWorkingAge: employment.jobLocationsPerThousandWorkingAge,
+    pressureScore: employment.pressureScore,
+    supplyScore: employment.supplyScore,
+    categories: employment.categories
   };
 }
 
@@ -216,6 +232,7 @@ export const GET: RequestHandler = async () => {
       health: componentDto(result.health),
       education: componentDto(result.education),
       transport: componentDto(result.transport),
+      employment: employmentDto(result.employment),
       crowdedness: {
         score: result.crowdedness.score,
         population: result.crowdedness.population,
@@ -253,6 +270,13 @@ export const GET: RequestHandler = async () => {
     health: island.health.score,
     education: island.education.score,
     transport: island.transport.score,
+    employment: island.employment.score,
+    jobDensity:
+      island.population !== null && island.population > 0
+        ? (island.employment.jobLocationCount / island.population) * 1000
+        : null,
+    jobDemand: island.employment.foreignPerWorkingAge,
+    jobSupply: island.employment.jobLocationsPerThousandWorkingAge,
     demand: island.demand.inboundTotal,
     outboundDemand: island.demand.outboundTotal,
     pressure: Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0)
@@ -272,11 +296,13 @@ export const GET: RequestHandler = async () => {
         health: componentDto(national.health),
         education: componentDto(national.education),
         transport: componentDto(national.transport),
+        employment: componentDto(national.employment),
         crowdedness: componentDto(national.crowdedness),
         externalDemand: componentDto(national.externalDemand)
       },
       demand: demandDto(national.demand, islandById),
       transportDemand: nationalTransportDemand,
+      employment: employmentDto(national.employment),
       limitations: national.limitations
     },
     population,

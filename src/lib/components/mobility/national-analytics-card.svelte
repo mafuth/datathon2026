@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Briefcase from '@lucide/svelte/icons/briefcase';
   import Hospital from '@lucide/svelte/icons/hospital';
   import Route from '@lucide/svelte/icons/route';
   import School from '@lucide/svelte/icons/school';
@@ -68,6 +69,26 @@
     total: number;
   };
 
+  type EmploymentScore = ComponentScore & {
+    foreignPopulation: number;
+    foreignPopulationSource: 'observed' | 'assumed_zero';
+    workingAgePopulation: number | null;
+    jobLocationCount: number;
+    foreignPerWorkingAge: number | null;
+    foreignPerJobLocation: number | null;
+    jobLocationsPerThousandWorkingAge: number | null;
+    pressureScore: number | null;
+    supplyScore: number | null;
+    categories: EmploymentCategory[];
+  };
+
+  type EmploymentCategory = {
+    key: string;
+    label: string;
+    count: number;
+    subcategories: Array<{ key: string; label: string; count: number }>;
+  };
+
   type TransportDemandStop = {
     stopId: string;
     stopName: string | null;
@@ -119,6 +140,7 @@
     health: ComponentScore;
     education: ComponentScore;
     transport: ComponentScore;
+    employment: EmploymentScore;
     crowdedness: {
       score: number | null;
       population: number | null;
@@ -176,6 +198,7 @@
       limitations: string[];
       demand: DemandSummary;
       transportDemand: TransportDemandSummary;
+      employment: EmploymentScore;
     };
     population: { total: number; children: number; adolescents: number; youth: number; elderly: number };
     islands: AnalyticsIsland[];
@@ -187,6 +210,9 @@
       health: string[];
       education: string[];
       transport: string[];
+      employment: string[];
+      jobRichLowPopulation: string[];
+      jobDemandGaps: string[];
     };
   };
 
@@ -217,7 +243,7 @@
     proposalMode = false
   }: Props = $props();
   let closeButton = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
-  let selectedCategory = $state<'overall' | 'health' | 'education' | 'transport'>('overall');
+  let selectedCategory = $state<'overall' | 'health' | 'education' | 'transport' | 'employment'>('overall');
 
   const populationGroups = [
     { label: 'Children', key: 'children' },
@@ -229,9 +255,10 @@
     { key: 'overall', label: 'Overall' },
     { key: 'health', label: 'Health' },
     { key: 'education', label: 'Education' },
-    { key: 'transport', label: 'Transport' }
+    { key: 'transport', label: 'Transport' },
+    { key: 'employment', label: 'Employment' }
   ] as const;
-  const driverSkeletons = ['Health', 'Education', 'Transport', 'Crowdedness', 'External demand'] as const;
+  const driverSkeletons = ['Health', 'Education', 'Transport', 'Employment', 'Crowdedness', 'External demand'] as const;
   const hotspotSkeletons = ['one', 'two', 'three'] as const;
   const rankingSkeletons = [0, 1, 2, 3] as const;
 
@@ -262,6 +289,14 @@
         status: category.transport?.status ?? 'unavailable',
         coverage: category.transport?.coverageRatio ?? 0,
         note: 'Land, marine, and air connections'
+      },
+      {
+        key: 'employment',
+        label: 'Employment',
+        score: category.employment?.score ?? null,
+        status: category.employment?.status ?? 'unavailable',
+        coverage: category.employment?.coverageRatio ?? 0,
+        note: 'Foreign residents balanced against recorded workplace supply'
       },
       {
         key: 'crowdedness',
@@ -302,6 +337,16 @@
       .map((id) => data?.islands.find((island) => island.id === id))
       .filter((island): island is AnalyticsIsland => island !== undefined)
   );
+  let jobRichIslands = $derived(
+    (data?.rankings.jobRichLowPopulation ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
+  );
+  let jobDemandGapIslands = $derived(
+    (data?.rankings.jobDemandGaps ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
+  );
 
   function percentage(value: number | null): string {
     return value === null ? 'N/A' : `${Math.round(value)}%`;
@@ -309,7 +354,7 @@
 
   function categoryCoverage(
     island: AnalyticsIsland,
-    category: 'overall' | 'health' | 'education' | 'transport'
+    category: 'overall' | 'health' | 'education' | 'transport' | 'employment'
   ): string {
     const component = island[category];
     if (component.score !== 0) return percentage(component.score);
@@ -318,6 +363,26 @@
 
   function number(value: number | null): string {
     return value === null ? 'N/A' : Math.round(value).toLocaleString();
+  }
+
+  function decimal(value: number | null): string {
+    return value === null ? 'N/A' : value.toFixed(2);
+  }
+
+  function titleCase(value: string): string {
+    return value
+      .replaceAll('_', ' ')
+      .replaceAll(':', ' / ')
+      .replace(/\b\w/g, (character) => character.toUpperCase());
+  }
+
+  function categoryShare(count: number, total: number): number {
+    return total > 0 ? Math.min(100, (count / total) * 100) : 0;
+  }
+
+  function jobDensity(island: AnalyticsIsland): number | null {
+    if (island.population === null || island.population <= 0) return null;
+    return (island.employment.jobLocationCount / island.population) * 1000;
   }
 
   function outboundShare(island: AnalyticsIsland): number | null {
@@ -347,6 +412,7 @@
     if (key === 'health') return Hospital;
     if (key === 'education') return School;
     if (key === 'transport') return Ship;
+    if (key === 'employment') return Briefcase;
     return Users;
   }
 
@@ -496,6 +562,21 @@
             <div class="card-heading">
               <Skeleton class="loading-panel-heading loading-wide-heading" />
             </div>
+            <div class="ranking-list">
+              {#each rankingSkeletons as row (row)}
+                <div class="loading-ranking-row">
+                  <span class="loading-row-copy"
+                    ><Skeleton class="loading-ranking-title" /><Skeleton class="loading-ranking-caption" /></span
+                  ><Skeleton class="loading-ranking-score" />
+                </div>
+              {/each}
+            </div>
+          </Card.Root>
+
+          <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
+            <div class="card-heading">
+              <Skeleton class="loading-panel-heading loading-wide-heading" />
+            </div>
             <div class="loading-category-tabs">
               {#each categoryTabs as category (category.key)}
                 <Skeleton class="loading-category-tab" />
@@ -590,6 +671,127 @@
               </div>
             </Card.Root>
           </div>
+
+          <Card.Root class="insight-card employment-card" size="sm">
+            <div class="card-heading">
+              <div>
+                <h3>Employment balance</h3>
+              </div>
+              <Briefcase size={17} strokeWidth={2.2} />
+            </div>
+            <div class="employment-scoreline">
+              <strong>{percentage(data.national.employment.score)}</strong>
+              <span>{data.national.employment.jobLocationCount.toLocaleString()} recorded workplaces</span>
+            </div>
+            <div class="employment-metrics">
+              <span>Foreign residents <strong>{number(data.national.employment.foreignPopulation)}</strong></span>
+              <span>Working age 15-64 <strong>{number(data.national.employment.workingAgePopulation)}</strong></span>
+              <span
+                >Foreign / working age <strong
+                  >{percentage(
+                    data.national.employment.foreignPerWorkingAge === null
+                      ? null
+                      : data.national.employment.foreignPerWorkingAge * 100
+                  )}</strong
+                ></span
+              >
+              <span>Foreign / workplace <strong>{decimal(data.national.employment.foreignPerJobLocation)}</strong></span
+              >
+              <span
+                >Workplaces / 1,000 working age <strong
+                  >{decimal(data.national.employment.jobLocationsPerThousandWorkingAge)}</strong
+                ></span
+              >
+              <span>Pressure balance <strong>{percentage(data.national.employment.pressureScore)}</strong></span>
+              <span>Supply balance <strong>{percentage(data.national.employment.supplyScore)}</strong></span>
+            </div>
+            <div class="employment-breakdown">
+              {#each data.national.employment.categories as category (category.key)}
+                <div class="employment-category">
+                  <div class="employment-category-heading">
+                    <span>{titleCase(category.label)}</span>
+                    <strong>{category.count.toLocaleString()}</strong>
+                  </div>
+                  <Progress
+                    value={categoryShare(category.count, data.national.employment.jobLocationCount)}
+                    max={100}
+                    aria-label={`${titleCase(category.label)} workplace share`}
+                  />
+                  <div class="employment-subcategory-list">
+                    {#each category.subcategories.slice(0, 4) as subcategory (subcategory.key)}
+                      <span
+                        ><b>{titleCase(subcategory.label)}</b><strong>{subcategory.count.toLocaleString()}</strong
+                        ></span
+                      >
+                    {/each}
+                    {#if category.subcategories.length > 4}
+                      <small>{category.subcategories.length - 4} more subcategories</small>
+                    {/if}
+                  </div>
+                </div>
+              {:else}
+                <span class="analytics-state">No workplace categories are available.</span>
+              {/each}
+            </div>
+            {#if data.national.employment.foreignPopulationSource === 'assumed_zero'}
+              <p class="analytics-state">Missing `foregner` population rows were treated as zero.</p>
+            {/if}
+          </Card.Root>
+
+          <Card.Root class="insight-card ranking-card employment-ranking-card" size="sm">
+            <div class="card-heading">
+              <div>
+                <h3>Workplace density, lower population</h3>
+              </div>
+              <Briefcase size={17} strokeWidth={2.2} />
+            </div>
+            <p class="ranking-description">Recorded workplaces per 1,000 residents.</p>
+            <div class="ranking-list">
+              {#each jobRichIslands as island (island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+                  <span>
+                    <strong>{islandLabel(island)}</strong>
+                    <small
+                      >{number(island.employment.jobLocationCount)} workplaces · {number(island.population)} residents</small
+                    >
+                  </span>
+                  <b>{decimal(jobDensity(island))}</b>
+                </Button>
+              {:else}
+                <p class="analytics-state">No workplace-density ranking is available.</p>
+              {/each}
+            </div>
+          </Card.Root>
+
+          <Card.Root class="insight-card ranking-card employment-ranking-card" size="sm">
+            <div class="card-heading">
+              <div>
+                <h3>High demand, low workplace supply</h3>
+              </div>
+              <Briefcase size={17} strokeWidth={2.2} />
+            </div>
+            <p class="ranking-description">Foreign residents are used as an estimated job-demand proxy.</p>
+            <div class="ranking-list">
+              {#each jobDemandGapIslands as island (island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+                  <span>
+                    <strong>{islandLabel(island)}</strong>
+                    <small
+                      >{percentage(
+                        island.employment.foreignPerWorkingAge === null
+                          ? null
+                          : island.employment.foreignPerWorkingAge * 100
+                      )} foreign / working age · {decimal(island.employment.jobLocationsPerThousandWorkingAge)} workplaces
+                      / 1,000</small
+                    >
+                  </span>
+                  <b>{number(island.employment.jobLocationCount)}</b>
+                </Button>
+              {:else}
+                <p class="analytics-state">No job-demand gap ranking is available.</p>
+              {/each}
+            </div>
+          </Card.Root>
 
           <Card.Root class="insight-card ranking-card" size="sm">
             <div class="card-heading">
@@ -908,6 +1110,87 @@
   .demand-summary strong {
     color: #09090b;
     font-variant-numeric: tabular-nums;
+  }
+  .employment-scoreline {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.72rem;
+  }
+  .employment-scoreline strong {
+    color: #09090b;
+    font-size: 1.45rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .employment-scoreline span {
+    color: #71717a;
+    font-size: 0.57rem;
+  }
+  .employment-metrics,
+  .employment-breakdown {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.72rem;
+    color: #71717a;
+    font-size: 0.57rem;
+  }
+  .employment-metrics span {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .employment-metrics strong {
+    color: #09090b;
+    font-variant-numeric: tabular-nums;
+  }
+  .employment-breakdown {
+    padding-top: 0.62rem;
+    border-top: 1px solid #e4e4e7;
+  }
+  .employment-category {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .employment-category-heading,
+  .employment-subcategory-list span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .employment-category-heading {
+    color: #09090b;
+    font-size: 0.6rem;
+    font-weight: 700;
+  }
+  .employment-category-heading strong,
+  .employment-subcategory-list strong {
+    font-variant-numeric: tabular-nums;
+  }
+  :global(.employment-category [data-slot='progress']) {
+    height: 0.3rem;
+    background: #e4e4e7;
+  }
+  :global(.employment-category [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  .employment-subcategory-list {
+    display: grid;
+    gap: 0.2rem;
+    padding-left: 0.5rem;
+    color: #71717a;
+    font-size: 0.54rem;
+  }
+  .employment-subcategory-list small,
+  .ranking-description {
+    color: #71717a;
+    font-size: 0.54rem;
+  }
+  .ranking-description {
+    margin: 0.55rem 0 0;
+    line-height: 1.35;
   }
   .mini-list,
   .ranking-list {

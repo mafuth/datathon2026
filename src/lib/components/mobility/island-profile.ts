@@ -27,6 +27,29 @@ export type IslandServiceGroup = {
   items: IslandServiceItem[];
 };
 
+export type IslandEmploymentProfile = {
+  score: number | null;
+  status: string;
+  coverageRatio: number;
+  evidenceCount: number;
+  foreignPopulation: number;
+  foreignPopulationSource: 'observed' | 'assumed_zero';
+  workingAgePopulation: number | null;
+  jobLocationCount: number;
+  foreignPerWorkingAge: number | null;
+  foreignPerJobLocation: number | null;
+  jobLocationsPerThousandWorkingAge: number | null;
+  pressureScore: number | null;
+  supplyScore: number | null;
+  categories: Array<{
+    key: string;
+    label: string;
+    count: number;
+    subcategories: Array<{ key: string; label: string; count: number }>;
+  }>;
+  limitations: string[];
+};
+
 export type IslandTransportConnection = {
   id: string;
   type: string;
@@ -187,5 +210,6 @@ export type IslandProfile = {
       islandName: string | null;
     };
   };
+  employment: IslandEmploymentProfile;
   demand: IslandDemandProfile;
 };

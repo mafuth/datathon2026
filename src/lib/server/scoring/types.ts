@@ -1,4 +1,4 @@
-import type { Island, Population, Service, TransportConnection, TransportRoute } from '../../db/models';
+import type { Island, JobLocation, Population, Service, TransportConnection, TransportRoute } from '../../db/models';
 
 export type ScoreStatus = 'numeric' | 'partial' | 'unavailable';
 
@@ -32,6 +32,7 @@ export type ScoringSnapshot = {
   islands: Island[];
   population: Population[];
   services: Service[];
+  jobLocations?: JobLocation[];
   connections: TransportConnection[];
   routes: TransportRoute[];
   transportStops: TransportStop[];
@@ -50,6 +51,32 @@ export type ScoreComponent = {
   numericPopulation: number | null;
   evidenceCount: number;
   limitations: string[];
+};
+
+export type EmploymentCategory = {
+  key: string;
+  label: string;
+  count: number;
+  subcategories: EmploymentSubcategory[];
+};
+
+export type EmploymentSubcategory = {
+  key: string;
+  label: string;
+  count: number;
+};
+
+export type EmploymentScoreResult = ScoreComponent & {
+  foreignPopulation: number;
+  foreignPopulationSource: 'observed' | 'assumed_zero';
+  workingAgePopulation: number | null;
+  jobLocationCount: number;
+  foreignPerWorkingAge: number | null;
+  foreignPerJobLocation: number | null;
+  jobLocationsPerThousandWorkingAge: number | null;
+  pressureScore: number | null;
+  supplyScore: number | null;
+  categories: EmploymentCategory[];
 };
 
 export type ServiceScore = {
@@ -222,6 +249,7 @@ export type IslandScoreResult = {
   overall: ScoreComponent;
   health: ScoreComponent & { breakdown: ServiceScore[]; adjustedScore: number | null };
   education: ScoreComponent & { breakdown: ServiceScore[]; adjustedScore: number | null };
+  employment: EmploymentScoreResult;
   transport: ScoreComponent & {
     land: ScoreComponent;
     marine: ScoreComponent;
@@ -249,6 +277,7 @@ export type NationalScoreResult = {
   status: ScoreStatus;
   health: ScoreComponent;
   education: ScoreComponent;
+  employment: EmploymentScoreResult;
   transport: ScoreComponent & {
     land: ScoreComponent;
     marine: ScoreComponent;

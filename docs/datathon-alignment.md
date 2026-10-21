@@ -40,6 +40,7 @@ The current application includes:
 - RTL ferry data snapshots and route coverage artifacts.
 - OpenStreetMap marine, road, service, and route data.
 - Population-based demand estimates for health, education, and transport.
+- Employment balance using MBS foreign-resident population, working-age population, and island-linked workplace records.
 - Inbound and outbound service demand by island.
 - Transport hub load and capacity proxy calculations.
 - Healthcare routing and care-transfer demand calculations.
@@ -58,7 +59,7 @@ The current application includes:
 | Land transport                        | Partial           | RTL bus route geometry, OSM roads, bridges, causeways, and land links are present. There is no observed traffic-flow or road-safety dataset.                                                                                     |
 | Air transport                         | Partial           | Airports, air terminals, helipads, and modeled airport links are represented. Verified flight schedules and approved air travel times are not available.                                                                         |
 | Healthcare and education connectivity | Strong            | Population cohorts, care demand, education demand, hospital routing, inbound demand, outbound demand, and transport hub pressure are implemented.                                                                                |
-| Job access                            | Partial           | Working-age population contributes to transport demand, but job destinations and employment access are not directly modeled.                                                                                                     |
+| Job access                            | Strong/partial    | Island and national employment scores compare the `foregner` population category with working-age residents and island-linked workplace proxies. Job counts, vacancies, capacity, and workforce participation are unavailable.   |
 | Passenger movement                    | Partial           | The application estimates demand from population cohorts and care transfers. It does not use observed passenger counts or a complete origin-destination dataset.                                                                 |
 | Freight movement                      | Missing           | No freight, cargo, port-volume, or logistics data is currently included.                                                                                                                                                         |
 | Ferry connectivity                    | Strong/partial    | RTL ferry routes and schedule snapshots are included. The current interface does not yet expose a full route planner with waiting time, frequency, and transfer calculations.                                                    |

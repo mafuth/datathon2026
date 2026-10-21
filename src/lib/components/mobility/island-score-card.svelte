@@ -19,7 +19,8 @@
   let metrics = $derived<readonly ScoreCardMetric[]>([
     { key: 'health', label: 'Health', value: island?.health.score },
     { key: 'education', label: 'Schools', value: island?.education.score },
-    { key: 'transport', label: 'Getting around', value: island?.transport.score }
+    { key: 'transport', label: 'Getting around', value: island?.transport.score },
+    { key: 'employment', label: 'Jobs', value: island?.employment.score }
   ]);
 
   function islandLabel(): string {
@@ -154,7 +155,7 @@
   }
   .metric-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-top: 0.6rem;
     padding-top: 0.6rem;
     border-top: 1px solid var(--mobility-border, #e4e4e7);
@@ -165,6 +166,9 @@
     padding: 0.28rem 0.45rem 0.08rem;
   }
   .metric + .metric {
+    border-left: 0;
+  }
+  .metric:nth-child(even) {
     border-left: 1px solid var(--mobility-border, #e4e4e7);
   }
   .metric span {

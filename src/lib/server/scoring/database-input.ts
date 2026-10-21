@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { eq } from 'drizzle-orm';
 
-import { Island, Population, Service, TransportConnection, TransportRoute } from '../../db/models';
+import { Island, JobLocation, Population, Service, TransportConnection, TransportRoute } from '../../db/models';
 import db from '../database';
 
 type RtlBusArtifact = {
@@ -187,10 +187,11 @@ function residentialDemandPoints(): ResidentialDemandPoint[] {
 export async function loadScoringSnapshot(
   options: { includeResidentialDemandPoints?: boolean } = {}
 ): Promise<ScoringSnapshot> {
-  const [islands, population, services, connections, routes] = await Promise.all([
+  const [islands, population, services, jobLocations, connections, routes] = await Promise.all([
     db.select().from(Island),
     db.select().from(Population),
     db.select().from(Service),
+    db.select().from(JobLocation),
     db.select().from(TransportConnection),
     db.select().from(TransportRoute)
   ]);
@@ -210,6 +211,7 @@ export async function loadScoringSnapshot(
     islands,
     population,
     services,
+    jobLocations,
     connections,
     routes,
     transportStops: [...stops.values()],

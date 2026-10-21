@@ -1,0 +1,8 @@
+{
+  "source": "Geofabrik OpenStreetMap Maldives extract",
+  "url": "https://download.geofabrik.de/asia/maldives-latest.osm.pbf",
+  "retrieved_at": "2026-10-21T12:56:52.544234+00:00",
+  "path": "data/mobility/raw/osm/maldives-latest.osm.pbf",
+  "bytes": 3655224,
+  "sha256": "121626f2d071f50259e92649021863b8e33caa715410b327b441fb5f465dc0ff"
+}

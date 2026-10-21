@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { queryOverpass } from '../src/lib/server/mobility/osm-overpass';
@@ -16,6 +16,14 @@ type OsmElement = {
   tags?: OsmTags;
 };
 type OsmPayload = { elements?: OsmElement[] };
+type BaselineIsland = { id?: unknown; islandType?: unknown; geoJson?: unknown };
+type BaselineArtifact = { islands?: BaselineIsland[] };
+type IslandBatch = {
+  index: number;
+  islands: Array<{ id: string; bbox: [number, number, number, number] }>;
+  bbox: string;
+};
+type BatchQueryResult<T> = { endpoint: string; data: T; batchIndex: number; bbox: string };
 type NormalizedService = {
   id: string;
   osm_type: string;
@@ -46,10 +54,39 @@ type NormalizedRoute = {
   source_url: string;
   modeled: false;
 };
-
 const outputRoot = resolve(process.env.MOBILITY_OSM_OUTPUT_ROOT ?? 'data/mobility/normalized');
+const baselinePath = resolve(process.env.MOBILITY_BASELINE_PATH ?? 'data/mobility/normalized/current-db-baseline.json');
 const bbox = '(-1,72,8,74)';
-const regionalBboxes = ['(-1,72,3.5,74)', '(3.5,72,8,74)'];
+const cliOption = (name: string): string | null => {
+  const index = process.argv.indexOf(name);
+  return index === -1 ? null : (process.argv[index + 1] ?? null);
+};
+if (process.argv.includes('--help')) {
+  console.log(
+    [
+      'Usage:',
+      '  npm run mobility:fetch-osm -- --all',
+      '  npm run mobility:fetch-osm -- --island <island-id>',
+      '  npm run mobility:fetch-osm -- --all --batch-size 10',
+      '',
+      'Options:',
+      '  --all                  Fetch every inhabited island (the default).',
+      '  --island <island-id>   Fetch one inhabited island and merge its rows into existing artifacts.',
+      '  --batch-size <count>   Number of islands per Overpass request batch (default: 20).'
+    ].join('\n')
+  );
+  process.exit(0);
+}
+const islandArgument = cliOption('--island') ?? cliOption('--island-id') ?? process.env.MOBILITY_OSM_ISLAND_ID ?? null;
+if (islandArgument && process.argv.includes('--all')) {
+  throw new Error('Use either --all or --island <island-id>, not both.');
+}
+const batchSize = Math.max(
+  1,
+  Number.parseInt(cliOption('--batch-size') ?? process.env.MOBILITY_OSM_BATCH_SIZE ?? '20', 10) || 20
+);
+const parsedIslandMargin = Number.parseFloat(process.env.MOBILITY_OSM_ISLAND_MARGIN ?? '0.01');
+const islandMargin = Number.isFinite(parsedIslandMargin) ? Math.max(0, parsedIslandMargin) : 0.01;
 const healthQuery = `[out:json][timeout:120];(
   nwr["amenity"="hospital"]${bbox};
   nwr["amenity"="clinic"]${bbox};
@@ -211,11 +248,84 @@ function sourceUrl(element: OsmElement): string {
   return `https://api.openstreetmap.org/api/0.6/${element.type}/${element.id}.json`;
 }
 
-async function queryRegional<T>(queries: string[]): Promise<Array<{ endpoint: string; data: T }>> {
-  const results: Array<{ endpoint: string; data: T }> = [];
-  for (const query of queries) {
-    for (const regionalBbox of regionalBboxes) {
-      results.push(await queryOverpass<T>(query.replaceAll(bbox, regionalBbox)));
+function coordinates(value: unknown): Position[] {
+  if (!Array.isArray(value)) return [];
+  if (value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') {
+    return [[value[0], value[1]]];
+  }
+  return value.flatMap((entry) => coordinates(entry));
+}
+
+function islandBatches(requestedIslandId: string | null): IslandBatch[] {
+  if (!existsSync(baselinePath)) throw new Error(`Missing mobility baseline: ${baselinePath}`);
+  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8')) as BaselineArtifact;
+  const islands = (baseline.islands ?? []).flatMap((island) => {
+    if (island.islandType !== 'inhabited' || typeof island.id !== 'string' || typeof island.geoJson !== 'string') {
+      return [];
+    }
+    try {
+      const geometry = JSON.parse(island.geoJson) as { coordinates?: unknown };
+      const points = coordinates(geometry.coordinates);
+      if (points.length === 0) return [];
+      const minLongitude = Math.min(...points.map((point) => point[0])) - islandMargin;
+      const minLatitude = Math.min(...points.map((point) => point[1])) - islandMargin;
+      const maxLongitude = Math.max(...points.map((point) => point[0])) + islandMargin;
+      const maxLatitude = Math.max(...points.map((point) => point[1])) + islandMargin;
+      return [
+        {
+          id: island.id,
+          bbox: [minLongitude, minLatitude, maxLongitude, maxLatitude] as [number, number, number, number]
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  islands.sort((left, right) => {
+    const latitudeDifference = left.bbox[1] - right.bbox[1];
+    return latitudeDifference || left.bbox[0] - right.bbox[0] || left.id.localeCompare(right.id);
+  });
+
+  if (requestedIslandId) {
+    const selectedIsland = islands.find((island) => island.id === requestedIslandId);
+    if (!selectedIsland) throw new Error(`Inhabited island ${requestedIslandId} was not found in ${baselinePath}`);
+    islands.splice(0, islands.length, selectedIsland);
+  }
+
+  const batches: IslandBatch[] = [];
+  for (let offset = 0; offset < islands.length; offset += batchSize) {
+    const batchIslands = islands.slice(offset, offset + batchSize);
+    const minLongitude = Math.min(...batchIslands.map((island) => island.bbox[0]));
+    const minLatitude = Math.min(...batchIslands.map((island) => island.bbox[1]));
+    const maxLongitude = Math.max(...batchIslands.map((island) => island.bbox[2]));
+    const maxLatitude = Math.max(...batchIslands.map((island) => island.bbox[3]));
+    batches.push({
+      index: batches.length + 1,
+      islands: batchIslands,
+      bbox: `(${minLatitude},${minLongitude},${maxLatitude},${maxLongitude})`
+    });
+  }
+  if (batches.length === 0) throw new Error(`No inhabited island geometries found in ${baselinePath}`);
+  return batches;
+}
+
+async function queryBatches<T>(
+  label: string,
+  requests: Array<{ name: string; query: string }>,
+  batches: IslandBatch[]
+): Promise<BatchQueryResult<T>[]> {
+  const results: BatchQueryResult<T>[] = [];
+  for (const request of requests) {
+    for (const batch of batches) {
+      const prefix = `[OSM] ${label}/${request.name} batch ${batch.index}/${batches.length}`;
+      console.log(`${prefix} fetching ${batch.islands.length} islands in ${batch.bbox}`);
+      const result = await queryOverpass<T>(request.query.replaceAll(bbox, batch.bbox));
+      const elementCount = Array.isArray((result.data as { elements?: unknown[] }).elements)
+        ? ((result.data as { elements?: unknown[] }).elements?.length ?? 0)
+        : 0;
+      console.log(`${prefix} complete: ${elementCount} OSM elements from ${result.endpoint}`);
+      results.push({ ...result, batchIndex: batch.index, bbox: batch.bbox });
     }
   }
   return results;
@@ -315,10 +425,34 @@ function normalizeRoutes(elements: OsmElement[]): NormalizedRoute[] {
   return routes;
 }
 
-const serviceResults = await queryRegional<OsmPayload>(serviceQueries);
-const marineResults = await queryRegional<OsmPayload>(marineQueries);
-const routeWayResults = await queryRegional<OsmPayload>([routeWayRouteQuery, routeWayTagQuery]);
-const routeRelationResults = await queryRegional<OsmPayload>([routeRelationQuery]);
+const batches = islandBatches(islandArgument);
+const batchBboxes = batches.map((batch) => batch.bbox);
+console.log(
+  `[OSM] Mode: ${islandArgument ? `single island (${islandArgument})` : 'all inhabited islands'}; fetching ${batches.reduce((total, batch) => total + batch.islands.length, 0)} island(s) in ${batches.length} batch(es) (batch size ${batchSize}).`
+);
+const serviceResults = await queryBatches<OsmPayload>(
+  'services',
+  serviceQueries.map((query, index) => ({ name: ['health', 'education'][index] ?? `query-${index + 1}`, query })),
+  batches
+);
+const marineResults = await queryBatches<OsmPayload>(
+  'marine',
+  marineQueries.map((query, index) => ({ name: `query-${index + 1}`, query })),
+  batches
+);
+const routeWayResults = await queryBatches<OsmPayload>(
+  'ferry-routes',
+  [
+    { name: 'route-ways', query: routeWayRouteQuery },
+    { name: 'ferry-ways', query: routeWayTagQuery }
+  ],
+  batches
+);
+const routeRelationResults = await queryBatches<OsmPayload>(
+  'ferry-relations',
+  [{ name: 'relations', query: routeRelationQuery }],
+  batches
+);
 const services = normalizeServices([
   ...serviceResults.flatMap((result) => result.data.elements ?? []),
   ...marineResults.flatMap((result) => result.data.elements ?? [])
@@ -330,6 +464,39 @@ const routes = normalizeRoutes([
 ]);
 const generatedAt = new Date().toISOString();
 
+function existingRows<T extends { id: string }>(filename: string, key: string): T[] {
+  const path = resolve(outputRoot, filename);
+  if (!existsSync(path)) return [];
+  try {
+    const value = JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
+    const rows = value[key];
+    return Array.isArray(rows)
+      ? rows.filter((row): row is T => typeof row === 'object' && row !== null && 'id' in row)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function mergeRows<T extends { id: string }>(existing: T[], incoming: T[]): T[] {
+  const rows = new Map(existing.map((row) => [row.id, row]));
+  for (const row of incoming) rows.set(row.id, row);
+  return [...rows.values()];
+}
+
+const outputServices = mergeRows<NormalizedService>(
+  islandArgument ? existingRows<NormalizedService>('osm-services.json', 'services') : [],
+  services
+);
+const outputMarineServices = mergeRows<NormalizedService>(
+  islandArgument ? existingRows<NormalizedService>('osm-marine.json', 'services') : [],
+  marineServices
+);
+const outputRoutes = mergeRows<NormalizedRoute>(
+  islandArgument ? existingRows<NormalizedRoute>('osm-marine.json', 'routes') : [],
+  routes
+);
+
 mkdirSync(outputRoot, { recursive: true });
 writeFileSync(
   resolve(outputRoot, 'osm-services.json'),
@@ -338,10 +505,12 @@ writeFileSync(
       schema_version: 'osm-services-v1',
       source: 'OpenStreetMap',
       generated_at: generatedAt,
-      endpoint: serviceResults[0].endpoint,
+      endpoint: serviceResults[0]?.endpoint ?? null,
       query: serviceQueries,
-      query_bboxes: regionalBboxes,
-      services
+      query_bboxes: batchBboxes,
+      island_batches: batches,
+      merged_existing: Boolean(islandArgument),
+      services: outputServices
     },
     null,
     2
@@ -354,13 +523,15 @@ writeFileSync(
       schema_version: 'osm-marine-v1',
       source: 'OpenStreetMap',
       generated_at: generatedAt,
-      endpoint: marineResults[0].endpoint,
+      endpoint: marineResults[0]?.endpoint ?? null,
       service_query: marineQueries,
-      query_bboxes: regionalBboxes,
+      query_bboxes: batchBboxes,
+      island_batches: batches,
+      merged_existing: Boolean(islandArgument),
       route_way_query: [routeWayRouteQuery, routeWayTagQuery],
       route_relation_query: [routeRelationQuery],
-      services: marineServices,
-      routes
+      services: outputMarineServices,
+      routes: outputRoutes
     },
     null,
     2
@@ -379,18 +550,22 @@ writeFileSync(
           ...serviceResults.map((result) => result.endpoint),
           ...marineResults.map((result) => result.endpoint)
         ],
-        count: services.length
+        count: outputServices.length
       },
       service_queries: serviceQueries,
       marine_queries: marineQueries,
-      marine_services: marineServices.length,
+      marine_services: outputMarineServices.length,
       ferry_routes: {
         endpoints: [
           ...routeWayResults.map((result) => result.endpoint),
           ...routeRelationResults.map((result) => result.endpoint)
         ],
-        count: routes.length
-      }
+        count: outputRoutes.length
+      },
+      island_batch_size: batchSize,
+      island_margin_degrees: islandMargin,
+      island_batches: batches,
+      merged_existing: Boolean(islandArgument)
     },
     null,
     2
@@ -401,12 +576,12 @@ console.log(
   JSON.stringify(
     {
       outputRoot,
-      services: services.length,
-      healthServices: services.filter((service) => service.service_type === 'health').length,
-      educationServices: services.filter((service) => service.service_type === 'education').length,
-      marineServices: marineServices.length,
-      ferryRoutes: routes.length,
-      serviceEndpoint: serviceResults[0].endpoint,
+      services: outputServices.length,
+      healthServices: outputServices.filter((service) => service.service_type === 'health').length,
+      educationServices: outputServices.filter((service) => service.service_type === 'education').length,
+      marineServices: outputMarineServices.length,
+      ferryRoutes: outputRoutes.length,
+      serviceEndpoint: serviceResults[0]?.endpoint ?? null,
       marineEndpoints: marineResults.map((result) => result.endpoint),
       routeEndpoints: [
         ...routeWayResults.map((result) => result.endpoint),
@@ -416,4 +591,7 @@ console.log(
     null,
     2
   )
+);
+console.log(
+  `[OSM] Finished: ${outputServices.length} services and ${outputRoutes.length} ferry routes${islandArgument ? ' (single-island rows merged)' : ''}.`
 );

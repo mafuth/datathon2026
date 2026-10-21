@@ -18,25 +18,25 @@ The recommended focus is sea transport as the primary mode, with land and air tr
 
 ## Status Summary
 
-| Area               | Status              | Current situation                                                                                                                  |
-| ------------------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| GIS map            | Implemented         | MapLibre map with island GeoJSON, OSM roads, service markers, and demand heatmaps.                                                 |
-| Sea transport      | Implemented/partial | RTL ferry routes, schedule snapshots, OSM marine evidence, and ferry connections exist. Full journey calculations are not exposed. |
-| Land transport     | Partial             | Bus route data, roads, bridges, causeways, and last-mile routing exist. Observed traffic flow and road-safety data do not exist.   |
-| Air transport      | Partial             | Airports, helipads, and modeled air links exist. Verified flight schedules and travel times are unavailable.                       |
-| Healthcare access  | Implemented         | Health demand, hospital routing, elderly demand, care-transfer demand, and island analytics are implemented.                       |
-| Education access   | Implemented         | Education services, population demand, outbound demand, and island analytics are implemented.                                      |
-| Job access         | Partial             | Working-age residents contribute to transport demand, but job destinations are not modeled.                                        |
-| Passenger movement | Partial             | Movement is estimated from population and service demand, not observed passenger counts.                                           |
-| Freight movement   | Missing             | No freight, cargo, port-volume, or logistics data is included.                                                                     |
-| Transport planning | Partial             | Facility scenario proposals work, but ferry frequency, route, capacity, and transport-link proposals are not supported.            |
-| Monitoring         | Partial             | Static scores and load proxies exist, but there is no live monitoring or update history.                                           |
-| Sustainability     | Missing             | No emissions, fuel, carbon, or mode-comparison calculation exists.                                                                 |
-| Climate resilience | Missing             | No flooding, weather disruption, coastal-risk, or climate exposure layer exists.                                                   |
-| Road safety        | Missing             | No crash, speed, lighting, pedestrian, or road-risk data exists.                                                                   |
-| Presentation pitch | Implemented         | The existing presentation mode contains an eight-step multimodal healthcare pitch.                                                 |
-| Reader timing      | Missing             | Reader mode has no five-minute countdown or story progress indicator.                                                              |
-| Public API         | Partial             | Scenario preview and island-service APIs exist under `/api/v1`; several map requests still use unversioned routes.                 |
+| Area               | Status              | Current situation                                                                                                                                                           |
+| ------------------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GIS map            | Implemented         | MapLibre map with island GeoJSON, OSM roads, service markers, and demand heatmaps.                                                                                          |
+| Sea transport      | Implemented/partial | RTL ferry routes, schedule snapshots, OSM marine evidence, and ferry connections exist. Full journey calculations are not exposed.                                          |
+| Land transport     | Partial             | Bus route data, roads, bridges, causeways, and last-mile routing exist. Observed traffic flow and road-safety data do not exist.                                            |
+| Air transport      | Partial             | Airports, helipads, and modeled air links exist. Verified flight schedules and travel times are unavailable.                                                                |
+| Healthcare access  | Implemented         | Health demand, hospital routing, elderly demand, care-transfer demand, and island analytics are implemented.                                                                |
+| Education access   | Implemented         | Education services, population demand, outbound demand, and island analytics are implemented.                                                                               |
+| Job access         | Implemented/partial | Employment score compares the `foregner` population category and working-age residents with island-linked workplace proxies; job capacity and vacancies remain unavailable. |
+| Passenger movement | Partial             | Movement is estimated from population and service demand, not observed passenger counts.                                                                                    |
+| Freight movement   | Missing             | No freight, cargo, port-volume, or logistics data is included.                                                                                                              |
+| Transport planning | Partial             | Facility scenario proposals work, but ferry frequency, route, capacity, and transport-link proposals are not supported.                                                     |
+| Monitoring         | Partial             | Static scores and load proxies exist, but there is no live monitoring or update history.                                                                                    |
+| Sustainability     | Missing             | No emissions, fuel, carbon, or mode-comparison calculation exists.                                                                                                          |
+| Climate resilience | Missing             | No flooding, weather disruption, coastal-risk, or climate exposure layer exists.                                                                                            |
+| Road safety        | Missing             | No crash, speed, lighting, pedestrian, or road-risk data exists.                                                                                                            |
+| Presentation pitch | Implemented         | The existing presentation mode contains an eight-step multimodal healthcare pitch.                                                                                          |
+| Reader timing      | Missing             | Reader mode has no five-minute countdown or story progress indicator.                                                                                                       |
+| Public API         | Partial             | Scenario preview and island-service APIs exist under `/api/v1`; several map requests still use unversioned routes.                                                          |
 
 ## Already Implemented
 
@@ -46,6 +46,7 @@ The following areas should be preserved rather than rebuilt:
 - Island accessibility and transport scoring.
 - Health, education, and transport service inventory.
 - Inbound and outbound demand analytics.
+- Employment balance analytics using foreign-resident population and island-linked workplace records.
 - Transport hub load estimates.
 - Ferry, bus, airport, road, bridge, causeway, and land-link evidence.
 - OSM and RTL data artifacts.
@@ -110,15 +111,15 @@ These should not be simulated as real observations. If they are added later, the
 
 ## Must Implement
 
-| Area               | Current state                                                           | Recommended change                                                                                                  | Change level | Expected impact         |
-| ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------ | ----------------------- |
-| Reader demo timing | The pitch exists, but reader mode has no clock                          | Add a five-minute countdown and `Step N of 8` progress only in reader mode.                                         | Low          | High for expo delivery  |
-| Ferry connectivity | RTL routes and schedules exist, but journey metrics are not exposed     | Calculate departure, arrival, waiting time, transfer count, and ferry duration for the Baarah journey.              | Medium       | High                    |
-| Movement patterns  | Inbound and outbound demand exists, but it is not presented as movement | Add estimated inbound movement, outbound movement, total movement pressure, outbound dependence, and mode pressure. | Low/medium   | High                    |
-| Transport planning | Facility scenarios exist, but no transport intervention exists          | Add one draft ferry-frequency intervention and compare before and after journey results.                            | Medium/high  | Very high               |
-| Sustainability     | No emissions feature exists                                             | Add a transparent estimate only if public distance and mode factors are available.                                  | Medium       | High if clearly labeled |
-| Data compliance    | Public artifacts exist, but source claims need review                   | Ensure RTL, OSM, MBS, and routing sources are documented for the declaration form.                                  | Low          | Critical for submission |
-| Challenge card     | The draft mentions jobs, which are not modeled                          | Remove `jobs` unless job-access data is added.                                                                      | Low          | Prevents overclaiming   |
+| Area               | Current state                                                           | Recommended change                                                                                                     | Change level | Expected impact         |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------ | ----------------------- |
+| Reader demo timing | The pitch exists, but reader mode has no clock                          | Add a five-minute countdown and `Step N of 8` progress only in reader mode.                                            | Low          | High for expo delivery  |
+| Ferry connectivity | RTL routes and schedules exist, but journey metrics are not exposed     | Calculate departure, arrival, waiting time, transfer count, and ferry duration for the Baarah journey.                 | Medium       | High                    |
+| Movement patterns  | Inbound and outbound demand exists, but it is not presented as movement | Add estimated inbound movement, outbound movement, total movement pressure, outbound dependence, and mode pressure.    | Low/medium   | High                    |
+| Transport planning | Facility scenarios exist, but no transport intervention exists          | Add one draft ferry-frequency intervention and compare before and after journey results.                               | Medium/high  | Very high               |
+| Sustainability     | No emissions feature exists                                             | Add a transparent estimate only if public distance and mode factors are available.                                     | Medium       | High if clearly labeled |
+| Data compliance    | Public artifacts exist, but source claims need review                   | Ensure RTL, OSM, MBS, and routing sources are documented for the declaration form.                                     | Low          | Critical for submission |
+| Challenge card     | The draft mentions jobs, which are now modeled as an explicit proxy     | Keep job access only with clear labels for workplace records, assumed-zero foreign rows, and unavailable job capacity. | Low          | Prevents overclaiming   |
 
 ## Improve Existing Functionality
 

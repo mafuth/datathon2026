@@ -1,0 +1,34 @@
+{
+  "schema_version": "vehicle-registration-online-source-sweep-v1",
+  "reviewed_at": "2026-10-21",
+  "question": "Are there other online sources with Maldives vehicle registrations by individual island?",
+  "result": "No complete, public, machine-readable island-level registration dataset was found.",
+  "sources_checked": [
+    {
+      "source_type": "official_statistics",
+      "source": "MBS Statistical Yearbook vehicle-registration tables",
+      "finding": "Vehicle counts are published at national/locality or atoll-group level, including Male', Hulhumale', Addu and Other atolls; no complete island register was located."
+    },
+    {
+      "source_type": "official_registry_system",
+      "source": "Transport Authority SIMS portal",
+      "url": "https://sims.transport.gov.mv/",
+      "finding": "Official registration system exists, but no public island-level aggregate download or documented open API was exposed during the review."
+    },
+    {
+      "source_type": "news_and_public_announcements",
+      "finding": "Online reports discuss making vehicle registration numbers public and report national or regional totals, but no reproducible all-island category table was found."
+    },
+    {
+      "source_type": "open_geospatial_data",
+      "source": "OpenStreetMap Maldives extracts",
+      "finding": "Provides roads, parking, vehicle-related facilities and transport infrastructure, not registered-vehicle counts."
+    },
+    {
+      "source_type": "council_and_island_web_search",
+      "finding": "Some local documents and news may mention individual-island vehicle issues or counts, but no consistent nationwide island-by-category register was found."
+    }
+  ],
+  "decision": "Keep the prepared island rows marked estimated_population_allocation. Do not promote them to official observed registration values without a Transport Authority export or island-council records that cover the full requested geography.",
+  "recommended_next_source_request": "Ask the Transport Authority for a de-identified aggregate export by island, category, registration status and reference date."
+}
