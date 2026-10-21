@@ -12,6 +12,7 @@
   import School from '@lucide/svelte/icons/school';
   import X from '@lucide/svelte/icons/x';
   import { mount, onMount, tick, unmount } from 'svelte';
+  import { cubicOut } from 'svelte/easing';
   import { prefersReducedMotion } from 'svelte/motion';
 
   import 'maplibre-gl/dist/maplibre-gl.css';
@@ -247,6 +248,17 @@
     { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score }
   ]);
   let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
+
+  function premiumLoadingExit(_node: Element, { duration = 820 }: { duration?: number } = {}) {
+    const transitionDuration = prefersReducedMotion.current ? 0 : duration;
+
+    return {
+      duration: transitionDuration,
+      easing: cubicOut,
+      css: (t: number) => `opacity: ${t}; filter: blur(${(1 - t) * 3.5}px);`
+    };
+  }
+
   function filterProposalServices(services: readonly IslandMapService[]): IslandMapService[] {
     const normalizedQuery = proposalQuery.trim().toLowerCase();
     return services.filter((service) => {
@@ -1954,7 +1966,7 @@
   ></div>
 
   {#if heatmapLoading}
-    <div class="heatmap-loading" role="status" aria-live="polite">
+    <div class="heatmap-loading" role="status" aria-live="polite" out:premiumLoadingExit={{ duration: 820 }}>
       <div class="loading-card">
         <p class="loading-brand">{config.app.name}</p>
         <div class="loading-center">
@@ -2035,31 +2047,33 @@
     aria-hidden={proposalMode}
     aria-live="polite"
   >
-    {#if selectedIslandId}
-      <IslandScoreCard
-        island={selectedIsland}
-        loading={!mapReady || analyticsLoading || !selectedIsland}
-        error={Boolean(analyticsError)}
-      />
-    {:else}
-      <NationalScoreCard
-        title={config.app.name}
-        caption="National score"
-        overall={analyticsData?.national.score}
-        metrics={nationalMetrics}
-        islands={islandCollection.features.map((feature) => ({
-          id: feature.properties.id,
-          name: feature.properties.name,
-          atollName: feature.properties.atollName,
-          centroid: feature.properties.centroid,
-          score: feature.properties.score
-        }))}
-        onIslandSelect={selectSearchIsland}
-        onAnalyticsOpen={openAnalytics}
-        loading={!mapReady || analyticsLoading}
-        error={Boolean(analyticsError)}
-      />
-    {/if}
+    {#key selectedIslandId}
+      {#if selectedIslandId}
+        <IslandScoreCard
+          island={selectedIsland}
+          loading={!mapReady || analyticsLoading || !selectedIsland}
+          error={Boolean(analyticsError)}
+        />
+      {:else}
+        <NationalScoreCard
+          title={config.app.name}
+          caption="National score"
+          overall={analyticsData?.national.score}
+          metrics={nationalMetrics}
+          islands={islandCollection.features.map((feature) => ({
+            id: feature.properties.id,
+            name: feature.properties.name,
+            atollName: feature.properties.atollName,
+            centroid: feature.properties.centroid,
+            score: feature.properties.score
+          }))}
+          onIslandSelect={selectSearchIsland}
+          onAnalyticsOpen={openAnalytics}
+          loading={!mapReady || analyticsLoading}
+          error={Boolean(analyticsError)}
+        />
+      {/if}
+    {/key}
   </div>
 
   <NationalAnalyticsCard
@@ -2305,6 +2319,7 @@
     place-items: center;
     padding: 2rem;
     background: #ffffff;
+    will-change: opacity, filter;
   }
 
   .loading-card {

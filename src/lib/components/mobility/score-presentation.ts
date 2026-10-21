@@ -90,6 +90,14 @@ export function scorePercentage(value: number | null | undefined): string {
   return isUnavailableScore(value) ? 'N/A' : `${Math.round(value as number)}%`;
 }
 
+export function scoreColor(value: number | null | undefined): string {
+  if (isUnavailableScore(value)) return '#a1a1aa';
+
+  const score = Math.max(0, Math.min(100, value ?? 0));
+  const severity = 100 - score;
+  return [...SCORE_MOODS].reverse().find((candidate) => severity >= candidate.min)?.color ?? SCORE_MOODS[0].color;
+}
+
 export function scorePresentation(value: number | null | undefined, unavailableLabel: string): ScorePresentation {
   if (isUnavailableScore(value)) {
     return { percent: 'N/A', color: '#09090b', emojiSrc: '', emojiLabel: unavailableLabel };

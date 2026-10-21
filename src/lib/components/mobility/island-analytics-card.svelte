@@ -16,6 +16,8 @@
   import { Progress } from '$components/ui/progress';
   import { Skeleton } from '$components/ui/skeleton';
 
+  import { scoreColor } from './score-presentation';
+
   type Props = {
     open?: boolean;
     island: AnalyticsIsland | null;
@@ -91,9 +93,11 @@
         <div class="analytics-heading">
           <div>
             <h2>
-              {island?.overall.score === null || island?.overall.score === undefined
-                ? 'Why is this score unavailable?'
-                : `Why ${Math.round(island.overall.score)}%?`}
+              {#if island?.overall.score === null || island?.overall.score === undefined}
+                Why is this score unavailable?
+              {:else}
+                Why {percentage(island.overall.score)}?
+              {/if}
             </h2>
           </div>
           <Button class="close-button" variant="ghost" size="icon" aria-label="Close island analytics" onclick={onClose}
@@ -123,9 +127,18 @@
                 {@const value = driverScore(driver.key)}
                 <div class="driver-row">
                   <div class="driver-topline">
-                    <span>{driver.label}</span><Badge class="driver-badge" variant="outline">{percentage(value)}</Badge>
+                    <span>{driver.label}</span><strong class="driver-score" style={`color: ${scoreColor(value)}`}
+                      >{percentage(value)}</strong
+                    >
                   </div>
-                  <Progress value={value ?? 0} max={100} aria-label={`${driver.label} score`} /><small
+                  <Progress
+                    class="driver-progress"
+                    style={`--driver-score-color: ${scoreColor(value)}`}
+                    value={value ?? 0}
+                    max={100}
+                    aria-label={`${driver.label} score`}
+                  />
+                  <small
                     >{driver.note}{driver.key !== 'demand'
                       ? ` - ${Math.round(coverage(driver.key) * 100)}% coverage`
                       : ` - ${number(island.demand.inboundTotal)} inbound · ${number(island.demand.outboundTotal)} outbound`}</small
@@ -472,13 +485,6 @@
     box-shadow: none;
     font-size: 0.56rem;
   }
-  :global(.island-analytics-card .status-badge),
-  :global(.island-analytics-card .driver-badge) {
-    border-color: #d4d4d8;
-    background: #f4f4f5;
-    color: #3f3f46;
-    font-size: 0.56rem;
-  }
   .driver-list {
     display: grid;
     gap: 0.72rem;
@@ -492,12 +498,23 @@
     font-size: 0.66rem;
     font-weight: 780;
   }
+  .driver-topline {
+    align-items: center;
+  }
+  .driver-score {
+    flex: 0 0 auto;
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
   :global(.driver-row [data-slot='progress']) {
     height: 0.38rem;
     background: #e4e4e7;
   }
   :global(.driver-row [data-slot='progress-indicator']) {
-    background: var(--mobility-accent, #09090b);
+    background: var(--driver-score-color, var(--mobility-accent, #09090b));
   }
   .driver-row small {
     color: #71717a;
@@ -975,13 +992,6 @@
     color: var(--mobility-muted, #71717a);
   }
 
-  :global(.island-analytics-card .status-badge),
-  :global(.island-analytics-card .driver-badge) {
-    border-color: #d4d4d8;
-    background: var(--mobility-accent-soft, #f4f4f5);
-    color: #3f3f46;
-  }
-
   :global(.island-analytics-card .close-button) {
     border-color: var(--mobility-border-strong, #d4d4d8);
     background: var(--mobility-surface, #ffffff);
@@ -1000,7 +1010,7 @@
   }
 
   :global(.island-analytics-card [data-slot='progress-indicator']) {
-    background: var(--mobility-accent, #09090b);
+    background: var(--driver-score-color, var(--mobility-accent, #09090b));
   }
 
   :global(.island-analytics-card .service-group),
