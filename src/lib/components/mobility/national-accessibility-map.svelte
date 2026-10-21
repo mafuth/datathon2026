@@ -56,6 +56,7 @@
   import NationalScoreCard from './national-score-card.svelte';
   import ProposalBuilder from './proposal-builder.svelte';
   import ProposalLauncher from './proposal-launcher.svelte';
+  import { SCORE_MOODS } from './score-presentation';
   import ServiceClusterMarker from './service-cluster-marker.svelte';
   import ServiceDetailsPopup from './service-details-popup.svelte';
   import ServiceMapMarker from './service-map-marker.svelte';
@@ -2323,19 +2324,10 @@
       ['==', ['get', 'scoreStatus'], 'unavailable'],
       '#a1a1aa',
       [
-        'interpolate',
-        ['linear'],
+        'step',
         ['coalesce', ['get', 'score'], 0],
-        0,
-        '#d73027',
-        25,
-        '#fc8d59',
-        50,
-        '#fee08b',
-        75,
-        '#91cf60',
-        100,
-        '#1a9850'
+        SCORE_MOODS[0].color,
+        ...SCORE_MOODS.slice(1).flatMap((mood) => [mood.min, mood.color])
       ]
     ];
 
