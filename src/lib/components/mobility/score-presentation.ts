@@ -61,25 +61,25 @@ export const SCORE_MOODS = [
     color: '#d73027'
   },
   {
-    min: 20,
+    min: 50,
     label: 'Worried face',
     src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Worried%20Face.png`,
     color: '#fc8d59'
   },
   {
-    min: 40,
+    min: 65,
     label: 'Slightly smiling face',
     src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Slightly%20Smiling%20Face.png`,
     color: '#d6b83f'
   },
   {
-    min: 60,
+    min: 80,
     label: 'Smiling face',
     src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Smiling%20Face.png`,
     color: '#77a85d'
   },
   {
-    min: 80,
+    min: 90,
     label: 'Beaming face with smiling eyes',
     src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Beaming%20Face%20with%20Smiling%20Eyes.png`,
     color: '#1a9850'
