@@ -1185,7 +1185,7 @@
         if (requestId === islandProfileRequest) islandProfile = cachedProfile;
         return;
       }
-      const response = await fetch(`/api/v1/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
+      const response = await fetch(`/api/map/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Island profile request failed with status ${response.status}`);
       const profile = (await response.json()) as IslandProfile;
       islandProfileCache.set(id, profile);
