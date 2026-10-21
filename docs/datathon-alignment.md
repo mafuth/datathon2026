@@ -161,11 +161,16 @@ The current scorer estimates demand from population cohorts and uses configured 
 
 The interface should display confidence and evidence status beside every important number.
 
-### 4. Sustainability is absent
+### 4. Sustainability is modeled, not measured
 
-The datathon explicitly mentions sustainability and reducing carbon footprints. The project currently has no emissions or mode comparison feature.
+The backend now includes a transparent sustainability proxy using vehicle counts,
+configured category and mode factors, modeled transport demand, and explicit
+fallbacks. It is exposed as a fifth scoring domain and analytics data, but it is
+not an emissions inventory or a measured carbon-footprint comparison.
 
-A transparent estimate is enough for the hackathon. It does not need to claim precise real-world emissions.
+The remaining gap is provenance-rich route emissions using observed trips,
+distance, occupancy, fuel type, and validated mode capacity. The current output
+must remain labeled as modeled or estimated.
 
 ### 5. Operational journey data is not fully exposed
 
@@ -242,9 +247,11 @@ The scenario response should compare baseline and proposal values for:
 
 The proposal can remain draft-only, but the interface must clearly say that it is a planning simulation and is not persisted or approved policy.
 
-### Priority 4: Add a sustainability estimate
+### Priority 4: Extend the sustainability estimate
 
-Implement a clearly labeled estimated emissions calculation using public emission factors.
+The backend has a clearly labeled pollution-pressure estimate using public
+vehicle and transport proxies. Extend it only if reliable route-level inputs
+and public emission-factor provenance become available.
 
 Suggested model:
 
@@ -380,11 +387,14 @@ Compare only the metrics needed for the pitch:
 
 Keep the result draft-only and clearly label it as a planning simulation rather than an approved policy outcome.
 
-### Phase 5: Add a transparent sustainability estimate
+### Phase 5: Harden the transparent sustainability estimate
 
-Add a pure calculation for estimated emissions using public mode factors, route distance, and modeled passenger demand. Include the factor source, assumptions, and confidence in the response and reader display.
+The current implementation provides a pure pollution-pressure calculation using
+vehicle categories, mode factors, modeled passenger demand, and limitations.
+Future route-level emissions work should add distance and factor provenance,
+then expose the assumptions and confidence in the response and reader display.
 
-Do not add emissions to the national score until the estimate has an approved provenance and a clear interpretation.
+Do not present the current proxy as measured emissions or precise carbon output.
 
 ### Deferred work
 
@@ -395,7 +405,6 @@ The following work should remain outside the minimal pitch-focused implementatio
 - Road-safety scoring.
 - Climate-risk layers.
 - Live traffic monitoring.
-- Database schema changes.
 - Persisted transport route proposals.
 - New global application state.
 

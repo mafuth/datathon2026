@@ -32,6 +32,8 @@ const EDUCATION_SERVICE_SUBTYPES = {
   tertiary: 'tertiary'
 } as const;
 
+const demandAllocationCache = new WeakMap<ScoringSnapshot, DemandAllocationResult>();
+
 type UniqueDemand = {
   category: 'health' | 'education';
   needKey: string;
@@ -402,6 +404,9 @@ function selectUniqueEducationRouting(
 }
 
 export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocationResult {
+  const cached = demandAllocationCache.get(snapshot);
+  if (cached) return cached;
+
   const byIsland = new Map<string, DemandSummary>();
   const byOriginNeed = new Map<string, DemandAllocation>();
   const byOriginCohort = new Map<string, DemandAllocation>();
@@ -550,13 +555,15 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
     }
   }
 
-  return {
+  const result = {
     byIsland: new Map([...byIsland.entries()].map(([islandId, value]) => [islandId, finalizeSummary(value)])),
     byOriginNeed,
     byOriginCohort,
     hospitalOverlays,
     educationOverlays
   };
+  demandAllocationCache.set(snapshot, result);
+  return result;
 }
 
 export function demandAllocationFor(

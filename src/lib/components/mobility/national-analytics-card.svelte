@@ -1,5 +1,8 @@
 <script lang="ts">
+  import type { SustainabilityFactorKey, SustainabilityScore } from './sustainability-types';
+
   import Briefcase from '@lucide/svelte/icons/briefcase';
+  import Car from '@lucide/svelte/icons/car';
   import Hospital from '@lucide/svelte/icons/hospital';
   import Route from '@lucide/svelte/icons/route';
   import School from '@lucide/svelte/icons/school';
@@ -16,6 +19,7 @@
   import { Skeleton } from '$components/ui/skeleton';
 
   import { scoreColor } from './score-presentation';
+  import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
   type ComponentScore = {
     score: number | null;
@@ -141,6 +145,8 @@
     education: ComponentScore;
     transport: ComponentScore;
     employment: EmploymentScore;
+    sustainability: SustainabilityScore;
+    pollutionPressure: number | null;
     crowdedness: {
       score: number | null;
       population: number | null;
@@ -199,6 +205,8 @@
       demand: DemandSummary;
       transportDemand: TransportDemandSummary;
       employment: EmploymentScore;
+      sustainability: SustainabilityScore;
+      pollutionPressure: number | null;
     };
     population: { total: number; children: number; adolescents: number; youth: number; elderly: number };
     islands: AnalyticsIsland[];
@@ -213,6 +221,7 @@
       employment: string[];
       jobRichLowPopulation: string[];
       jobDemandGaps: string[];
+      highestPollution: string[];
     };
   };
 
@@ -221,7 +230,6 @@
     label: string;
     score: number | null;
     status: string;
-    coverage: number;
     note: string;
   };
 
@@ -258,7 +266,15 @@
     { key: 'transport', label: 'Transport' },
     { key: 'employment', label: 'Employment' }
   ] as const;
-  const driverSkeletons = ['Health', 'Education', 'Transport', 'Employment', 'Crowdedness', 'External demand'] as const;
+  const driverSkeletons = [
+    'Health',
+    'Education',
+    'Transport',
+    'Employment',
+    'Sustainability',
+    'Crowdedness',
+    'External demand'
+  ] as const;
   const hotspotSkeletons = ['one', 'two', 'three'] as const;
   const rankingSkeletons = [0, 1, 2, 3] as const;
 
@@ -271,7 +287,6 @@
         label: 'Health',
         score: category.health?.score ?? null,
         status: category.health?.status ?? 'unavailable',
-        coverage: category.health?.coverageRatio ?? 0,
         note: 'Population-weighted health access'
       },
       {
@@ -279,7 +294,6 @@
         label: 'Education',
         score: category.education?.score ?? null,
         status: category.education?.status ?? 'unavailable',
-        coverage: category.education?.coverageRatio ?? 0,
         note: 'Population-weighted school access'
       },
       {
@@ -287,7 +301,6 @@
         label: 'Transport',
         score: category.transport?.score ?? null,
         status: category.transport?.status ?? 'unavailable',
-        coverage: category.transport?.coverageRatio ?? 0,
         note: 'Land, marine, and air connections'
       },
       {
@@ -295,15 +308,20 @@
         label: 'Employment',
         score: category.employment?.score ?? null,
         status: category.employment?.status ?? 'unavailable',
-        coverage: category.employment?.coverageRatio ?? 0,
         note: 'Foreign residents balanced against recorded workplace supply'
+      },
+      {
+        key: 'sustainability',
+        label: 'Sustainability',
+        score: category.sustainability?.score ?? null,
+        status: category.sustainability?.status ?? 'unavailable',
+        note: 'Modeled pollution pressure from vehicles and transport demand'
       },
       {
         key: 'crowdedness',
         label: 'Crowdedness',
         score: category.crowdedness?.score ?? null,
         status: category.crowdedness?.status ?? 'unavailable',
-        coverage: category.crowdedness?.coverageRatio ?? 0,
         note: 'Population density pressure'
       },
       {
@@ -311,7 +329,6 @@
         label: 'External demand',
         score: category.externalDemand?.score ?? null,
         status: category.externalDemand?.status ?? 'unavailable',
-        coverage: category.externalDemand?.coverageRatio ?? 0,
         note: 'Combined local and inbound service pressure'
       }
     ];
@@ -331,7 +348,9 @@
     (data?.rankings.outbound ?? [])
       .map((id) => data?.islands.find((island) => island.id === id))
       .filter((island): island is AnalyticsIsland => island !== undefined)
+      .slice(0, 3)
   );
+  let inboundSources = $derived((data?.national.demand.inboundSources ?? []).slice(0, 3));
   let underservedIslands = $derived(
     (data?.rankings.underserved ?? [])
       .map((id) => data?.islands.find((island) => island.id === id))
@@ -341,9 +360,16 @@
     (data?.rankings.jobRichLowPopulation ?? [])
       .map((id) => data?.islands.find((island) => island.id === id))
       .filter((island): island is AnalyticsIsland => island !== undefined)
+      .slice(0, 3)
   );
   let jobDemandGapIslands = $derived(
     (data?.rankings.jobDemandGaps ?? [])
+      .map((id) => data?.islands.find((island) => island.id === id))
+      .filter((island): island is AnalyticsIsland => island !== undefined)
+      .slice(0, 3)
+  );
+  let highestPollutionIslands = $derived(
+    (data?.rankings.highestPollution ?? [])
       .map((id) => data?.islands.find((island) => island.id === id))
       .filter((island): island is AnalyticsIsland => island !== undefined)
   );
@@ -374,6 +400,39 @@
       .replaceAll('_', ' ')
       .replaceAll(':', ' / ')
       .replace(/\b\w/g, (character) => character.toUpperCase());
+  }
+
+  function factorContribution(score: SustainabilityScore, key: SustainabilityFactorKey): number | null {
+    return score.pollutionFactors[key].contributionPercent;
+  }
+
+  function signedPercentage(value: number | null): string {
+    return value === null ? 'N/A' : `${value > 0 ? '+' : ''}${Math.round(value)}%`;
+  }
+
+  function factorProgress(score: SustainabilityScore, key: SustainabilityFactorKey): number {
+    const contribution = factorContribution(score, key);
+    return contribution === null ? 0 : Math.min(100, Math.abs(contribution));
+  }
+
+  function publicTransportBenefitPercent(score: SustainabilityScore): number | null {
+    if (
+      score.publicTransportBenefit === null ||
+      score.privateVehiclePollution === null ||
+      score.privateVehiclePollution <= 0
+    ) {
+      return null;
+    }
+    return -(score.publicTransportBenefit / score.privateVehiclePollution) * 100;
+  }
+
+  function publicTransportBenefitProgress(score: SustainabilityScore): number {
+    const benefitPercent = publicTransportBenefitPercent(score);
+    return benefitPercent === null ? 0 : Math.min(100, Math.abs(benefitPercent));
+  }
+
+  function pollutionPressure(value: number | null): string {
+    return value === null ? 'N/A' : value.toFixed(2);
   }
 
   function categoryShare(count: number, total: number): number {
@@ -413,6 +472,7 @@
     if (key === 'education') return School;
     if (key === 'transport') return Ship;
     if (key === 'employment') return Briefcase;
+    if (key === 'sustainability') return Car;
     return Users;
   }
 
@@ -501,7 +561,7 @@
                     max={100}
                     aria-label={`${driver.label} score`}
                   />
-                  <span class="driver-note">{driver.note} - {Math.round(driver.coverage * 100)}% coverage</span>
+                  <span class="driver-note">{driver.note}</span>
                 </div>
               {/each}
             </div>
@@ -592,6 +652,26 @@
               {/each}
             </div>
           </Card.Root>
+          <div class="sustainability-grid">
+            <Card.Root class="insight-card sustainability-card loading-insight-card" size="sm">
+              <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
+              <Skeleton class="loading-sustainability-score" />
+              <div class="loading-sustainability-factors">
+                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
+                  <Skeleton class="loading-sustainability-factor" />
+                {/each}
+              </div>
+            </Card.Root>
+            <Card.Root class="insight-card sustainability-card loading-insight-card" size="sm">
+              <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
+              <Skeleton class="loading-sustainability-score loading-sustainability-score-short" />
+              <div class="loading-sustainability-factors">
+                {#each rankingSkeletons as row (row)}
+                  <Skeleton class="loading-sustainability-factor" />
+                {/each}
+              </div>
+            </Card.Root>
+          </div>
         {:else if data && !error}
           <div class="detail-grid">
             <Card.Root class="insight-card" size="sm">
@@ -738,6 +818,101 @@
             {/if}
           </Card.Root>
 
+          <div class="sustainability-grid">
+            <Card.Root class="insight-card sustainability-card" size="sm">
+              <div class="card-heading">
+                <div>
+                  <h3>Pollution pressure</h3>
+                </div>
+                <Car size={17} strokeWidth={2.2} />
+              </div>
+              <div class="sustainability-scoreline">
+                <strong>{percentage(data.national.sustainability.score)}</strong>
+              </div>
+              <div class="sustainability-factors">
+                <div class="sustainability-factor sustainability-benefit-factor">
+                  <div class="sustainability-factor-heading">
+                    <span>Public transport benefit</span>
+                    <strong>{signedPercentage(publicTransportBenefitPercent(data.national.sustainability))}</strong>
+                  </div>
+                  <Progress
+                    value={publicTransportBenefitProgress(data.national.sustainability)}
+                    max={100}
+                    aria-label="Public transport benefit relative to private vehicle pressure"
+                  />
+                  <small class="sustainability-factor-note"
+                    >{decimal(data.national.sustainability.publicTransportBenefit)} pressure units avoided</small
+                  >
+                </div>
+                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
+                  <div class="sustainability-factor">
+                    <div class="sustainability-factor-heading">
+                      <span>{factor.label}</span>
+                      <strong>{signedPercentage(factorContribution(data.national.sustainability, factor.key))}</strong>
+                    </div>
+                    <Progress
+                      value={factorProgress(data.national.sustainability, factor.key)}
+                      max={100}
+                      aria-label={`${factor.label} net pressure effect`}
+                    />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card sustainability-card" size="sm">
+              <div class="card-heading">
+                <div>
+                  <h3>Vehicle mix</h3>
+                </div>
+                <Car size={17} strokeWidth={2.2} />
+              </div>
+              <div class="vehicle-summary">
+                <strong>{number(data.national.sustainability.vehicleTotal)}</strong>
+              </div>
+              <div class="vehicle-category-list">
+                {#each data.national.sustainability.vehicleCategoryBreakdown.slice(0, 8) as category (category.category)}
+                  <div class="vehicle-category-row">
+                    <div class="vehicle-category-heading">
+                      <span>{vehicleCategoryLabel(category.category)}</span>
+                      <strong>{number(category.total)}</strong>
+                    </div>
+                    <Progress
+                      value={category.sharePercent}
+                      max={100}
+                      aria-label={`${vehicleCategoryLabel(category.category)} vehicle share`}
+                    />
+                  </div>
+                {:else}
+                  <p class="analytics-state">No vehicle-category rows are available.</p>
+                {/each}
+              </div>
+            </Card.Root>
+          </div>
+
+          <Card.Root class="insight-card ranking-card sustainability-ranking-card" size="sm">
+            <div class="card-heading">
+              <div>
+                <h3>Highest pollution pressure</h3>
+                <p>Click an island to open its full breakdown.</p>
+              </div>
+              <Car size={17} strokeWidth={2.2} />
+            </div>
+            <div class="ranking-list">
+              {#each highestPollutionIslands as island (island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+                  <span>
+                    <strong>{islandLabel(island)}</strong>
+                    <small>{number(island.sustainability.vehicleTotal)} vehicles</small>
+                  </span>
+                  <b>{pollutionPressure(island.pollutionPressure)}</b>
+                </Button>
+              {:else}
+                <p class="analytics-state">No pollution ranking is available.</p>
+              {/each}
+            </div>
+          </Card.Root>
+
           <Card.Root class="insight-card ranking-card employment-ranking-card" size="sm">
             <div class="card-heading">
               <div>
@@ -796,7 +971,7 @@
           <Card.Root class="insight-card ranking-card" size="sm">
             <div class="card-heading">
               <div>
-                <h3>Outbound service dependence</h3>
+                <h3>High outbound service dependence</h3>
               </div>
               <Route size={17} strokeWidth={2.2} />
             </div>
@@ -816,12 +991,12 @@
           <Card.Root class="insight-card ranking-card" size="sm">
             <div class="card-heading">
               <div>
-                <h3>Inbound demand origins</h3>
+                <h3>High inbound demand origins</h3>
               </div>
               <Route size={17} strokeWidth={2.2} />
             </div>
             <div class="ranking-list">
-              {#each data.national.demand.inboundSources as source (source.originIslandId)}
+              {#each inboundSources as source (source.originIslandId)}
                 {@const origin = sourceIsland(source)}
                 <Button
                   class="ranking-row"
@@ -844,11 +1019,7 @@
             </div>
           </Card.Root>
 
-          <Card.Root
-            class="insight-card ranking-card underserved-card"
-            size="sm"
-            data-story-target="national-focus-areas"
-          >
+          <Card.Root class="insight-card ranking-card" size="sm" data-story-target="national-focus-areas">
             <div class="card-heading">
               <div>
                 <h3>Most inaccessible islands</h3>
@@ -1001,12 +1172,20 @@
   }
   .driver-list {
     display: grid;
-    gap: 0.72rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
     margin-top: 0.75rem;
   }
   .driver-row {
     display: grid;
+    align-content: start;
     gap: 0.3rem;
+    min-width: 0;
+    min-height: 4.35rem;
+    padding: 0.48rem 0.55rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.4rem;
+    background: #fafafa;
   }
   .driver-topline {
     display: flex;
@@ -1187,6 +1366,86 @@
   .ranking-description {
     color: #71717a;
     font-size: 0.54rem;
+  }
+  .sustainability-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+  .sustainability-scoreline,
+  .vehicle-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.72rem;
+  }
+  .sustainability-scoreline strong,
+  .vehicle-summary strong {
+    color: var(--mobility-text, #09090b);
+    font-size: 1.45rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .sustainability-factors,
+  .vehicle-category-list {
+    display: grid;
+    gap: 0.58rem;
+    margin-top: 0.72rem;
+  }
+  .sustainability-factor,
+  .vehicle-category-row {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .sustainability-factor-heading,
+  .vehicle-category-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--mobility-muted, #71717a);
+    font-size: 0.58rem;
+    font-weight: 750;
+  }
+  .sustainability-factor-heading strong,
+  .vehicle-category-heading strong {
+    color: var(--mobility-text, #09090b);
+    font-variant-numeric: tabular-nums;
+  }
+  .sustainability-factor-note {
+    color: var(--mobility-muted, #71717a);
+    font-size: 0.52rem;
+  }
+  :global(.sustainability-card [data-slot='progress']) {
+    height: 0.32rem;
+    background: var(--mobility-surface-muted, #f4f4f5);
+  }
+  :global(.sustainability-card .sustainability-factor [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  :global(.sustainability-card .vehicle-category-row [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  .loading-sustainability-score {
+    width: 5.2rem;
+    height: 1.35rem;
+    margin-top: 0.72rem;
+    border-radius: 0.3rem;
+  }
+  .loading-sustainability-score-short {
+    width: 7rem;
+  }
+  .loading-sustainability-factors {
+    display: grid;
+    gap: 0.58rem;
+    margin-top: 0.72rem;
+  }
+  :global(.loading-sustainability-factor) {
+    width: 100%;
+    height: 1.25rem;
+    border-radius: 0.25rem;
   }
   .ranking-description {
     margin: 0.55rem 0 0;
@@ -1416,6 +1675,12 @@
     .detail-grid {
       grid-template-columns: 1fr;
     }
+    .sustainability-grid {
+      grid-template-columns: 1fr;
+    }
+    .driver-list {
+      grid-template-columns: 1fr;
+    }
   }
 
   :global(.analytics-card) {
@@ -1502,25 +1767,5 @@
     border-color: var(--mobility-accent, #09090b);
     background: var(--mobility-accent, #09090b);
     color: #ffffff;
-  }
-
-  :global(.analytics-card .underserved-card) {
-    border-color: #fdba74;
-    background: #fffaf3;
-    box-shadow: 0 0.3rem 0.9rem rgb(234 88 12 / 10%);
-  }
-
-  :global(.analytics-card .underserved-card .card-heading h3) {
-    color: #9a3412;
-  }
-
-  :global(.analytics-card .underserved-card .ranking-row:hover),
-  :global(.analytics-card .underserved-card .ranking-row:focus-visible) {
-    border-color: #fdba74;
-    background: #ffedd5;
-  }
-
-  :global(.analytics-card .underserved-card .ranking-row b) {
-    color: #c2410c;
   }
 </style>

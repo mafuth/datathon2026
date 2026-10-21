@@ -446,7 +446,7 @@
   .overall-score-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
+    gap: 0.45rem;
     margin-top: 0.6rem;
     padding-top: 0.6rem;
     border-top: 1px solid var(--mobility-border, #e4e4e7);
@@ -455,13 +455,11 @@
     display: grid;
     gap: 0.14rem;
     min-width: 0;
-    padding: 0.28rem 0.45rem 0.08rem;
-  }
-  .overall-score-card + .overall-score-card {
-    border-left: 0;
-  }
-  .overall-score-card:nth-child(even) {
-    border-left: 1px solid var(--mobility-border, #e4e4e7);
+    min-height: 2.65rem;
+    padding: 0.48rem 0.55rem;
+    border: 1px solid var(--mobility-border, #e4e4e7);
+    border-radius: 0.4rem;
+    background: #fafafa;
   }
   .overall-score-card span {
     color: var(--mobility-muted, #71717a);

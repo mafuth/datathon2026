@@ -18,25 +18,25 @@ The recommended focus is sea transport as the primary mode, with land and air tr
 
 ## Status Summary
 
-| Area               | Status              | Current situation                                                                                                                                                           |
-| ------------------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GIS map            | Implemented         | MapLibre map with island GeoJSON, OSM roads, service markers, and demand heatmaps.                                                                                          |
-| Sea transport      | Implemented/partial | RTL ferry routes, schedule snapshots, OSM marine evidence, and ferry connections exist. Full journey calculations are not exposed.                                          |
-| Land transport     | Partial             | Bus route data, roads, bridges, causeways, and last-mile routing exist. Observed traffic flow and road-safety data do not exist.                                            |
-| Air transport      | Partial             | Airports, helipads, and modeled air links exist. Verified flight schedules and travel times are unavailable.                                                                |
-| Healthcare access  | Implemented         | Health demand, hospital routing, elderly demand, care-transfer demand, and island analytics are implemented.                                                                |
-| Education access   | Implemented         | Education services, population demand, outbound demand, and island analytics are implemented.                                                                               |
-| Job access         | Implemented/partial | Employment score compares the `foregner` population category and working-age residents with island-linked workplace proxies; job capacity and vacancies remain unavailable. |
-| Passenger movement | Partial             | Movement is estimated from population and service demand, not observed passenger counts.                                                                                    |
-| Freight movement   | Missing             | No freight, cargo, port-volume, or logistics data is included.                                                                                                              |
-| Transport planning | Partial             | Facility scenario proposals work, but ferry frequency, route, capacity, and transport-link proposals are not supported.                                                     |
-| Monitoring         | Partial             | Static scores and load proxies exist, but there is no live monitoring or update history.                                                                                    |
-| Sustainability     | Missing             | No emissions, fuel, carbon, or mode-comparison calculation exists.                                                                                                          |
-| Climate resilience | Missing             | No flooding, weather disruption, coastal-risk, or climate exposure layer exists.                                                                                            |
-| Road safety        | Missing             | No crash, speed, lighting, pedestrian, or road-risk data exists.                                                                                                            |
-| Presentation pitch | Implemented         | The existing presentation mode contains an eight-step multimodal healthcare pitch.                                                                                          |
-| Reader timing      | Missing             | Reader mode has no five-minute countdown or story progress indicator.                                                                                                       |
-| Public API         | Partial             | Scenario preview and island-service APIs exist under `/api/v1`; several map requests still use unversioned routes.                                                          |
+| Area               | Status              | Current situation                                                                                                                                                                                        |
+| ------------------ | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GIS map            | Implemented         | MapLibre map with island GeoJSON, OSM roads, service markers, and demand heatmaps.                                                                                                                       |
+| Sea transport      | Implemented/partial | RTL ferry routes, schedule snapshots, OSM marine evidence, and ferry connections exist. Full journey calculations are not exposed.                                                                       |
+| Land transport     | Partial             | Bus route data, roads, bridges, causeways, and last-mile routing exist. Observed traffic flow and road-safety data do not exist.                                                                         |
+| Air transport      | Partial             | Airports, helipads, and modeled air links exist. Verified flight schedules and travel times are unavailable.                                                                                             |
+| Healthcare access  | Implemented         | Health demand, hospital routing, elderly demand, care-transfer demand, and island analytics are implemented.                                                                                             |
+| Education access   | Implemented         | Education services, population demand, outbound demand, and island analytics are implemented.                                                                                                            |
+| Job access         | Implemented/partial | Employment score compares the `foregner` population category and working-age residents with island-linked workplace proxies; job capacity and vacancies remain unavailable.                              |
+| Passenger movement | Partial             | Movement is estimated from population and service demand, not observed passenger counts.                                                                                                                 |
+| Freight movement   | Missing             | No freight, cargo, port-volume, or logistics data is included.                                                                                                                                           |
+| Transport planning | Partial             | Facility scenario proposals work, but ferry frequency, route, capacity, and transport-link proposals are not supported.                                                                                  |
+| Monitoring         | Partial             | Static scores and load proxies exist, but there is no live monitoring or update history.                                                                                                                 |
+| Sustainability     | Implemented/partial | A modeled pollution-pressure score uses vehicle categories, transport-demand proxies, mode factors, fallback assumptions, and explicit limitations; measured emissions and fuel data remain unavailable. |
+| Climate resilience | Missing             | No flooding, weather disruption, coastal-risk, or climate exposure layer exists.                                                                                                                         |
+| Road safety        | Missing             | No crash, speed, lighting, pedestrian, or road-risk data exists.                                                                                                                                         |
+| Presentation pitch | Implemented         | The existing presentation mode contains an eight-step multimodal healthcare pitch.                                                                                                                       |
+| Reader timing      | Missing             | Reader mode has no five-minute countdown or story progress indicator.                                                                                                                                    |
+| Public API         | Partial             | Scenario preview and island-service APIs exist under `/api/v1`; several map requests still use unversioned routes.                                                                                       |
 
 ## Already Implemented
 
@@ -47,6 +47,7 @@ The following areas should be preserved rather than rebuilt:
 - Health, education, and transport service inventory.
 - Inbound and outbound demand analytics.
 - Employment balance analytics using foreign-resident population and island-linked workplace records.
+- Sustainability proxy using vehicle counts, modeled mode demand, pollution factors, and explicit unavailable states.
 - Transport hub load estimates.
 - Ferry, bus, airport, road, bridge, causeway, and land-link evidence.
 - OSM and RTL data artifacts.

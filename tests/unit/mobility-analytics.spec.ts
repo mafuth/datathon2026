@@ -169,7 +169,8 @@ describe('database-backed analytics rankings', () => {
           jobSupply: 10,
           demand: 5,
           outboundDemand: 25,
-          pressure: 0.1
+          pressure: 0.1,
+          pollutionPressure: 1.4
         },
         {
           id: 'b',
@@ -183,7 +184,8 @@ describe('database-backed analytics rankings', () => {
           jobSupply: 5,
           demand: 20,
           outboundDemand: 10,
-          pressure: 0.2
+          pressure: 0.2,
+          pollutionPressure: 2.1
         },
         {
           id: 'c',
@@ -197,7 +199,8 @@ describe('database-backed analytics rankings', () => {
           jobSupply: null,
           demand: 0,
           outboundDemand: 0,
-          pressure: 0
+          pressure: 0,
+          pollutionPressure: null
         }
       ])
     ).toMatchObject({
@@ -210,7 +213,8 @@ describe('database-backed analytics rankings', () => {
       transport: ['a', 'b'],
       employment: ['b', 'a'],
       jobRichLowPopulation: ['b', 'a'],
-      jobDemandGaps: ['b', 'a']
+      jobDemandGaps: ['b', 'a'],
+      highestPollution: ['b', 'a']
     });
   });
 });
@@ -364,6 +368,7 @@ describe('age-based service demand allocation', () => {
         { islandId: 'origin-two', ageCategory: 'child_population_0_14', amount: 80 },
         { islandId: 'origin-two', ageCategory: 'elderly_population_65_plus', amount: 40 }
       ],
+      vehicleCounts: [],
       services: [
         {
           id: 'destination-hospital',

@@ -1,4 +1,12 @@
-import type { Island, JobLocation, Population, Service, TransportConnection, TransportRoute } from '../../db/models';
+import type {
+  Island,
+  JobLocation,
+  Population,
+  Service,
+  TransportConnection,
+  TransportRoute,
+  VehicleCount
+} from '../../db/models';
 
 export type ScoreStatus = 'numeric' | 'partial' | 'unavailable';
 
@@ -31,6 +39,7 @@ export type ResidentialDemandPoint = {
 export type ScoringSnapshot = {
   islands: Island[];
   population: Population[];
+  vehicleCounts: VehicleCount[];
   services: Service[];
   jobLocations?: JobLocation[];
   connections: TransportConnection[];
@@ -52,6 +61,45 @@ export type ScoreComponent = {
   evidenceCount: number;
   limitations: string[];
 };
+
+export type SustainabilityFactorKey = 'privateVehicles' | 'busLand' | 'jettyMarine' | 'airportAir';
+
+export type SustainabilityPollutionFactor = {
+  key: SustainabilityFactorKey;
+  mode: 'private' | 'land' | 'marine' | 'air';
+  pollutionFactor: number;
+  demand: number | null;
+  relianceMultiplier: number | null;
+  pollution: number | null;
+  grossPollution: number | null;
+  avoidedPrivatePollution: number | null;
+  contributionPercent: number | null;
+  demandSource: 'vehicle_counts' | 'modeled_transport_demand' | 'population_air_proxy' | 'unavailable';
+};
+
+export type VehicleCategoryBreakdown = {
+  category: string;
+  total: number;
+  sharePercent: number;
+  pollutionFactor: number;
+  pollutionContribution: number;
+};
+
+export type SustainabilityScoreResult = ScoreComponent & {
+  totalPopulation: number | null;
+  vehicleTotal: number | null;
+  vehiclesPerThousandPopulation: number | null;
+  privateVehiclePollution: number | null;
+  publicTransportReliance: number | null;
+  publicTransportShiftedDemand: number | null;
+  publicTransportBenefit: number | null;
+  pollutionFactors: Record<SustainabilityFactorKey, SustainabilityPollutionFactor>;
+  pollutionPressure: number | null;
+  sustainabilityScore: number | null;
+  vehicleCategoryBreakdown: VehicleCategoryBreakdown[];
+};
+
+export type SustainabilityScoreDto = SustainabilityScoreResult;
 
 export type EmploymentCategory = {
   key: string;
@@ -250,6 +298,7 @@ export type IslandScoreResult = {
   health: ScoreComponent & { breakdown: ServiceScore[]; adjustedScore: number | null };
   education: ScoreComponent & { breakdown: ServiceScore[]; adjustedScore: number | null };
   employment: EmploymentScoreResult;
+  sustainability: SustainabilityScoreResult;
   transport: ScoreComponent & {
     land: ScoreComponent;
     marine: ScoreComponent;
@@ -278,6 +327,7 @@ export type NationalScoreResult = {
   health: ScoreComponent;
   education: ScoreComponent;
   employment: EmploymentScoreResult;
+  sustainability: SustainabilityScoreResult;
   transport: ScoreComponent & {
     land: ScoreComponent;
     marine: ScoreComponent;

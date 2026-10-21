@@ -1,3 +1,5 @@
+import type { SustainabilityScore } from './sustainability-types';
+
 export type IslandProfileScore = {
   score: number | null;
   status: string;
@@ -211,5 +213,6 @@ export type IslandProfile = {
     };
   };
   employment: IslandEmploymentProfile;
+  sustainability: SustainabilityScore;
   demand: IslandDemandProfile;
 };

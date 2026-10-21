@@ -74,6 +74,7 @@ function snapshot(
   return {
     islands,
     population: [],
+    vehicleCounts: [],
     services,
     connections,
     routes: [],

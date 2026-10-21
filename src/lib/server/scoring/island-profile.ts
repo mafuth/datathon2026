@@ -1,4 +1,4 @@
-import type { ScoringSnapshot } from './types';
+import type { ScoringSnapshot, SustainabilityScoreDto } from './types';
 import type {
   IslandDemandMetric,
   IslandDemandProfile,
@@ -18,6 +18,11 @@ import db from '$lib/server/database';
 
 import { loadScoringSnapshot } from './database-input';
 import { getIslandScore } from './island-score';
+import { sustainabilityDto } from './sustainability-score';
+
+export type IslandProfileWithSustainability = IslandProfile & {
+  sustainability: SustainabilityScoreDto;
+};
 
 const populationBandDefinitions = [
   { key: 'child_population_0_14', label: 'Children 0-14', overlapping: false },
@@ -306,7 +311,7 @@ function demandProfile(
   };
 }
 
-export async function getIslandProfile(islandId: string): Promise<IslandProfile> {
+export async function getIslandProfile(islandId: string): Promise<IslandProfileWithSustainability> {
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new IslandProfileNotFoundError(islandId);
 
@@ -331,7 +336,7 @@ function buildIslandProfile(
   atollName: string,
   snapshot: ScoringSnapshot,
   score: Awaited<ReturnType<typeof getIslandScore>>
-): IslandProfile {
+): IslandProfileWithSustainability {
   const populationRecords = snapshot.population.filter((record) => record.islandId === island.id);
   const totalRecord = populationRecords.find((record) => record.ageCategory === 'total');
   const total = totalRecord?.amount ?? score.overall.denominatorPopulation;
@@ -383,6 +388,7 @@ function buildIslandProfile(
       categories: score.employment.categories,
       limitations: score.employment.limitations
     },
+    sustainability: sustainabilityDto(score.sustainability),
     demand: demandProfile(populationRecords, total, score, islandServices, snapshot.islands)
   };
 }

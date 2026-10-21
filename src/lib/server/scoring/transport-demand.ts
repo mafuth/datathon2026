@@ -28,10 +28,30 @@ type StopAccumulator = {
   educationTransfer: number;
 };
 
+type TransferLeg = {
+  mode: TransportStopMode;
+  originIslandId: string;
+  destinationIslandId: string;
+};
+
 const LAND_STOP_TYPES = new Set(['bus_station', 'bus_stop', 'public_transport']);
 const MARINE_STOP_TYPES = new Set(['port', 'jetty']);
 const AIR_STOP_TYPES = new Set(['airport', 'air_terminal', 'helipad']);
 const LAND_CONNECTION_TYPES = new Set(['bridge', 'bus', 'causeway', 'land_link']);
+const transportDemandCache = new WeakMap<
+  ScoringSnapshot,
+  WeakMap<DemandAllocationResult, Map<string, TransportDemandResult>>
+>();
+const stopsCache = new WeakMap<ScoringSnapshot, TransportStop[]>();
+const routeIslandsCache = new WeakMap<ScoringSnapshot, Map<string, Set<string>>>();
+const directConnectionsCache = new WeakMap<ScoringSnapshot, Map<string, Set<string>>>();
+const cohortDemandCache = new WeakMap<ScoringSnapshot, Map<string, CohortDemand>>();
+const connectionsByIdCache = new WeakMap<ScoringSnapshot, Map<string, ScoringSnapshot['connections'][number]>>();
+const connectedIslandIdsCache = new WeakMap<ScoringSnapshot, Map<string, string[]>>();
+const careAllocationsCache = new WeakMap<DemandAllocationResult, DemandAllocation[]>();
+const educationAllocationsCache = new WeakMap<DemandAllocationResult, DemandAllocation[]>();
+const transferLegsCache = new WeakMap<ScoringSnapshot, WeakMap<DemandAllocation, Map<boolean, TransferLeg[]>>>();
+const endpointStopsCache = new WeakMap<ScoringSnapshot, WeakMap<TransportStop[], Map<string, TransportStop[]>>>();
 
 function round(value: number): number {
   return Number(value.toFixed(2));
@@ -48,6 +68,14 @@ function populationAmount(snapshot: ScoringSnapshot, islandId: string, category:
 }
 
 function cohortDemand(snapshot: ScoringSnapshot, islandId: string): CohortDemand {
+  let byIsland = cohortDemandCache.get(snapshot);
+  if (!byIsland) {
+    byIsland = new Map<string, CohortDemand>();
+    cohortDemandCache.set(snapshot, byIsland);
+  }
+  const cached = byIsland.get(islandId);
+  if (cached) return cached;
+
   const children =
     populationAmount(snapshot, islandId, 'child_population_0_14') ||
     populationAmount(snapshot, islandId, 'child_population_0_17');
@@ -56,11 +84,13 @@ function cohortDemand(snapshot: ScoringSnapshot, islandId: string): CohortDemand
     populationAmount(snapshot, islandId, 'youth_population_18_35') ||
     populationAmount(snapshot, islandId, 'youth_population_15_24');
 
-  return {
+  const result = {
     working: populationAmount(snapshot, islandId, 'working_age_population_15_64'),
     students: children + adolescents + youth,
     elderly: populationAmount(snapshot, islandId, 'elderly_population_65_plus')
   };
+  byIsland.set(islandId, result);
+  return result;
 }
 
 function stopMode(stop: TransportStop): TransportStopMode {
@@ -70,6 +100,9 @@ function stopMode(stop: TransportStop): TransportStopMode {
 }
 
 function stopsForSnapshot(snapshot: ScoringSnapshot): TransportStop[] {
+  const cached = stopsCache.get(snapshot);
+  if (cached) return cached;
+
   const stops = snapshot.transportStops?.length
     ? [...snapshot.transportStops]
     : snapshot.services.flatMap((service) => {
@@ -112,20 +145,33 @@ function stopsForSnapshot(snapshot: ScoringSnapshot): TransportStop[] {
       stopKeys.add(key);
     }
   }
+  stopsCache.set(snapshot, stops);
   return stops;
 }
 
 function routeIslands(snapshot: ScoringSnapshot): Map<string, Set<string>> {
+  const cached = routeIslandsCache.get(snapshot);
+  if (cached) return cached;
+
   const islandsByRoute = new Map<string, Set<string>>();
   for (const entry of snapshot.routeStops ?? []) {
     const islands = islandsByRoute.get(entry.routeId) ?? new Set<string>();
     islands.add(entry.islandId);
     islandsByRoute.set(entry.routeId, islands);
   }
+  routeIslandsCache.set(snapshot, islandsByRoute);
   return islandsByRoute;
 }
 
 function directlyConnectedIslands(snapshot: ScoringSnapshot, islandId: string): Set<string> {
+  let byIsland = directConnectionsCache.get(snapshot);
+  if (!byIsland) {
+    byIsland = new Map<string, Set<string>>();
+    directConnectionsCache.set(snapshot, byIsland);
+  }
+  const cached = byIsland.get(islandId);
+  if (cached) return cached;
+
   const connected = new Set<string>();
   for (const connection of snapshot.connections.filter((entry) => entry.scoreEligible !== false)) {
     if (connection.fromIslandId === islandId) connected.add(connection.toIslandId);
@@ -133,7 +179,17 @@ function directlyConnectedIslands(snapshot: ScoringSnapshot, islandId: string): 
       connected.add(connection.fromIslandId);
     }
   }
+  byIsland.set(islandId, connected);
   return connected;
+}
+
+function connectionsById(snapshot: ScoringSnapshot): Map<string, ScoringSnapshot['connections'][number]> {
+  const cached = connectionsByIdCache.get(snapshot);
+  if (cached) return cached;
+
+  const result = new Map(snapshot.connections.map((connection) => [connection.id, connection]));
+  connectionsByIdCache.set(snapshot, result);
+  return result;
 }
 
 function connectedIslandIds(
@@ -141,6 +197,14 @@ function connectedIslandIds(
   stop: TransportStop,
   islandsByRoute: Map<string, Set<string>>
 ): string[] {
+  let byStop = connectedIslandIdsCache.get(snapshot);
+  if (!byStop) {
+    byStop = new Map<string, string[]>();
+    connectedIslandIdsCache.set(snapshot, byStop);
+  }
+  const cached = byStop.get(stop.id);
+  if (cached) return cached;
+
   const connected = new Set<string>();
   for (const routeId of stop.routeIds) {
     for (const islandId of islandsByRoute.get(routeId) ?? []) {
@@ -148,7 +212,9 @@ function connectedIslandIds(
     }
   }
   for (const islandId of directlyConnectedIslands(snapshot, stop.islandId)) connected.add(islandId);
-  return [...connected].sort();
+  const result = [...connected].sort();
+  byStop.set(stop.id, result);
+  return result;
 }
 
 function routeLinksIslands(
@@ -244,6 +310,20 @@ function endpointStops(
   destinationIslandId: string,
   islandsByRoute: Map<string, Set<string>>
 ): TransportStop[] {
+  let byStops = endpointStopsCache.get(snapshot);
+  if (!byStops) {
+    byStops = new WeakMap<TransportStop[], Map<string, TransportStop[]>>();
+    endpointStopsCache.set(snapshot, byStops);
+  }
+  let byEndpoint = byStops.get(stops);
+  if (!byEndpoint) {
+    byEndpoint = new Map<string, TransportStop[]>();
+    byStops.set(stops, byEndpoint);
+  }
+  const key = JSON.stringify([mode, originIslandId, destinationIslandId]);
+  const cached = byEndpoint.get(key);
+  if (cached) return cached;
+
   const linked = stops.filter(
     (stop) =>
       stopMode(stop) === mode &&
@@ -259,11 +339,15 @@ function endpointStops(
         );
   const destinationCandidates = candidates.filter((stop) => stop.islandId === destinationIslandId);
   const preferredDestination = preferredDestinationStops(snapshot, destinationCandidates, mode, destinationIslandId);
-  if (preferredDestination.length === 0 || preferredDestination.length === destinationCandidates.length)
+  if (preferredDestination.length === 0 || preferredDestination.length === destinationCandidates.length) {
+    byEndpoint.set(key, candidates);
     return candidates;
+  }
 
   const preferredIds = new Set(preferredDestination.map((stop) => stop.id));
-  return candidates.filter((stop) => stop.islandId === originIslandId || preferredIds.has(stop.id));
+  const result = candidates.filter((stop) => stop.islandId === originIslandId || preferredIds.has(stop.id));
+  byEndpoint.set(key, result);
+  return result;
 }
 
 function connectionMode(
@@ -276,22 +360,33 @@ function connectionMode(
   return null;
 }
 
-function transferLegs(
-  snapshot: ScoringSnapshot,
-  allocation: DemandAllocation,
-  includeLand: boolean
-): Array<{ mode: TransportStopMode; originIslandId: string; destinationIslandId: string }> {
+function transferLegs(snapshot: ScoringSnapshot, allocation: DemandAllocation, includeLand: boolean): TransferLeg[] {
+  let byAllocation = transferLegsCache.get(snapshot);
+  if (!byAllocation) {
+    byAllocation = new WeakMap<DemandAllocation, Map<boolean, TransferLeg[]>>();
+    transferLegsCache.set(snapshot, byAllocation);
+  }
+  let byMode = byAllocation.get(allocation);
+  if (!byMode) {
+    byMode = new Map<boolean, TransferLeg[]>();
+    byAllocation.set(allocation, byMode);
+  }
+  const cached = byMode.get(includeLand);
+  if (cached) return cached;
+
   const pathIslandIds = allocation.pathIslandIds ?? [];
   const pathConnectionIds = allocation.pathConnectionIds ?? [];
   if (pathConnectionIds.length > 0 && pathIslandIds.length === pathConnectionIds.length + 1) {
-    const connectionsById = new Map(snapshot.connections.map((connection) => [connection.id, connection]));
-    return pathConnectionIds.flatMap((connectionId, index) => {
-      const connection = connectionsById.get(connectionId);
+    const connectionById = connectionsById(snapshot);
+    const result = pathConnectionIds.flatMap((connectionId, index) => {
+      const connection = connectionById.get(connectionId);
       const mode = connection ? connectionMode(connection, includeLand) : null;
       const originIslandId = pathIslandIds[index];
       const destinationIslandId = pathIslandIds[index + 1];
       return mode && originIslandId && destinationIslandId ? [{ mode, originIslandId, destinationIslandId }] : [];
     });
+    byMode.set(includeLand, result);
+    return result;
   }
 
   if (
@@ -299,16 +394,20 @@ function transferLegs(
     allocation.destinationIslandId !== allocation.originIslandId &&
     (allocation.routeType === 'marine' || allocation.routeType === 'airport')
   ) {
-    return [
+    const result = [
       {
         mode: allocation.routeType === 'airport' ? 'air' : 'marine',
         originIslandId: allocation.originIslandId,
         destinationIslandId: allocation.destinationIslandId
       }
     ];
+    byMode.set(includeLand, result);
+    return result;
   }
 
-  return [];
+  const result: TransferLeg[] = [];
+  byMode.set(includeLand, result);
+  return result;
 }
 
 function modeHubType(mode: TransportStopMode): HubDemandImpact['hubType'] {
@@ -318,7 +417,10 @@ function modeHubType(mode: TransportStopMode): HubDemandImpact['hubType'] {
 }
 
 function careAllocations(result: DemandAllocationResult): DemandAllocation[] {
-  return [
+  const cached = careAllocationsCache.get(result);
+  if (cached) return cached;
+
+  const allocations = [
     ...(result.byOriginCohort?.values() ?? []),
     ...(result.hospitalOverlays ?? []).filter((allocation) => allocation.knownConnectivity)
   ].filter(
@@ -330,10 +432,15 @@ function careAllocations(result: DemandAllocationResult): DemandAllocation[] {
         allocation.routeType === 'marine' ||
         allocation.routeType === 'airport')
   );
+  careAllocationsCache.set(result, allocations);
+  return allocations;
 }
 
 function educationAllocations(result: DemandAllocationResult): DemandAllocation[] {
-  return [
+  const cached = educationAllocationsCache.get(result);
+  if (cached) return cached;
+
+  const allocations = [
     ...(result.byOriginCohort?.values() ?? []),
     ...(result.educationOverlays ?? []).filter((allocation) => allocation.knownConnectivity)
   ].filter(
@@ -345,6 +452,8 @@ function educationAllocations(result: DemandAllocationResult): DemandAllocation[
         allocation.routeType === 'marine' ||
         allocation.routeType === 'airport')
   );
+  educationAllocationsCache.set(result, allocations);
+  return allocations;
 }
 
 function addTransferDemand(
@@ -384,6 +493,19 @@ export function calculateTransportDemand(
   snapshot: ScoringSnapshot,
   demandAllocations: DemandAllocationResult
 ): TransportDemandResult {
+  let byAllocation = transportDemandCache.get(snapshot);
+  if (!byAllocation) {
+    byAllocation = new WeakMap<DemandAllocationResult, Map<string, TransportDemandResult>>();
+    transportDemandCache.set(snapshot, byAllocation);
+  }
+  let byIsland = byAllocation.get(demandAllocations);
+  if (!byIsland) {
+    byIsland = new Map<string, TransportDemandResult>();
+    byAllocation.set(demandAllocations, byIsland);
+  }
+  const cached = byIsland.get(islandId);
+  if (cached) return cached;
+
   const allStops = stopsForSnapshot(snapshot);
   const islandsByRoute = routeIslands(snapshot);
   const stops = allStops.filter(
@@ -532,7 +654,7 @@ export function calculateTransportDemand(
     limitation: stop.limitation
   }));
 
-  return {
+  const result = {
     workingDemand: round(allCohorts.working),
     studentDemand: round(allCohorts.students),
     elderlyDemand: round(allCohorts.elderly),
@@ -547,6 +669,8 @@ export function calculateTransportDemand(
     stops: demandStops,
     hubImpacts
   };
+  byIsland.set(islandId, result);
+  return result;
 }
 
 function allocationKey(allocation: DemandAllocation): string {

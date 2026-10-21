@@ -235,16 +235,18 @@ employment score = mean(job demand score, job supply score)
 island overall = weighted mean(adjusted health,
                                adjusted education,
                                transport,
-                               employment)
+                               employment,
+                               sustainability)
 ```
 
 Starting weights:
 
 ```text
-health     = 1/4
-education  = 1/4
-transport  = 1/4
-employment = 1/4
+health          = 1/5
+education       = 1/5
+transport       = 1/5
+employment      = 1/5
+sustainability  = 1/5
 
 land       = 1/3 of transport
 marine     = 1/3 of transport
@@ -254,6 +256,11 @@ air        = 1/3 of transport
 Unavailable components are excluded and the remaining weights are
 renormalized. Land, marine, and air must not be counted as additional
 top-level domains.
+
+When sustainability data is unavailable, its ineligible `null` score is
+excluded and the remaining top-level domain weights are renormalized. This
+preserves the existing overall score for snapshots that predate the vehicle
+count import.
 
 Crowdedness and external demand are impact factors, not extra top-level
 domains. This keeps the hierarchy explainable and prevents population pressure
@@ -266,6 +273,86 @@ job-demand proxy because the source does not identify foreign workers. The
 workplace-record count is normalized per 1,000 working-age residents. The
 foreign-residents-per-workplace value remains a diagnostic metric and does not
 drive the employment score.
+
+### Sustainability and Pollution Proxy
+
+Sustainability is a fifth top-level domain. It is intentionally a pollution
+pressure proxy, not an emissions inventory. The calculator uses the aggregate
+vehicle-count rows, configured category factors, and a bounded resident-scale
+transport-demand proxy. Raw hub totals are not treated as measured trips:
+
+```text
+vehicle_total = total-category row
+                or sum(non-total category rows)
+vehicles_per_thousand = 1,000 × vehicle_total / total_population
+public_transport_reliance = max(
+  0,
+  1 - vehicles_per_thousand / configured_vehicle_rate_reference
+)
+
+private_vehicle_pollution =
+  private_mode_factor × sum(category_total × category_pollution_factor)
+ground_demand = max(0, modeled_land_demand) + max(0, modeled_marine_demand)
+ground_coverage = clamp(ground_demand / total_population, 0, 1)
+shifted_ground_demand =
+  total_population × public_transport_reliance × ground_coverage
+land_equivalent_demand =
+  shifted_ground_demand × modeled_land_demand / ground_demand
+marine_equivalent_demand =
+  shifted_ground_demand × modeled_marine_demand / ground_demand
+land_net_effect =
+  land_equivalent_demand × (bus_land_factor - private_mode_factor)
+marine_net_effect =
+  marine_equivalent_demand × (jetty_marine_factor - private_mode_factor)
+air_equivalent_demand =
+  total_population × clamp(modeled_air_demand / total_population, 0, 1)
+air_net_effect =
+  air_equivalent_demand × (airport_air_factor - private_mode_factor)
+```
+
+The configured battery-scooter pollution factor is `0`, so battery scooters
+have zero modeled tailpipe pollution in this proxy. They remain in the vehicle
+count used for mobility-rate diagnostics; electricity use and lifecycle
+emissions are not available and are not claimed to be zero.
+
+Bus and ferry factors are lower than the private-travel baseline, so their net
+effects are negative and improve the score. The public-transport benefit is the
+positive avoided private pressure from those two modes. Air remains a
+high-impact mode because its net effect is still positive relative to private
+travel, but it is compared against the same resident-equivalent baseline so it
+does not automatically clamp every island to zero. When modeled air demand is
+unavailable but an airport or air link exists, population is used as the
+documented airport-use proxy. Otherwise the air factor is unavailable. The
+final pressure and score are:
+
+```text
+modeled_pollution = max(
+  0,
+  private_vehicle_pollution
+  + land_net_effect
+  + marine_net_effect
+  + air_net_effect
+)
+
+pollution_pressure = modeled_pollution / max(1, total_population)
+
+sustainability_score =
+  100 × clamp(1 - pollution_pressure / configured_pressure_reference, 0, 1)
+```
+
+Each factor's `pollution` value is a signed net effect. Negative values are
+public-transport benefits relative to the private-travel baseline. The UI
+contribution percentages use the absolute net-effect denominator and can exceed
+100% when benefits offset other pressure. They are not measured CO2
+percentages. Ground demand is capped at one resident-equivalent demand before
+the benefit is calculated, preventing repeated hub and transfer rows from
+forcing every island's score to zero.
+Vehicle registrations for islands outside the directly observed locality
+aggregates are allocated estimates. The data does not provide trip counts,
+travel distance, occupancy, fuel type, emissions, validated public/private
+mode split, or measured transport capacity. Missing vehicle rows make
+sustainability `unavailable`, not zero; a missing mode demand remains
+unavailable rather than being treated as zero.
 
 ## Component Calculations
 

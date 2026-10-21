@@ -7,6 +7,7 @@ import { Atoll, Island } from '$lib/db/models';
 import db from '$lib/server/database';
 import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
+import { buildDemandAllocation } from '$lib/server/scoring/demand-allocation';
 import { getIslandScore } from '$lib/server/scoring/island-score';
 
 type GeoJsonGeometry = {
@@ -27,6 +28,8 @@ type MapPayload = {
       centroid: [number, number];
       score: number | null;
       employmentScore: number | null;
+      sustainabilityScore: number | null;
+      pollutionPressure: number | null;
       scoreStatus: 'numeric' | 'unavailable';
     };
   }>;
@@ -45,13 +48,22 @@ async function buildMapPayload(): Promise<MapPayload> {
     loadScoringSnapshot()
   ]);
   const inhabitedIslands = islandRows.map(({ island, atollName }) => ({ ...island, atollName }));
+  const demandAllocations = buildDemandAllocation(snapshot);
   const scores = await Promise.all(
     inhabitedIslands.map(async (island) => {
       try {
-        const result = await getIslandScore(island.id, snapshot);
-        return [island.id, { overall: result.overall.score, employment: result.employment.score }] as const;
+        const result = await getIslandScore(island.id, snapshot, demandAllocations);
+        return [
+          island.id,
+          {
+            overall: result.overall.score,
+            employment: result.employment.score,
+            sustainability: result.sustainability.score,
+            pollutionPressure: result.sustainability.pollutionPressure
+          }
+        ] as const;
       } catch {
-        return [island.id, { overall: null, employment: null }] as const;
+        return [island.id, { overall: null, employment: null, sustainability: null, pollutionPressure: null }] as const;
       }
     })
   );
@@ -63,7 +75,12 @@ async function buildMapPayload(): Promise<MapPayload> {
         const geometry = JSON.parse(island.geoJson) as GeoJsonGeometry;
         if (!geometry || typeof geometry.type !== 'string' || geometry.coordinates === undefined) return [];
 
-        const islandScores = scoreByIsland.get(island.id) ?? { overall: null, employment: null };
+        const islandScores = scoreByIsland.get(island.id) ?? {
+          overall: null,
+          employment: null,
+          sustainability: null,
+          pollutionPressure: null
+        };
         const score = islandScores.overall;
 
         return [
@@ -78,6 +95,8 @@ async function buildMapPayload(): Promise<MapPayload> {
               centroid: [island.longitude, island.latitude],
               score,
               employmentScore: islandScores.employment,
+              sustainabilityScore: islandScores.sustainability,
+              pollutionPressure: islandScores.pollutionPressure,
               scoreStatus: typeof score === 'number' && Number.isFinite(score) ? 'numeric' : 'unavailable'
             }
           }

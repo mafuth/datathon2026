@@ -1,5 +1,9 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import type { EmploymentScoreResult, TransportDemandResult } from '$lib/server/scoring/types';
+import type {
+  EmploymentScoreResult,
+  SustainabilityScoreResult,
+  TransportDemandResult
+} from '$lib/server/scoring/types';
 
 import { json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
@@ -11,6 +15,7 @@ import { buildAnalyticsRankings } from '$lib/server/scoring/analytics-rankings';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { populationForIsland, totalPopulation } from '$lib/server/scoring/demand-allocation';
 import { getNationalScore } from '$lib/server/scoring/national-score';
+import { sustainabilityDto } from '$lib/server/scoring/sustainability-score';
 
 type NumberValue = number | null;
 
@@ -52,6 +57,10 @@ function employmentDto(employment: EmploymentScoreResult) {
     supplyScore: employment.supplyScore,
     categories: employment.categories
   };
+}
+
+function sustainabilityResultDto(sustainability: SustainabilityScoreResult) {
+  return sustainabilityDto(sustainability);
 }
 
 function demandMetricDto(metric: {
@@ -183,8 +192,7 @@ function aggregateTransportDemand(results: TransportDemandResult[]) {
 export const GET: RequestHandler = async () => {
   await waitForMobilityApiDelay();
 
-  const [national, snapshot, islandRows] = await Promise.all([
-    getNationalScore(),
+  const [snapshot, islandRows] = await Promise.all([
     loadScoringSnapshot(),
     db
       .select({
@@ -197,6 +205,7 @@ export const GET: RequestHandler = async () => {
       .from(Island)
       .innerJoin(Atoll, eq(Island.atollId, Atoll.id))
   ]);
+  const national = await getNationalScore(snapshot);
 
   const atollByIsland = new Map(islandRows.map((row) => [row.id, row.atollName]));
   const islandById = new Map(islandRows.map((row) => [row.id, row]));
@@ -233,6 +242,8 @@ export const GET: RequestHandler = async () => {
       education: componentDto(result.education),
       transport: componentDto(result.transport),
       employment: employmentDto(result.employment),
+      sustainability: sustainabilityResultDto(result.sustainability),
+      pollutionPressure: result.sustainability.pollutionPressure,
       crowdedness: {
         score: result.crowdedness.score,
         population: result.crowdedness.population,
@@ -279,7 +290,8 @@ export const GET: RequestHandler = async () => {
     jobSupply: island.employment.jobLocationsPerThousandWorkingAge,
     demand: island.demand.inboundTotal,
     outboundDemand: island.demand.outboundTotal,
-    pressure: Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0)
+    pressure: Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0),
+    pollutionPressure: island.pollutionPressure
   }));
   const rankings = buildAnalyticsRankings(rankingInputs);
 
@@ -297,12 +309,15 @@ export const GET: RequestHandler = async () => {
         education: componentDto(national.education),
         transport: componentDto(national.transport),
         employment: componentDto(national.employment),
+        sustainability: sustainabilityResultDto(national.sustainability),
         crowdedness: componentDto(national.crowdedness),
         externalDemand: componentDto(national.externalDemand)
       },
       demand: demandDto(national.demand, islandById),
       transportDemand: nationalTransportDemand,
       employment: employmentDto(national.employment),
+      sustainability: sustainabilityResultDto(national.sustainability),
+      pollutionPressure: national.sustainability.pollutionPressure,
       limitations: national.limitations
     },
     population,

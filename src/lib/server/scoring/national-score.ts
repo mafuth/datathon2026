@@ -1,4 +1,5 @@
 import type {
+  DemandAllocationResult,
   DemandMetric,
   DemandSummary,
   EmploymentCategory,
@@ -7,12 +8,16 @@ import type {
   IslandScoreResult,
   NationalScoreResult,
   ScoreComponent,
-  ScoreStatus
+  ScoreStatus,
+  ScoringSnapshot,
+  SustainabilityScoreResult,
+  TransportStopMode
 } from './types';
 
 import { loadScoringSnapshot } from './database-input';
-import { buildDemandAllocation } from './demand-allocation';
+import { buildDemandAllocation, populationForIsland, totalPopulation } from './demand-allocation';
 import { getIslandScore } from './island-score';
+import { calculateSustainabilityScore } from './sustainability-score';
 
 function average(values: Array<number | null>): number | null {
   const numeric = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
@@ -220,6 +225,60 @@ function aggregateEmployment(results: IslandScoreResult[]): EmploymentScoreResul
   };
 }
 
+function aggregateSustainabilityDemand(results: IslandScoreResult[], mode: TransportStopMode): number | null {
+  const values = results
+    .filter((result) => result.transport.demand.modes[mode].stopCount > 0)
+    .map((result) => result.transport.demand.modes[mode].totalDemand);
+  return values.length === 0 ? null : sum(values);
+}
+
+function nationalSustainability(
+  snapshot: ScoringSnapshot,
+  inhabitedIslandIds: Set<string>,
+  inhabitedResults: IslandScoreResult[]
+): SustainabilityScoreResult {
+  const populationValues = snapshot.islands
+    .filter((island) => inhabitedIslandIds.has(island.id))
+    .map((island) => totalPopulation(populationForIsland(snapshot, island.id)))
+    .filter((value): value is number => value !== null);
+  const vehicleCounts = (snapshot.vehicleCounts ?? []).filter((row) => inhabitedIslandIds.has(row.islandId));
+  const result = calculateSustainabilityScore({
+    totalPopulation: populationValues.length === 0 ? null : sum(populationValues),
+    vehicleCounts,
+    transportDemand: {
+      land: aggregateSustainabilityDemand(inhabitedResults, 'land'),
+      marine: aggregateSustainabilityDemand(inhabitedResults, 'marine'),
+      air: aggregateSustainabilityDemand(inhabitedResults, 'air')
+    },
+    airLinkExists:
+      inhabitedResults.some((island) => island.airportAccess.available) ||
+      snapshot.connections.some(
+        (connection) =>
+          connection.scoreEligible !== false &&
+          connection.connectionType === 'air' &&
+          (inhabitedIslandIds.has(connection.fromIslandId) || inhabitedIslandIds.has(connection.toIslandId))
+      )
+  });
+  const islandsWithVehicleCounts = new Set(vehicleCounts.map((row) => row.islandId)).size;
+  const coverageRatio =
+    inhabitedIslandIds.size === 0
+      ? result.coverageRatio
+      : Math.min(1, islandsWithVehicleCounts / inhabitedIslandIds.size);
+  const limitations = [
+    ...result.limitations,
+    ...(islandsWithVehicleCounts < inhabitedIslandIds.size
+      ? [
+          `Vehicle-count rows cover ${islandsWithVehicleCounts} of ${inhabitedIslandIds.size} inhabited islands; national vehicle pressure may be understated.`
+        ]
+      : [])
+  ];
+  return {
+    ...result,
+    coverageRatio: result.score === null ? 0 : coverageRatio,
+    limitations: [...new Set(limitations)]
+  };
+}
+
 function externalDemandComponent(results: IslandScoreResult[]): ScoreComponent {
   return {
     baseScore: average(
@@ -252,12 +311,16 @@ function externalDemandComponent(results: IslandScoreResult[]): ScoreComponent {
   };
 }
 
-export async function getNationalScore(): Promise<NationalScoreResult> {
-  const snapshot = await loadScoringSnapshot();
-  const demandAllocations = buildDemandAllocation(snapshot);
-  const inhabitedIslands = snapshot.islands.filter((island) => island.islandType === 'inhabited');
+export async function getNationalScore(
+  snapshot: ScoringSnapshot | undefined = undefined,
+  demandAllocations: DemandAllocationResult | undefined = undefined
+): Promise<NationalScoreResult> {
+  const scoringSnapshot = snapshot ?? (await loadScoringSnapshot());
+  const scoringDemandAllocations = demandAllocations ?? buildDemandAllocation(scoringSnapshot);
+  const inhabitedIslands = scoringSnapshot.islands.filter((island) => island.islandType === 'inhabited');
+  const inhabitedIslandIds = new Set(inhabitedIslands.map((island) => island.id));
   const scores = await Promise.all(
-    inhabitedIslands.map((island) => getIslandScore(island.id, snapshot, demandAllocations))
+    inhabitedIslands.map((island) => getIslandScore(island.id, scoringSnapshot, scoringDemandAllocations))
   );
   const numericScores = scores.filter((result) => result.overall.score !== null);
   const health = aggregateComponent(numericScores, (result) => result.health);
@@ -267,14 +330,18 @@ export async function getNationalScore(): Promise<NationalScoreResult> {
   const land = aggregateComponent(numericScores, (result) => result.transport.land);
   const marine = aggregateComponent(numericScores, (result) => result.transport.marine);
   const air = aggregateComponent(numericScores, (result) => result.transport.air);
+  const sustainability = nationalSustainability(scoringSnapshot, inhabitedIslandIds, scores);
   const overall = average(numericScores.map((result) => result.overall.score));
   const hasPartial = scores.some((result) => result.overall.status === 'partial');
   const status: ScoreStatus = overall === null ? 'unavailable' : hasPartial ? 'partial' : 'numeric';
   const limitations = [
-    ...new Set(scores.flatMap((result) => result.limitations)),
-    ...(numericScores.length < scores.length
-      ? ['Unavailable island scores were excluded from the national average.']
-      : [])
+    ...new Set([
+      ...scores.flatMap((result) => result.limitations),
+      ...sustainability.limitations,
+      ...(numericScores.length < scores.length
+        ? ['Unavailable island scores were excluded from the national average.']
+        : [])
+    ])
   ];
   return {
     score: overall,
@@ -282,11 +349,12 @@ export async function getNationalScore(): Promise<NationalScoreResult> {
     health,
     education,
     employment,
+    sustainability,
     transport: { ...transport, land, marine, air },
     crowdedness: aggregateCrowdedness(numericScores),
     demand: aggregateDemand(scores),
     externalDemand: externalDemandComponent(numericScores),
-    islandCount: snapshot.islands.length,
+    islandCount: scoringSnapshot.islands.length,
     inhabitedIslandCount: inhabitedIslands.length,
     scoredIslandCount: numericScores.length,
     partialIslandCount: scores.filter((result) => result.overall.status === 'partial').length,

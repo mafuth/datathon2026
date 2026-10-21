@@ -4,7 +4,15 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { eq } from 'drizzle-orm';
 
-import { Island, JobLocation, Population, Service, TransportConnection, TransportRoute } from '../../db/models';
+import {
+  Island,
+  JobLocation,
+  Population,
+  Service,
+  TransportConnection,
+  TransportRoute,
+  VehicleCount
+} from '../../db/models';
 import db from '../database';
 
 type RtlBusArtifact = {
@@ -31,6 +39,8 @@ type OsmBuildingArtifact = {
 
 let rtlBusStopsCache: { transportStops: TransportStop[]; routeStops: TransportRouteStop[] } | undefined;
 let residentialDemandPointsCache: ResidentialDemandPoint[] | undefined;
+let scoringSnapshotRequest: Promise<ScoringSnapshot> | null = null;
+let scoringSnapshotWithResidentialDemandRequest: Promise<ScoringSnapshot> | null = null;
 
 function rtlBusStops(): { transportStops: TransportStop[]; routeStops: TransportRouteStop[] } {
   const empty = { transportStops: [], routeStops: [] };
@@ -184,12 +194,13 @@ function residentialDemandPoints(): ResidentialDemandPoint[] {
   return residentialDemandPointsCache;
 }
 
-export async function loadScoringSnapshot(
+async function loadScoringSnapshotUncached(
   options: { includeResidentialDemandPoints?: boolean } = {}
 ): Promise<ScoringSnapshot> {
-  const [islands, population, services, jobLocations, connections, routes] = await Promise.all([
+  const [islands, population, vehicleCounts, services, jobLocations, connections, routes] = await Promise.all([
     db.select().from(Island),
     db.select().from(Population),
+    db.select().from(VehicleCount),
     db.select().from(Service),
     db.select().from(JobLocation),
     db.select().from(TransportConnection),
@@ -210,6 +221,7 @@ export async function loadScoringSnapshot(
   return {
     islands,
     population,
+    vehicleCounts,
     services,
     jobLocations,
     connections,
@@ -218,6 +230,39 @@ export async function loadScoringSnapshot(
     routeStops: rtl.routeStops,
     ...(options.includeResidentialDemandPoints ? { residentialDemandPoints: residentialDemandPoints() } : {})
   };
+}
+
+export function loadScoringSnapshot(
+  options: { includeResidentialDemandPoints?: boolean } = {}
+): Promise<ScoringSnapshot> {
+  const includeResidentialDemandPoints = options.includeResidentialDemandPoints === true;
+  const existingRequest = includeResidentialDemandPoints
+    ? scoringSnapshotWithResidentialDemandRequest
+    : scoringSnapshotRequest;
+  if (existingRequest) return existingRequest;
+
+  const request = loadScoringSnapshotUncached(options);
+  if (includeResidentialDemandPoints) scoringSnapshotWithResidentialDemandRequest = request;
+  else scoringSnapshotRequest = request;
+
+  void request.then(
+    () => {
+      if (includeResidentialDemandPoints) {
+        if (scoringSnapshotWithResidentialDemandRequest === request) scoringSnapshotWithResidentialDemandRequest = null;
+      } else if (scoringSnapshotRequest === request) {
+        scoringSnapshotRequest = null;
+      }
+    },
+    () => {
+      if (includeResidentialDemandPoints) {
+        if (scoringSnapshotWithResidentialDemandRequest === request) scoringSnapshotWithResidentialDemandRequest = null;
+      } else if (scoringSnapshotRequest === request) {
+        scoringSnapshotRequest = null;
+      }
+    }
+  );
+
+  return request;
 }
 
 export async function loadIsland(islandId: string) {

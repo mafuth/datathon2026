@@ -1,5 +1,11 @@
 export const scoringConfig = {
-  domainWeights: { health: 1 / 4, education: 1 / 4, transport: 1 / 4, employment: 1 / 4 },
+  domainWeights: {
+    health: 1 / 5,
+    education: 1 / 5,
+    transport: 1 / 5,
+    employment: 1 / 5,
+    sustainability: 1 / 5
+  },
   transportWeights: { land: 1 / 3, marine: 1 / 3, air: 1 / 3 },
   healthQuality: { hospital: 1, health_center: 0.65, clinic: 0.35 },
   healthDemandPolicy: {
@@ -49,5 +55,29 @@ export const scoringConfig = {
     ferry_terminal: 1.5,
     land_gateway: 2,
     transfer: 1.5
+  },
+  sustainability: {
+    vehicleCategoryPollutionFactors: {
+      total: 1,
+      motor_cycle: 0.55,
+      car: 1,
+      bus: 1.4,
+      pick_up: 1.2,
+      lorry: 1.6,
+      van: 1.1,
+      jeep: 1.15,
+      battery_scooter: 0,
+      other: 1.25
+    },
+    modePollutionFactors: {
+      privateVehicle: 1,
+      // Relative pollution per resident-equivalent trip. Bus and ferry are
+      // lower-impact alternatives to private travel; air remains high-impact.
+      busLand: 0.35,
+      jettyMarine: 0.55,
+      airportAir: 2.5
+    },
+    publicTransportRelianceReferenceVehiclesPerThousand: 600,
+    pollutionPressureReference: 2
   }
 } as const;

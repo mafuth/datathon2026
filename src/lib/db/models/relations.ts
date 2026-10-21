@@ -7,6 +7,7 @@ import { Population } from './population';
 import { Service } from './service';
 import { TransportConnection } from './transport-connection';
 import { TransportRoute } from './transport-route';
+import { VehicleCount } from './vehicle-count';
 
 export const atollRelations = relations(Atoll, ({ many }) => ({
   islands: many(Island)
@@ -19,6 +20,7 @@ export const islandRelations = relations(Island, ({ one, many }) => ({
   }),
   jobLocations: many(JobLocation),
   population: many(Population),
+  vehicleCounts: many(VehicleCount),
   services: many(Service),
   outgoingConnections: many(TransportConnection, { relationName: 'fromIsland' }),
   incomingConnections: many(TransportConnection, { relationName: 'toIsland' })
@@ -27,6 +29,13 @@ export const islandRelations = relations(Island, ({ one, many }) => ({
 export const populationRelations = relations(Population, ({ one }) => ({
   island: one(Island, {
     fields: [Population.islandId],
+    references: [Island.id]
+  })
+}));
+
+export const vehicleCountRelations = relations(VehicleCount, ({ one }) => ({
+  island: one(Island, {
+    fields: [VehicleCount.islandId],
     references: [Island.id]
   })
 }));

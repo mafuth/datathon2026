@@ -16,6 +16,14 @@ type EmploymentMetrics = {
   categories: EmploymentCategory[];
 };
 
+type EmploymentContext = {
+  metricsByIsland: Map<string, EmploymentMetrics>;
+  pressureValues: number[];
+  supplyValues: number[];
+};
+
+const employmentContextCache = new WeakMap<ScoringSnapshot, EmploymentContext>();
+
 function finiteAmount(records: Population[], category: string): number | null {
   const amount = records.find((record) => record.ageCategory === category)?.amount;
   return typeof amount === 'number' && Number.isFinite(amount) && amount >= 0 ? amount : null;
@@ -91,6 +99,29 @@ function metricsForIsland(snapshot: ScoringSnapshot, islandId: string): Employme
   };
 }
 
+function employmentContext(snapshot: ScoringSnapshot): EmploymentContext {
+  const cached = employmentContextCache.get(snapshot);
+  if (cached) return cached;
+
+  const metricsByIsland = new Map(
+    snapshot.islands
+      .filter((island) => island.islandType === 'inhabited')
+      .map((island) => [island.id, metricsForIsland(snapshot, island.id)] as const)
+  );
+  const allMetrics = [...metricsByIsland.values()];
+  const context = {
+    metricsByIsland,
+    pressureValues: allMetrics.flatMap((entry) =>
+      entry.foreignPerWorkingAge === null ? [] : [entry.foreignPerWorkingAge]
+    ),
+    supplyValues: allMetrics.flatMap((entry) =>
+      entry.jobLocationsPerThousandWorkingAge === null ? [] : [entry.jobLocationsPerThousandWorkingAge]
+    )
+  };
+  employmentContextCache.set(snapshot, context);
+  return context;
+}
+
 function percentile(value: number, values: number[]): number {
   if (values.length <= 1) return 50;
   const less = values.filter((candidate) => candidate < value).length;
@@ -130,7 +161,8 @@ function component(
 }
 
 export function calculateEmploymentScore(islandId: string, snapshot: ScoringSnapshot): EmploymentScoreResult {
-  const metrics = metricsForIsland(snapshot, islandId);
+  const context = employmentContext(snapshot);
+  const metrics = context.metricsByIsland.get(islandId) ?? metricsForIsland(snapshot, islandId);
   const limitations = [
     'Foreign population uses the population category `foregner`, which represents total foreign residents rather than foreign working-age residents; it is a job-demand proxy.',
     'Job-location records are workplace proxies, not job counts, employment capacity, or vacancies.',
@@ -149,23 +181,14 @@ export function calculateEmploymentScore(islandId: string, snapshot: ScoringSnap
     ]);
   }
 
-  const allMetrics = snapshot.islands
-    .filter((island) => island.islandType === 'inhabited')
-    .map((island) => metricsForIsland(snapshot, island.id));
-  const pressureValues = allMetrics.flatMap((entry) =>
-    entry.foreignPerWorkingAge === null ? [] : [entry.foreignPerWorkingAge]
-  );
-  const supplyValues = allMetrics.flatMap((entry) =>
-    entry.jobLocationsPerThousandWorkingAge === null ? [] : [entry.jobLocationsPerThousandWorkingAge]
-  );
   const pressureScore =
-    metrics.foreignPerWorkingAge === null || pressureValues.length === 0
+    metrics.foreignPerWorkingAge === null || context.pressureValues.length === 0
       ? null
-      : round(100 - percentile(metrics.foreignPerWorkingAge, pressureValues));
+      : round(100 - percentile(metrics.foreignPerWorkingAge, context.pressureValues));
   const supplyScore =
-    metrics.jobLocationsPerThousandWorkingAge === null || supplyValues.length === 0
+    metrics.jobLocationsPerThousandWorkingAge === null || context.supplyValues.length === 0
       ? null
-      : round(percentile(metrics.jobLocationsPerThousandWorkingAge, supplyValues));
+      : round(percentile(metrics.jobLocationsPerThousandWorkingAge, context.supplyValues));
   const score = pressureScore === null || supplyScore === null ? null : round((pressureScore + supplyScore) / 2);
 
   return component(metrics, score, pressureScore, supplyScore, limitations);

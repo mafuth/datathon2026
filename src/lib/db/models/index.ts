@@ -10,4 +10,5 @@ export * from './transport-connection';
 export * from './transport-route';
 export * from './two-factor';
 export * from './user';
+export * from './vehicle-count';
 export * from './verification';

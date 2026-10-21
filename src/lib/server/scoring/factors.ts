@@ -30,6 +30,7 @@ import {
   transportServices
 } from './demand-allocation';
 import { calculateEmploymentScore } from './employment-score';
+import { calculateSustainabilityScore } from './sustainability-score';
 import { calculateTransportDemand } from './transport-demand';
 
 function finite(value: number | null | undefined): number | null {
@@ -363,6 +364,33 @@ function transportScores(
   };
 }
 
+function sustainabilityScore(
+  islandId: string,
+  snapshot: ScoringSnapshot,
+  population: number | null,
+  airport: AirportAccess,
+  transportDemand: IslandScoreResult['transport']['demand']
+): IslandScoreResult['sustainability'] {
+  const airLinkExists =
+    airport.available ||
+    snapshot.connections.some(
+      (connection) =>
+        connection.scoreEligible !== false &&
+        connection.connectionType === 'air' &&
+        (connection.fromIslandId === islandId || connection.toIslandId === islandId)
+    );
+  return calculateSustainabilityScore({
+    totalPopulation: population,
+    vehicleCounts: (snapshot.vehicleCounts ?? []).filter((row) => row.islandId === islandId),
+    transportDemand: {
+      land: transportDemand.modes.land.stopCount > 0 ? transportDemand.modes.land.totalDemand : null,
+      marine: transportDemand.modes.marine.stopCount > 0 ? transportDemand.modes.marine.totalDemand : null,
+      air: transportDemand.modes.air.stopCount > 0 ? transportDemand.modes.air.totalDemand : null
+    },
+    airLinkExists
+  });
+}
+
 export function calculateIslandScore(
   islandId: string,
   snapshot: ScoringSnapshot,
@@ -392,27 +420,31 @@ export function calculateIslandScore(
   ]);
   const transport = transportScores(island, snapshot, population, airport, transportDemand);
   const employment = calculateEmploymentScore(island.id, snapshot);
+  const sustainability = sustainabilityScore(island.id, snapshot, population, airport, transportDemand);
   const overallScore = weightedMean([
     { value: health.score, weight: scoringConfig.domainWeights.health },
     { value: education.score, weight: scoringConfig.domainWeights.education },
     { value: transport.score, weight: scoringConfig.domainWeights.transport },
-    { value: employment.score, weight: scoringConfig.domainWeights.employment }
+    { value: employment.score, weight: scoringConfig.domainWeights.employment },
+    { value: sustainability.score, weight: scoringConfig.domainWeights.sustainability }
   ]);
   const limitations = [
     ...(crowding.status === 'unavailable' ? ['Land area or population is unavailable for crowdedness.'] : []),
     ...health.limitations,
     ...education.limitations,
     ...employment.limitations,
+    ...sustainability.limitations,
     ...transport.limitations,
     ...transportDemand.hubImpacts.map((hub) => hub.limitation).filter((value): value is string => value !== null)
   ];
   return {
     islandId: island.id,
     islandName: island.name,
-    overall: component(overallScore, null, population, 4, limitations),
+    overall: component(overallScore, null, population, 5, limitations),
     health,
     education,
     employment,
+    sustainability,
     transport,
     crowdedness: crowding,
     demand: islandDemand,

@@ -28,6 +28,7 @@ function snapshot(overrides: Partial<ScoringSnapshot> = {}): ScoringSnapshot {
       { islandId: 'island:two', ageCategory: 'working_age_population_15_64', amount: 100 },
       { islandId: 'island:two', ageCategory: 'foregner', amount: 100 }
     ],
+    vehicleCounts: [],
     services: [],
     jobLocations: [
       location('job:one', 'island:one', 'commercial'),

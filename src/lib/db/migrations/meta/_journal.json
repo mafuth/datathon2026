@@ -92,6 +92,13 @@
       "when": 1792586932660,
       "tag": "0012_simplify_job_location",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1792594764171,
+      "tag": "0013_add_vehicle_count",
+      "breakpoints": true
     }
   ]
 }

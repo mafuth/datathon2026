@@ -97,6 +97,8 @@
       centroid?: Coordinate;
       score: number | null;
       employmentScore: number | null;
+      sustainabilityScore: number | null;
+      pollutionPressure: number | null;
       scoreStatus: 'numeric' | 'unavailable';
     };
   };
@@ -271,7 +273,7 @@
   let mapInstance: MapLibreMap | null = null;
   let maplibreMarkerConstructor: typeof import('maplibre-gl').Marker | null = null;
   let maplibrePopupConstructor: typeof import('maplibre-gl').Popup | null = null;
-  let baseRoadLayerIds: string[] = [];
+  let baseRoadLayerIds = $state<string[]>([]);
   let mapReady = $state(false);
   let heatmapLoading = $state(true);
   let heatmapError = $state(false);
@@ -332,7 +334,8 @@
     { key: 'health', label: 'Health', value: analyticsData?.national.categories.health?.score },
     { key: 'education', label: 'Schools', value: analyticsData?.national.categories.education?.score },
     { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score },
-    { key: 'employment', label: 'Jobs', value: analyticsData?.national.categories.employment?.score }
+    { key: 'employment', label: 'Jobs', value: analyticsData?.national.categories.employment?.score },
+    { key: 'sustainability', label: 'Sustainability', value: analyticsData?.national.categories.sustainability?.score }
   ]);
   let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
   let selectedIslandLoading = $derived(
@@ -2238,16 +2241,11 @@
     const baseLayers = Array.isArray(baseStyle.layers)
       ? baseStyle.layers.filter((layer) => layer.type !== 'symbol')
       : [];
-    const firstRoadLayerIndex = baseLayers.findIndex(
-      (layer) => layer.type === 'line' && layer['source-layer'] === 'transportation'
-    );
-    const layersBeforeRoads = firstRoadLayerIndex === -1 ? baseLayers : baseLayers.slice(0, firstRoadLayerIndex);
-    const roadLayers = firstRoadLayerIndex === -1 ? [] : baseLayers.slice(firstRoadLayerIndex);
-    baseRoadLayerIds = roadLayers.flatMap((layer) =>
-      layer.type === 'line' && layer['source-layer'] === 'transportation' && typeof layer.id === 'string'
-        ? [layer.id]
-        : []
-    );
+    const isRoadLayer = (layer: (typeof baseLayers)[number]): boolean =>
+      (layer.type === 'line' || layer.type === 'fill') && layer['source-layer'] === 'transportation';
+    const layersBeforeRoads = baseLayers.filter((layer) => !isRoadLayer(layer));
+    const roadLayers = baseLayers.filter(isRoadLayer);
+    baseRoadLayerIds = roadLayers.flatMap((layer) => (typeof layer.id === 'string' ? [layer.id] : []));
     const selectedRoadLayers = baseStyle.sources?.openmaptiles
       ? [
           {

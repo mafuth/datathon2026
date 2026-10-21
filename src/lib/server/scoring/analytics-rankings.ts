@@ -11,6 +11,7 @@ export type AnalyticsRankingInput = {
   demand: number;
   outboundDemand?: number;
   pressure: number;
+  pollutionPressure?: number | null;
 };
 
 export type AnalyticsRankings = {
@@ -24,6 +25,7 @@ export type AnalyticsRankings = {
   employment: string[];
   jobRichLowPopulation: string[];
   jobDemandGaps: string[];
+  highestPollution: string[];
 };
 
 type ScoreKey = 'overall' | 'health' | 'education' | 'transport' | 'employment';
@@ -96,6 +98,14 @@ export function buildAnalyticsRankings(islands: AnalyticsRankingInput[]): Analyt
       .sort((left, right) => right.jobDensity - left.jobDensity || left.id.localeCompare(right.id))
       .slice(0, 4)
       .map((island) => island.id),
-    jobDemandGaps: jobDemandGaps(islands)
+    jobDemandGaps: jobDemandGaps(islands),
+    highestPollution: islands
+      .filter(
+        (island): island is AnalyticsRankingInput & { pollutionPressure: number } =>
+          typeof island.pollutionPressure === 'number'
+      )
+      .sort((left, right) => right.pollutionPressure - left.pollutionPressure || left.id.localeCompare(right.id))
+      .slice(0, 4)
+      .map((island) => island.id)
   };
 }

@@ -1,9 +1,11 @@
 <script lang="ts">
   import type { IslandProfile } from './island-profile';
   import type { AnalyticsIsland } from './national-analytics-card.svelte';
+  import type { SustainabilityFactorKey, SustainabilityScore } from './sustainability-types';
 
   import Briefcase from '@lucide/svelte/icons/briefcase';
   import Bus from '@lucide/svelte/icons/bus';
+  import Car from '@lucide/svelte/icons/car';
   import Plane from '@lucide/svelte/icons/plane';
   import Route from '@lucide/svelte/icons/route';
   import Ship from '@lucide/svelte/icons/ship';
@@ -18,6 +20,7 @@
   import { Skeleton } from '$components/ui/skeleton';
 
   import { scoreColor } from './score-presentation';
+  import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
   type Props = {
     open?: boolean;
@@ -37,12 +40,20 @@
     onClose = () => (open = false),
     proposalMode = false
   }: Props = $props();
+  let connectionsExpanded = $state(false);
+  let transportLoadExpanded = $state(false);
+  let inboundDemandExpanded = $state(false);
 
   const drivers = [
     { key: 'health', label: 'Health', note: 'Population-weighted health access' },
     { key: 'education', label: 'Education', note: 'Population-weighted school access' },
     { key: 'transport', label: 'Transport', note: 'Land, marine, and air connections' },
     { key: 'employment', label: 'Employment', note: 'Foreign residents balanced against recorded workplaces' },
+    {
+      key: 'sustainability',
+      label: 'Sustainability',
+      note: 'Modeled pollution pressure from vehicles and transport demand'
+    },
     { key: 'crowdedness', label: 'Crowdedness', note: 'Population density pressure' },
     { key: 'demand', label: 'Service demand', note: 'Combined local and inbound demand pressure' }
   ] as const;
@@ -73,15 +84,6 @@
     if (key === 'crowdedness') return island.crowdedness.score;
     return island[key].score;
   }
-  function coverage(key: (typeof drivers)[number]['key']): number {
-    if (!island) return 0;
-    if (key === 'health') return island.health.coverageRatio;
-    if (key === 'education') return island.education.coverageRatio;
-    if (key === 'transport') return island.transport.coverageRatio;
-    if (key === 'employment') return island.employment.coverageRatio;
-    if (key === 'demand') return island.demand.coverageRatio;
-    return 0;
-  }
   function titleCase(value: string): string {
     return value
       .replaceAll('_', ' ')
@@ -91,6 +93,36 @@
   function categoryShare(count: number, total: number): number {
     return total > 0 ? Math.min(100, (count / total) * 100) : 0;
   }
+
+  function factorContribution(score: SustainabilityScore, key: SustainabilityFactorKey): number | null {
+    return score.pollutionFactors[key].contributionPercent;
+  }
+
+  function signedPercentage(value: number | null): string {
+    return value === null ? 'N/A' : `${value > 0 ? '+' : ''}${Math.round(value)}%`;
+  }
+
+  function factorProgress(score: SustainabilityScore, key: SustainabilityFactorKey): number {
+    const contribution = factorContribution(score, key);
+    return contribution === null ? 0 : Math.min(100, Math.abs(contribution));
+  }
+
+  function publicTransportBenefitPercent(score: SustainabilityScore): number | null {
+    if (
+      score.publicTransportBenefit === null ||
+      score.privateVehiclePollution === null ||
+      score.privateVehiclePollution <= 0
+    ) {
+      return null;
+    }
+    return -(score.publicTransportBenefit / score.privateVehiclePollution) * 100;
+  }
+
+  function publicTransportBenefitProgress(score: SustainabilityScore): number {
+    const benefitPercent = publicTransportBenefitPercent(score);
+    return benefitPercent === null ? 0 : Math.min(100, Math.abs(benefitPercent));
+  }
+
   function connectionIcon(type: string) {
     if (type === 'air') return Plane;
     if (type === 'bus') return Bus;
@@ -179,6 +211,18 @@
                 {/each}
               </div>
               <Skeleton class="island-loading-demand-progress" />
+            </Card.Root>
+
+            <Card.Root class="insight-card sustainability-card island-loading-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
+              </div>
+              <Skeleton class="island-loading-sustainability-score" />
+              <div class="island-loading-sustainability-factors">
+                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
+                  <Skeleton class="island-loading-sustainability-factor" />
+                {/each}
+              </div>
             </Card.Root>
 
             <div class="detail-grid">
@@ -277,10 +321,13 @@
                 <Skeleton class="island-loading-demand-progress" />
               </Card.Root>
 
-              <Card.Root class="insight-card demand-card island-loading-card" size="sm">
-                <div class="card-heading demand-heading">
+              <Card.Root class="insight-card demand-card employment-balance-card island-loading-card" size="sm">
+                <div class="card-heading">
                   <Skeleton class="island-loading-panel-heading" />
+                </div>
+                <div class="employment-scoreline">
                   <Skeleton class="island-loading-demand-percentage" />
+                  <Skeleton class="island-loading-demand-value" />
                 </div>
                 <div class="island-loading-demand-metrics">
                   {#each employmentDemandSkeletons as row (row)}
@@ -378,9 +425,9 @@
                     aria-label={`${driver.label} score`}
                   />
                   <small
-                    >{driver.note}{driver.key !== 'demand'
-                      ? ` - ${Math.round(coverage(driver.key) * 100)}% coverage`
-                      : ` - ${number(island.demand.inboundTotal)} inbound · ${number(island.demand.outboundTotal)} outbound`}</small
+                    >{driver.note}{driver.key === 'demand'
+                      ? ` - ${number(island.demand.inboundTotal)} inbound · ${number(island.demand.outboundTotal)} outbound`
+                      : ''}</small
                   >
                 </div>
               {/each}
@@ -418,13 +465,9 @@
             <Card.Root class="insight-card employment-card" size="sm">
               <div class="card-heading">
                 <div>
-                  <h3>Workplace inventory</h3>
+                  <h3>Workplace breakdown</h3>
                 </div>
-                <Briefcase size={17} strokeWidth={2.2} />
-              </div>
-              <div class="employment-scoreline">
-                <strong>{number(profile.employment.jobLocationCount)}</strong>
-                <span>recorded workplace records</span>
+                <strong class="employment-heading-total">{number(profile.employment.jobLocationCount)}</strong>
               </div>
               <div class="employment-breakdown">
                 {#each profile.employment.categories as category (category.key)}
@@ -446,6 +489,67 @@
                   </div>
                 {:else}
                   <span class="empty-inline">No workplace categories are available.</span>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card sustainability-card" size="sm">
+              <div class="card-heading">
+                <div>
+                  <h3>Pollution pressure</h3>
+                </div>
+                <Car size={17} strokeWidth={2.2} />
+              </div>
+              <div class="sustainability-scoreline">
+                <strong>{percentage(profile.sustainability.score)}</strong>
+              </div>
+              <div class="sustainability-metrics">
+                <span>Vehicles <b>{number(profile.sustainability.vehicleTotal)}</b></span>
+              </div>
+              <div class="sustainability-factors">
+                <div class="sustainability-factor sustainability-benefit-factor">
+                  <div class="sustainability-factor-heading">
+                    <span>Public transport benefit</span>
+                    <strong>{signedPercentage(publicTransportBenefitPercent(profile.sustainability))}</strong>
+                  </div>
+                  <Progress
+                    value={publicTransportBenefitProgress(profile.sustainability)}
+                    max={100}
+                    aria-label="Public transport benefit relative to private vehicle pressure"
+                  />
+                  <small class="sustainability-factor-note"
+                    >{decimal(profile.sustainability.publicTransportBenefit)} pressure units avoided</small
+                  >
+                </div>
+                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
+                  <div class="sustainability-factor">
+                    <div class="sustainability-factor-heading">
+                      <span>{factor.label}</span>
+                      <strong>{signedPercentage(factorContribution(profile.sustainability, factor.key))}</strong>
+                    </div>
+                    <Progress
+                      value={factorProgress(profile.sustainability, factor.key)}
+                      max={100}
+                      aria-label={`${factor.label} net pressure effect`}
+                    />
+                  </div>
+                {/each}
+              </div>
+              <div class="vehicle-category-list">
+                {#each profile.sustainability.vehicleCategoryBreakdown.slice(0, 6) as category (category.category)}
+                  <div class="vehicle-category-row">
+                    <div class="vehicle-category-heading">
+                      <span>{vehicleCategoryLabel(category.category)}</span>
+                      <strong>{number(category.total)}</strong>
+                    </div>
+                    <Progress
+                      value={category.sharePercent}
+                      max={100}
+                      aria-label={`${vehicleCategoryLabel(category.category)} vehicle share`}
+                    />
+                  </div>
+                {:else}
+                  <p class="empty-inline">No vehicle-category rows are available.</p>
                 {/each}
               </div>
             </Card.Root>
@@ -494,32 +598,69 @@
                 <div>
                   <h3>Available connections</h3>
                 </div>
-                <Badge variant="outline">{profile.connections.direct.length}</Badge>
+                <div class="card-heading-actions">
+                  <Badge variant="outline">{profile.connections.direct.length}</Badge>
+                  <Button
+                    class="view-more-button"
+                    variant="ghost"
+                    size="xs"
+                    type="button"
+                    aria-expanded={connectionsExpanded}
+                    aria-controls="island-connections-details"
+                    onclick={() => (connectionsExpanded = !connectionsExpanded)}
+                  >
+                    {connectionsExpanded ? 'View less' : 'View more'}
+                  </Button>
+                </div>
               </div>
-              <div class="connection-modes">
-                {#each profile.connections.byType as connection (connection.type)}
-                  {@const Icon = connectionIcon(connection.type)}
-                  <div class="connection-mode">
-                    <span class="connection-mode-icon"><Icon size={15} strokeWidth={2.2} /></span>
-                    <strong>{connection.count}</strong>
-                    <span>{titleCase(connection.type)}</span>
+              <div id="island-connections-details">
+                {#if connectionsExpanded}
+                  <div class="connection-modes">
+                    {#each profile.connections.byType as connection (connection.type)}
+                      {@const Icon = connectionIcon(connection.type)}
+                      <div class="connection-mode">
+                        <span class="connection-mode-icon"><Icon size={15} strokeWidth={2.2} /></span>
+                        <strong>{connection.count}</strong>
+                        <span>{titleCase(connection.type)}</span>
+                      </div>
+                    {/each}
                   </div>
-                {/each}
-              </div>
-              <div class="connection-list">
-                {#each profile.connections.direct as connection (connection.id)}
-                  {@const Icon = connectionIcon(connection.type)}
-                  <div class="connection-row">
-                    <span class="connection-row-icon"><Icon size={15} strokeWidth={2.2} /></span>
-                    <div class="connection-copy">
-                      <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
-                      <span>{titleCase(connection.type)}{connection.routeName ? ` · ${connection.routeName}` : ''}</span
-                      >
-                    </div>
+                  <div class="connection-list">
+                    {#each profile.connections.direct as connection (connection.id)}
+                      {@const Icon = connectionIcon(connection.type)}
+                      <div class="connection-row">
+                        <span class="connection-row-icon"><Icon size={15} strokeWidth={2.2} /></span>
+                        <div class="connection-copy">
+                          <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
+                          <span
+                            >{titleCase(connection.type)}{connection.routeName
+                              ? ` · ${connection.routeName}`
+                              : ''}</span
+                          >
+                        </div>
+                      </div>
+                    {:else}
+                      <p class="empty-state">No mapped transport connections.</p>
+                    {/each}
                   </div>
                 {:else}
-                  <p class="empty-state">No mapped transport connections.</p>
-                {/each}
+                  <div class="connection-list collapsed-connection-list">
+                    {#each profile.connections.direct.slice(0, 2) as connection (connection.id)}
+                      <div class="connection-row collapsed-connection-row">
+                        <div class="connection-copy">
+                          <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
+                          <span
+                            >{titleCase(connection.type)}{connection.routeName
+                              ? ` · ${connection.routeName}`
+                              : ''}</span
+                          >
+                        </div>
+                      </div>
+                    {:else}
+                      <p class="empty-state">No mapped transport connections.</p>
+                    {/each}
+                  </div>
+                {/if}
               </div>
             </Card.Root>
 
@@ -575,23 +716,29 @@
                 />
               </Card.Root>
 
-              <Card.Root class="insight-card demand-card employment-demand-card" size="sm">
-                <div class="card-heading demand-heading">
+              <Card.Root class="insight-card demand-card employment-balance-card" size="sm">
+                <div class="card-heading">
                   <div>
-                    <h3>Job demand & population</h3>
+                    <h3>Employment balance</h3>
                   </div>
-                  <strong class="demand-percentage"
-                    >{percentage(
-                      profile.employment.foreignPerWorkingAge === null
-                        ? null
-                        : profile.employment.foreignPerWorkingAge * 100
-                    )}</strong
-                  >
+                  <Briefcase size={17} strokeWidth={2.2} />
+                </div>
+                <div class="employment-scoreline">
+                  <strong>{percentage(profile.employment.score)}</strong>
+                  <span>{number(profile.employment.jobLocationCount)} recorded workplaces</span>
                 </div>
                 <div class="demand-metrics">
                   <span>Foreign residents <b>{number(profile.employment.foreignPopulation)}</b></span>
                   <span>Working age 15-64 <b>{number(profile.employment.workingAgePopulation)}</b></span>
-                  <span>Workplace records <b>{number(profile.employment.jobLocationCount)}</b></span>
+                  <span
+                    >Foreign / working age <b
+                      >{percentage(
+                        profile.employment.foreignPerWorkingAge === null
+                          ? null
+                          : profile.employment.foreignPerWorkingAge * 100
+                      )}</b
+                    ></span
+                  >
                   <span
                     >Workplaces / 1,000 working age <b
                       >{decimal(profile.employment.jobLocationsPerThousandWorkingAge)}</b
@@ -627,68 +774,105 @@
                   <div>
                     <h3>Transport load</h3>
                   </div>
+                  <Button
+                    class="view-more-button"
+                    variant="ghost"
+                    size="xs"
+                    type="button"
+                    aria-expanded={transportLoadExpanded}
+                    aria-controls="island-transport-load-details"
+                    onclick={() => (transportLoadExpanded = !transportLoadExpanded)}
+                  >
+                    {transportLoadExpanded ? 'View less' : 'View more'}
+                  </Button>
                 </div>
-                <div class="demand-metrics transport-demand-metrics">
-                  <span>Resident population <b>{number(profile.demand.transport.residentPopulation)}</b></span><span
-                    >Inbound load <b>{number(profile.demand.transport.inboundPopulation)}</b></span
-                  ><span>Outbound load <b>{number(profile.demand.transport.outboundPopulation)}</b></span><span
-                    >Working demand <b>{number(profile.demand.transport.workingDemand)}</b></span
-                  ><span>Student demand <b>{number(profile.demand.transport.studentDemand)}</b></span><span
-                    >Elderly demand <b>{number(profile.demand.transport.elderlyDemand)}</b></span
-                  ><span>Care transfers <b>{number(profile.demand.transport.careTransferDemand)}</b></span><span
-                    >Education transfers <b>{number(profile.demand.transport.educationTransferDemand)}</b></span
-                  ><span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span><span
-                    >Transport score <b>{percentage(profile.demand.transport.score)}</b></span
-                  ><span>Marine load <b>{percentage(profile.demand.transport.modes.marine.averageLoad)}</b></span><span
-                    >Air load <b>{percentage(profile.demand.transport.modes.air.averageLoad)}</b></span
-                  ><span>Stops <b>{profile.demand.transport.stops.length}</b></span>
-                </div>
-                <div class="hub-list">
-                  {#each profile.demand.transport.stops as stop (stop.stopId)}
-                    {@const Icon = connectionIcon(stop.mode === 'marine' ? 'ferry' : stop.mode)}
-                    {@const routedDemand = stop.localDemand + stop.connectedDemand}
-                    {@const localShare = routedDemand > 0 ? (stop.localDemand / routedDemand) * 100 : 0}
-                    {@const loadPercent = Math.min(100, Math.max(0, stop.loadRatio * 100))}
-                    <div class="hub-row">
-                      <div class="hub-row-main">
-                        <div class="hub-row-heading">
-                          <span class="hub-mode-icon" aria-hidden="true"><Icon size={13} strokeWidth={2.2} /></span>
-                          <span class="hub-row-copy">
+                <div id="island-transport-load-details">
+                  {#if transportLoadExpanded}
+                    <div class="demand-metrics transport-demand-metrics">
+                      <span>Resident population <b>{number(profile.demand.transport.residentPopulation)}</b></span><span
+                        >Inbound load <b>{number(profile.demand.transport.inboundPopulation)}</b></span
+                      ><span>Outbound load <b>{number(profile.demand.transport.outboundPopulation)}</b></span><span
+                        >Working demand <b>{number(profile.demand.transport.workingDemand)}</b></span
+                      ><span>Student demand <b>{number(profile.demand.transport.studentDemand)}</b></span><span
+                        >Elderly demand <b>{number(profile.demand.transport.elderlyDemand)}</b></span
+                      ><span>Care transfers <b>{number(profile.demand.transport.careTransferDemand)}</b></span><span
+                        >Education transfers <b>{number(profile.demand.transport.educationTransferDemand)}</b></span
+                      ><span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span><span
+                        >Transport score <b>{percentage(profile.demand.transport.score)}</b></span
+                      ><span>Marine load <b>{percentage(profile.demand.transport.modes.marine.averageLoad)}</b></span
+                      ><span>Air load <b>{percentage(profile.demand.transport.modes.air.averageLoad)}</b></span><span
+                        >Stops <b>{profile.demand.transport.stops.length}</b></span
+                      >
+                    </div>
+                    <div class="hub-list">
+                      {#each profile.demand.transport.stops as stop (stop.stopId)}
+                        {@const Icon = connectionIcon(stop.mode === 'marine' ? 'ferry' : stop.mode)}
+                        {@const routedDemand = stop.localDemand + stop.connectedDemand}
+                        {@const localShare = routedDemand > 0 ? (stop.localDemand / routedDemand) * 100 : 0}
+                        {@const loadPercent = Math.min(100, Math.max(0, stop.loadRatio * 100))}
+                        <div class="hub-row">
+                          <div class="hub-row-main">
+                            <div class="hub-row-heading">
+                              <span class="hub-mode-icon" aria-hidden="true"><Icon size={13} strokeWidth={2.2} /></span>
+                              <span class="hub-row-copy">
+                                <b>{stop.stopName ?? titleCase(stop.subtype)}</b>
+                                <small>{titleCase(stop.mode)} · {stop.connectedIslandIds.length} islands</small>
+                              </span>
+                            </div>
+                            <div
+                              class="hub-load-bar"
+                              role="img"
+                              aria-label={`${percentage(loadPercent)} capacity load with ${number(stop.localDemand)} local demand and ${number(stop.connectedDemand)} linked demand`}
+                            >
+                              <div class="hub-load-fill" style={`width: ${loadPercent}%`}>
+                                <span class="hub-load-local" style={`width: ${localShare}%`}></span>
+                                <span class="hub-load-linked" style={`width: ${100 - localShare}%`}></span>
+                              </div>
+                            </div>
+                            <div class="hub-load-legend">
+                              <span><i class="hub-dot hub-dot-local"></i>{number(stop.localDemand)} local</span>
+                              <span><i class="hub-dot hub-dot-linked"></i>{number(stop.connectedDemand)} linked</span>
+                              {#if stop.careTransferDemand > 0}
+                                <span><i class="hub-dot hub-dot-care"></i>{number(stop.careTransferDemand)} care</span>
+                              {/if}
+                              {#if stop.educationTransferDemand > 0}
+                                <span
+                                  ><i class="hub-dot hub-dot-education"></i>{number(stop.educationTransferDemand)} student
+                                  transfers</span
+                                >
+                              {/if}
+                            </div>
+                          </div>
+                          <div class="hub-row-values" aria-label={`${percentage(loadPercent)} capacity load`}>
+                            <strong>{percentage(loadPercent)}</strong>
+                            <small>capacity load</small>
+                          </div>
+                        </div>
+                      {:else}
+                        <p class="empty-state">No transport stop load is available.</p>
+                      {/each}
+                    </div>
+                  {:else}
+                    <div class="collapsed-summary transport-summary">
+                      <span>Score <b>{percentage(profile.demand.transport.score)}</b></span>
+                      <span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span>
+                      <span>Stops <b>{profile.demand.transport.stops.length}</b></span>
+                    </div>
+                    <div class="collapsed-hub-list">
+                      {#each profile.demand.transport.stops.slice(0, 2) as stop (stop.stopId)}
+                        {@const loadPercent = Math.min(100, Math.max(0, stop.loadRatio * 100))}
+                        <div class="collapsed-hub-row">
+                          <span class="collapsed-hub-copy">
                             <b>{stop.stopName ?? titleCase(stop.subtype)}</b>
                             <small>{titleCase(stop.mode)} · {stop.connectedIslandIds.length} islands</small>
                           </span>
+                          <strong>{percentage(loadPercent)}</strong>
                         </div>
-                        <div
-                          class="hub-load-bar"
-                          role="img"
-                          aria-label={`${percentage(loadPercent)} capacity load with ${number(stop.localDemand)} local demand and ${number(stop.connectedDemand)} linked demand`}
-                        >
-                          <div class="hub-load-fill" style={`width: ${loadPercent}%`}>
-                            <span class="hub-load-local" style={`width: ${localShare}%`}></span>
-                            <span class="hub-load-linked" style={`width: ${100 - localShare}%`}></span>
-                          </div>
-                        </div>
-                        <div class="hub-load-legend">
-                          <span><i class="hub-dot hub-dot-local"></i>{number(stop.localDemand)} local</span>
-                          <span><i class="hub-dot hub-dot-linked"></i>{number(stop.connectedDemand)} linked</span>
-                          {#if stop.careTransferDemand > 0}
-                            <span><i class="hub-dot hub-dot-care"></i>{number(stop.careTransferDemand)} care</span>
-                          {/if}
-                          {#if stop.educationTransferDemand > 0}
-                            <span
-                              ><i class="hub-dot hub-dot-education"></i>{number(stop.educationTransferDemand)} student transfers</span
-                            >
-                          {/if}
-                        </div>
-                      </div>
-                      <div class="hub-row-values" aria-label={`${percentage(loadPercent)} capacity load`}>
-                        <strong>{percentage(loadPercent)}</strong>
-                        <small>capacity load</small>
-                      </div>
+                      {:else}
+                        <p class="empty-state">No transport stop load is available.</p>
+                      {/each}
                     </div>
-                  {:else}
-                    <p class="empty-state">No transport stop load is available.</p>
-                  {/each}
+                  {/if}
                 </div>
               </Card.Root>
             </div>
@@ -698,10 +882,25 @@
                 <div>
                   <h3>Highest inbound demand from</h3>
                 </div>
-                <Badge variant="outline">{island.demand.inboundSources.length}</Badge>
+                <div class="card-heading-actions">
+                  <Badge variant="outline">{island.demand.inboundSources.length}</Badge>
+                  {#if island.demand.inboundSources.length > 2}
+                    <Button
+                      class="view-more-button"
+                      variant="ghost"
+                      size="xs"
+                      type="button"
+                      aria-expanded={inboundDemandExpanded}
+                      aria-controls="island-inbound-demand-details"
+                      onclick={() => (inboundDemandExpanded = !inboundDemandExpanded)}
+                    >
+                      {inboundDemandExpanded ? 'View less' : 'View more'}
+                    </Button>
+                  {/if}
+                </div>
               </div>
-              <div class="inbound-source-list">
-                {#each island.demand.inboundSources as source (source.originIslandId)}
+              <div id="island-inbound-demand-details" class="inbound-source-list">
+                {#each inboundDemandExpanded ? island.demand.inboundSources : island.demand.inboundSources.slice(0, 2) as source (source.originIslandId)}
                   <div class="inbound-source-row">
                     <span>
                       <b>{source.originAtollName} {source.originName}</b>
@@ -779,6 +978,79 @@
     justify-content: space-between;
     gap: 0.7rem;
   }
+  .card-heading-actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.35rem;
+  }
+  :global(.view-more-button) {
+    border-color: var(--mobility-accent, #09090b);
+    background: var(--mobility-accent, #09090b);
+    color: #ffffff;
+    font-size: 0.56rem;
+  }
+  :global(.view-more-button:hover),
+  :global(.view-more-button:focus-visible) {
+    border-color: var(--mobility-focus, #27272a);
+    background: var(--mobility-focus, #27272a);
+    color: #ffffff;
+  }
+  .collapsed-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    margin-top: 0.7rem;
+    color: #71717a;
+    font-size: 0.56rem;
+  }
+  .collapsed-summary span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.22rem;
+  }
+  .collapsed-summary b {
+    color: #09090b;
+    font-variant-numeric: tabular-nums;
+  }
+  .collapsed-connection-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .collapsed-hub-list {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.6rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid #e4e4e7;
+  }
+  .collapsed-hub-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .collapsed-hub-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.1rem;
+  }
+  .collapsed-hub-copy b {
+    overflow: hidden;
+    color: #09090b;
+    font-size: 0.6rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .collapsed-hub-copy small {
+    color: #71717a;
+    font-size: 0.54rem;
+  }
+  .collapsed-hub-row > strong {
+    color: #09090b;
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+  }
   h2 {
     margin: 0;
     font-size: clamp(1.7rem, 3vw, 2.15rem);
@@ -818,12 +1090,20 @@
   }
   .driver-list {
     display: grid;
-    gap: 0.72rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
     margin-top: 0.75rem;
   }
   .driver-row {
     display: grid;
+    align-content: start;
     gap: 0.3rem;
+    min-width: 0;
+    min-height: 4.35rem;
+    padding: 0.48rem 0.55rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.4rem;
+    background: #fafafa;
   }
   .driver-topline span {
     font-size: 0.66rem;
@@ -862,6 +1142,12 @@
     margin: 0;
     font-size: 1.25rem;
     letter-spacing: -0.04em;
+  }
+  .employment-heading-total {
+    color: #09090b;
+    font-size: 1.2rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
   }
   .employment-scoreline {
     display: flex;
@@ -944,6 +1230,98 @@
   }
   .employment-assumption {
     margin: 0.65rem 0 0;
+  }
+  :global(.sustainability-card) {
+    border-color: var(--mobility-border, #e4e4e7);
+    background: var(--mobility-surface, #ffffff);
+  }
+  .sustainability-scoreline {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.72rem;
+  }
+  .sustainability-scoreline strong {
+    color: var(--mobility-text, #09090b);
+    font-size: 1.45rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .sustainability-metrics {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--mobility-border, #e4e4e7);
+    color: var(--mobility-muted, #71717a);
+    font-size: 0.56rem;
+  }
+  .sustainability-metrics span {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .sustainability-metrics b {
+    color: var(--mobility-text, #09090b);
+    font-variant-numeric: tabular-nums;
+  }
+  .sustainability-factors,
+  .vehicle-category-list {
+    display: grid;
+    gap: 0.58rem;
+    margin-top: 0.72rem;
+  }
+  .sustainability-factor,
+  .vehicle-category-row {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .sustainability-factor-heading,
+  .vehicle-category-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--mobility-muted, #71717a);
+    font-size: 0.58rem;
+    font-weight: 750;
+  }
+  .sustainability-factor-heading strong,
+  .vehicle-category-heading strong {
+    color: var(--mobility-text, #09090b);
+    font-variant-numeric: tabular-nums;
+  }
+  .sustainability-factor-note {
+    color: var(--mobility-muted, #71717a);
+    font-size: 0.52rem;
+  }
+  :global(.sustainability-card [data-slot='progress']) {
+    height: 0.32rem;
+    background: var(--mobility-surface-muted, #f4f4f5);
+  }
+  :global(.sustainability-card .sustainability-factor [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  :global(.sustainability-card .vehicle-category-row [data-slot='progress-indicator']) {
+    background: var(--mobility-accent, #09090b);
+  }
+  .island-loading-sustainability-score {
+    width: 5rem;
+    height: 1.25rem;
+    margin-top: 0.72rem;
+    border-radius: 0.3rem;
+  }
+  .island-loading-sustainability-factors {
+    display: grid;
+    gap: 0.58rem;
+    margin-top: 0.72rem;
+  }
+  :global(.island-loading-sustainability-factor) {
+    width: 100%;
+    height: 1.2rem;
+    border-radius: 0.25rem;
   }
   .population-list {
     display: grid;
@@ -1538,6 +1916,9 @@
       grid-template-columns: 1fr;
     }
     .demand-grid {
+      grid-template-columns: 1fr;
+    }
+    .driver-list {
       grid-template-columns: 1fr;
     }
   }

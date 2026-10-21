@@ -1,6 +1,6 @@
 {
-  "schema_version": "vehicle-registration-prepared-v1",
-  "generated_at": "2026-10-21T13:58:30.030896+00:00",
+  "schema_version": "vehicle-registration-prepared-v3",
+  "generated_at": "2026-10-21T14:15:06.818773+00:00",
   "source": {
     "title": "MBS Statistical Yearbook 2024, Table 11.6: Selected Vehicles According to Registration, 2018 end",
     "publisher": "Maldives Bureau of Statistics",
@@ -13,7 +13,7 @@
   },
   "scope": {
     "official_observation": "Vehicle counts are officially published only for Male, Hulhumale, Addu and Other atolls.",
-    "island_table": "Male and Hulhumale retain official locality counts. Addu and Other atolls are allocated across inhabited islands for planning use only.",
+    "island_table": "Male and Hulhumale retain official locality counts. Addu and Other atolls are allocated across populated islands using category-specific population, land-area and smaller-island heuristics.",
     "not_claimed": "The estimated island rows are not an island-level vehicle registry and must not be described as observed registration records.",
     "zero_population_islands": "Excluded from the allocation because the population-proportional method has no defensible denominator; resort, industrial and uninhabited island registrations remain unknown."
   },
@@ -23,7 +23,9 @@
     "island_count_with_vehicle_rows": 190,
     "addu_islands_allocated": 6,
     "other_atoll_islands_allocated": 182,
-    "official_total_vehicles_2018": 108532
+    "official_total_vehicles_2018": 108532,
+    "rows_changed_by_area_reweighting": 913,
+    "rows_changed_by_category_size_reweighting": 732
   },
   "category_totals": {
     "total": 108532,
@@ -42,5 +44,14 @@
     "Hulhumale'": 65714,
     "Addu": 25062,
     "Other atolls": 219406
+  },
+  "allocation_model": {
+    "category_specific": true,
+    "motor_cycle_and_battery_scooter": "0.65 population share + 0.35 inverse-square-root-land-area share; smaller islands receive relatively more two-wheelers",
+    "car_and_jeep": "0.75 population share + 0.25 land-area share; larger islands receive relatively more cars/jeeps",
+    "bus_pick_up_lorry_van_other": "0.55 population share + 0.45 land-area share; larger islands receive relatively more heavy/service vehicles",
+    "total": "0.80 population share + 0.20 land-area share",
+    "rounding": "largest remainder per vehicle category and source locality",
+    "status": "heuristic planning estimate, not a measured island registry"
   }
 }

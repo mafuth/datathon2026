@@ -4,6 +4,8 @@ export { getIslandServices } from './island-services';
 export { buildDemandAllocation } from './demand-allocation';
 export { calculateTransportDemand } from './transport-demand';
 export { calculateEmploymentScore } from './employment-score';
+export { calculateSustainabilityScore, sustainabilityDto } from './sustainability-score';
+export type { SustainabilityScoreInput, SustainabilityTransportDemand } from './sustainability-score';
 export { resolveEducationRouting, resolveElderlyHospitalRouting, resolveServiceRouting } from './hospital-routing';
 export type {
   EducationRoute,
@@ -34,11 +36,16 @@ export type {
   ScoreComponent,
   ScoreStatus,
   ServiceScore,
+  SustainabilityFactorKey,
+  SustainabilityPollutionFactor,
+  SustainabilityScoreDto,
+  SustainabilityScoreResult,
   InboundDemandSource,
   TransportDemandModeSummary,
   TransportDemandResult,
   TransportDemandStop,
   TransportRouteStop,
   TransportStop,
-  TransportStopMode
+  TransportStopMode,
+  VehicleCategoryBreakdown
 } from './types';

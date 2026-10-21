@@ -27,6 +27,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",
     "db:clear": "vite-node --options.transformMode.ssr='/.*/' src/lib/db/clear",
+    "db:import:vehicle-counts": "vite-node --options.transformMode.ssr='/.*/' scripts/import-vehicle-counts.ts",
     "mobility:export-baseline": "vite-node --options.transformMode.ssr='/.*/' scripts/export-mobility-baseline.ts",
     "mobility:fetch-osm": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-mobility.ts",
     "mobility:fetch-osm-sample": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-sample.ts",

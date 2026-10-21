@@ -10,7 +10,7 @@ export const config = {
   app: appConfig,
   auth: authConfig,
   mobility: {
-    apiDelayMs: 500
+    apiDelayMs: 0
   },
   theme: themeConfig,
   ui: uiConfig,

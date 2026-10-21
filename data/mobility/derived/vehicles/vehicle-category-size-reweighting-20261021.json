@@ -1,0 +1,6134 @@
+{
+  "schema_version": "vehicle-category-size-reweighting-v1",
+  "generated_at": "2026-10-21T14:15:06.818773+00:00",
+  "input_population_only_backup": "D:\\datathon\\new\\data\\mobility\\derived\\vehicles\\vehicles-by-island-category.population-only-20261021.csv",
+  "input_previous_area_blend": "D:\\datathon\\new\\data\\mobility\\derived\\vehicles\\vehicles-by-island-category.population-area-blend-20261021.csv",
+  "output": "D:\\datathon\\new\\data\\mobility\\derived\\vehicles\\vehicles-by-island-category.csv",
+  "category_models": {
+    "battery_scooter": {
+      "population": 0.65,
+      "area": 0.0,
+      "small_island": 0.35,
+      "basis": "smaller-island heuristic: population share plus inverse-square-root-area share"
+    },
+    "bus": {
+      "population": 0.55,
+      "area": 0.45,
+      "small_island": 0.0,
+      "basis": "population plus stronger land-area share for heavier/service vehicles"
+    },
+    "car": {
+      "population": 0.75,
+      "area": 0.25,
+      "small_island": 0.0,
+      "basis": "population plus positive land-area share; larger islands receive relatively more car/jeep allocation"
+    },
+    "jeep": {
+      "population": 0.75,
+      "area": 0.25,
+      "small_island": 0.0,
+      "basis": "population plus positive land-area share; larger islands receive relatively more car/jeep allocation"
+    },
+    "lorry": {
+      "population": 0.55,
+      "area": 0.45,
+      "small_island": 0.0,
+      "basis": "population plus stronger land-area share for heavier/service vehicles"
+    },
+    "motor_cycle": {
+      "population": 0.65,
+      "area": 0.0,
+      "small_island": 0.35,
+      "basis": "smaller-island heuristic: population share plus inverse-square-root-area share"
+    },
+    "other": {
+      "population": 0.55,
+      "area": 0.45,
+      "small_island": 0.0,
+      "basis": "population plus stronger land-area share for heavier/service vehicles"
+    },
+    "pick_up": {
+      "population": 0.55,
+      "area": 0.45,
+      "small_island": 0.0,
+      "basis": "population plus stronger land-area share for heavier/service vehicles"
+    },
+    "total": {
+      "population": 0.8,
+      "area": 0.2,
+      "small_island": 0.0,
+      "basis": "overall vehicle baseline: population plus land-area share"
+    },
+    "van": {
+      "population": 0.55,
+      "area": 0.45,
+      "small_island": 0.0,
+      "basis": "population plus stronger land-area share for heavier/service vehicles"
+    }
+  },
+  "counts": {
+    "rows_total": 1900,
+    "estimated_rows_reweighted": 1880,
+    "rows_changed_vs_previous_area_blend": 732
+  },
+  "category_locality_total_checks": {
+    "total|Male'": {
+      "expected": 71813,
+      "actual": 71813,
+      "ok": true
+    },
+    "total|Hulhumale'": {
+      "expected": 2675,
+      "actual": 2675,
+      "ok": true
+    },
+    "total|Addu": {
+      "expected": 8940,
+      "actual": 8940,
+      "ok": true
+    },
+    "total|Other atolls": {
+      "expected": 25104,
+      "actual": 25104,
+      "ok": true
+    },
+    "motor_cycle|Male'": {
+      "expected": 63379,
+      "actual": 63379,
+      "ok": true
+    },
+    "motor_cycle|Hulhumale'": {
+      "expected": 1665,
+      "actual": 1665,
+      "ok": true
+    },
+    "motor_cycle|Addu": {
+      "expected": 6545,
+      "actual": 6545,
+      "ok": true
+    },
+    "motor_cycle|Other atolls": {
+      "expected": 18308,
+      "actual": 18308,
+      "ok": true
+    },
+    "car|Male'": {
+      "expected": 3329,
+      "actual": 3329,
+      "ok": true
+    },
+    "car|Hulhumale'": {
+      "expected": 358,
+      "actual": 358,
+      "ok": true
+    },
+    "car|Addu": {
+      "expected": 1438,
+      "actual": 1438,
+      "ok": true
+    },
+    "car|Other atolls": {
+      "expected": 1200,
+      "actual": 1200,
+      "ok": true
+    },
+    "bus|Male'": {
+      "expected": 96,
+      "actual": 96,
+      "ok": true
+    },
+    "bus|Hulhumale'": {
+      "expected": 18,
+      "actual": 18,
+      "ok": true
+    },
+    "bus|Addu": {
+      "expected": 46,
+      "actual": 46,
+      "ok": true
+    },
+    "bus|Other atolls": {
+      "expected": 38,
+      "actual": 38,
+      "ok": true
+    },
+    "pick_up|Male'": {
+      "expected": 1493,
+      "actual": 1493,
+      "ok": true
+    },
+    "pick_up|Hulhumale'": {
+      "expected": 193,
+      "actual": 193,
+      "ok": true
+    },
+    "pick_up|Addu": {
+      "expected": 264,
+      "actual": 264,
+      "ok": true
+    },
+    "pick_up|Other atolls": {
+      "expected": 981,
+      "actual": 981,
+      "ok": true
+    },
+    "lorry|Male'": {
+      "expected": 450,
+      "actual": 450,
+      "ok": true
+    },
+    "lorry|Hulhumale'": {
+      "expected": 22,
+      "actual": 22,
+      "ok": true
+    },
+    "lorry|Addu": {
+      "expected": 53,
+      "actual": 53,
+      "ok": true
+    },
+    "lorry|Other atolls": {
+      "expected": 270,
+      "actual": 270,
+      "ok": true
+    },
+    "van|Male'": {
+      "expected": 765,
+      "actual": 765,
+      "ok": true
+    },
+    "van|Hulhumale'": {
+      "expected": 111,
+      "actual": 111,
+      "ok": true
+    },
+    "van|Addu": {
+      "expected": 205,
+      "actual": 205,
+      "ok": true
+    },
+    "van|Other atolls": {
+      "expected": 468,
+      "actual": 468,
+      "ok": true
+    },
+    "jeep|Male'": {
+      "expected": 294,
+      "actual": 294,
+      "ok": true
+    },
+    "jeep|Hulhumale'": {
+      "expected": 23,
+      "actual": 23,
+      "ok": true
+    },
+    "jeep|Addu": {
+      "expected": 83,
+      "actual": 83,
+      "ok": true
+    },
+    "jeep|Other atolls": {
+      "expected": 89,
+      "actual": 89,
+      "ok": true
+    },
+    "battery_scooter|Male'": {
+      "expected": 686,
+      "actual": 686,
+      "ok": true
+    },
+    "battery_scooter|Hulhumale'": {
+      "expected": 84,
+      "actual": 84,
+      "ok": true
+    },
+    "battery_scooter|Addu": {
+      "expected": 60,
+      "actual": 60,
+      "ok": true
+    },
+    "battery_scooter|Other atolls": {
+      "expected": 537,
+      "actual": 537,
+      "ok": true
+    },
+    "other|Male'": {
+      "expected": 1321,
+      "actual": 1321,
+      "ok": true
+    },
+    "other|Hulhumale'": {
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    "other|Addu": {
+      "expected": 246,
+      "actual": 246,
+      "ok": true
+    },
+    "other|Other atolls": {
+      "expected": 3213,
+      "actual": 3213,
+      "ok": true
+    }
+  },
+  "changed_rows": [
+    {
+      "island_id": "island:1129",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Addu",
+      "old_amount": 1041,
+      "new_amount": 1080,
+      "delta": 39
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Addu",
+      "old_amount": 333,
+      "new_amount": 903,
+      "delta": 570
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Addu",
+      "old_amount": 602,
+      "new_amount": 934,
+      "delta": 332
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Addu",
+      "old_amount": 3528,
+      "new_amount": 2502,
+      "delta": -1026
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Addu",
+      "old_amount": 620,
+      "new_amount": 604,
+      "delta": -16
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Addu",
+      "old_amount": 421,
+      "new_amount": 522,
+      "delta": 101
+    },
+    {
+      "island_id": "island:1",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 44,
+      "new_amount": 68,
+      "delta": 24
+    },
+    {
+      "island_id": "island:5",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 65,
+      "new_amount": 95,
+      "delta": 30
+    },
+    {
+      "island_id": "island:8",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 92,
+      "new_amount": 118,
+      "delta": 26
+    },
+    {
+      "island_id": "island:9",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 49,
+      "new_amount": 63,
+      "delta": 14
+    },
+    {
+      "island_id": "island:15",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 50,
+      "new_amount": 102,
+      "delta": 52
+    },
+    {
+      "island_id": "island:16",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 174,
+      "new_amount": 122,
+      "delta": -52
+    },
+    {
+      "island_id": "island:23",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 65,
+      "new_amount": 97,
+      "delta": 32
+    },
+    {
+      "island_id": "island:25",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 92,
+      "new_amount": 116,
+      "delta": 24
+    },
+    {
+      "island_id": "island:47",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 67,
+      "new_amount": 97,
+      "delta": 30
+    },
+    {
+      "island_id": "island:54",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 39,
+      "new_amount": 59,
+      "delta": 20
+    },
+    {
+      "island_id": "island:60",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 71,
+      "new_amount": 92,
+      "delta": 21
+    },
+    {
+      "island_id": "island:66",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 58,
+      "delta": 43
+    },
+    {
+      "island_id": "island:68",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 74,
+      "new_amount": 99,
+      "delta": 25
+    },
+    {
+      "island_id": "island:74",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 36,
+      "new_amount": 116,
+      "delta": 80
+    },
+    {
+      "island_id": "island:78",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 66,
+      "new_amount": 72,
+      "delta": 6
+    },
+    {
+      "island_id": "island:90",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 38,
+      "new_amount": 76,
+      "delta": 38
+    },
+    {
+      "island_id": "island:133",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 42,
+      "new_amount": 82,
+      "delta": 40
+    },
+    {
+      "island_id": "island:146",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 72,
+      "new_amount": 106,
+      "delta": 34
+    },
+    {
+      "island_id": "island:168",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 43,
+      "new_amount": 79,
+      "delta": 36
+    },
+    {
+      "island_id": "island:174",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 41,
+      "new_amount": 67,
+      "delta": 26
+    },
+    {
+      "island_id": "island:185",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 76,
+      "delta": 45
+    },
+    {
+      "island_id": "island:188",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 86,
+      "new_amount": 82,
+      "delta": -4
+    },
+    {
+      "island_id": "island:190",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 45,
+      "new_amount": 76,
+      "delta": 31
+    },
+    {
+      "island_id": "island:193",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 188,
+      "new_amount": 170,
+      "delta": -18
+    },
+    {
+      "island_id": "island:200",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 59,
+      "new_amount": 80,
+      "delta": 21
+    },
+    {
+      "island_id": "island:205",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 121,
+      "new_amount": 122,
+      "delta": 1
+    },
+    {
+      "island_id": "island:219",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 85,
+      "new_amount": 49,
+      "delta": -36
+    },
+    {
+      "island_id": "island:221",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 20,
+      "new_amount": 56,
+      "delta": 36
+    },
+    {
+      "island_id": "island:227",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 60,
+      "delta": 29
+    },
+    {
+      "island_id": "island:245",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 49,
+      "new_amount": 79,
+      "delta": 30
+    },
+    {
+      "island_id": "island:251",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 52,
+      "new_amount": 83,
+      "delta": 31
+    },
+    {
+      "island_id": "island:254",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 26,
+      "new_amount": 72,
+      "delta": 46
+    },
+    {
+      "island_id": "island:260",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 256,
+      "new_amount": 187,
+      "delta": -69
+    },
+    {
+      "island_id": "island:267",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 57,
+      "new_amount": 90,
+      "delta": 33
+    },
+    {
+      "island_id": "island:282",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 84,
+      "new_amount": 100,
+      "delta": 16
+    },
+    {
+      "island_id": "island:315",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 143,
+      "new_amount": 125,
+      "delta": -18
+    },
+    {
+      "island_id": "island:316",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 42,
+      "new_amount": 60,
+      "delta": 18
+    },
+    {
+      "island_id": "island:317",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 54,
+      "new_amount": 84,
+      "delta": 30
+    },
+    {
+      "island_id": "island:318",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 73,
+      "new_amount": 93,
+      "delta": 20
+    },
+    {
+      "island_id": "island:329",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 67,
+      "new_amount": 104,
+      "delta": 37
+    },
+    {
+      "island_id": "island:368",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 46,
+      "new_amount": 79,
+      "delta": 33
+    },
+    {
+      "island_id": "island:369",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 55,
+      "new_amount": 39,
+      "delta": -16
+    },
+    {
+      "island_id": "island:385",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 52,
+      "new_amount": 73,
+      "delta": 21
+    },
+    {
+      "island_id": "island:387",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 79,
+      "new_amount": 97,
+      "delta": 18
+    },
+    {
+      "island_id": "island:399",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 50,
+      "new_amount": 73,
+      "delta": 23
+    },
+    {
+      "island_id": "island:412",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 95,
+      "new_amount": 97,
+      "delta": 2
+    },
+    {
+      "island_id": "island:413",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 54,
+      "new_amount": 58,
+      "delta": 4
+    },
+    {
+      "island_id": "island:415",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 104,
+      "new_amount": 102,
+      "delta": -2
+    },
+    {
+      "island_id": "island:429",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 225,
+      "new_amount": 179,
+      "delta": -46
+    },
+    {
+      "island_id": "island:458",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 111,
+      "new_amount": 106,
+      "delta": -5
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 467,
+      "new_amount": 354,
+      "delta": -113
+    },
+    {
+      "island_id": "island:483",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 90,
+      "new_amount": 69,
+      "delta": -21
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 89,
+      "new_amount": 44,
+      "delta": -45
+    },
+    {
+      "island_id": "island:545",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 52,
+      "new_amount": 65,
+      "delta": 13
+    },
+    {
+      "island_id": "island:550",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 65,
+      "new_amount": 60,
+      "delta": -5
+    },
+    {
+      "island_id": "island:584",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 40,
+      "new_amount": 59,
+      "delta": 19
+    },
+    {
+      "island_id": "island:595",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 71,
+      "new_amount": 79,
+      "delta": 8
+    },
+    {
+      "island_id": "island:607",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 95,
+      "new_amount": 99,
+      "delta": 4
+    },
+    {
+      "island_id": "island:611",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 42,
+      "new_amount": 64,
+      "delta": 22
+    },
+    {
+      "island_id": "island:612",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 142,
+      "new_amount": 127,
+      "delta": -15
+    },
+    {
+      "island_id": "island:618",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 57,
+      "new_amount": 44,
+      "delta": -13
+    },
+    {
+      "island_id": "island:620",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 55,
+      "new_amount": 65,
+      "delta": 10
+    },
+    {
+      "island_id": "island:624",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 132,
+      "new_amount": 76,
+      "delta": -56
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 255,
+      "new_amount": 208,
+      "delta": -47
+    },
+    {
+      "island_id": "island:628",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 57,
+      "new_amount": 70,
+      "delta": 13
+    },
+    {
+      "island_id": "island:629",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 49,
+      "new_amount": 62,
+      "delta": 13
+    },
+    {
+      "island_id": "island:634",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 53,
+      "new_amount": 36,
+      "delta": -17
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 209,
+      "new_amount": 184,
+      "delta": -25
+    },
+    {
+      "island_id": "island:637",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 36,
+      "new_amount": 67,
+      "delta": 31
+    },
+    {
+      "island_id": "island:639",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 30,
+      "new_amount": 50,
+      "delta": 20
+    },
+    {
+      "island_id": "island:640",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 147,
+      "new_amount": 76,
+      "delta": -71
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 112,
+      "new_amount": 44,
+      "delta": -68
+    },
+    {
+      "island_id": "island:653",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 60,
+      "new_amount": 43,
+      "delta": -17
+    },
+    {
+      "island_id": "island:655",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 42,
+      "new_amount": 68,
+      "delta": 26
+    },
+    {
+      "island_id": "island:661",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 78,
+      "new_amount": 96,
+      "delta": 18
+    },
+    {
+      "island_id": "island:662",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 33,
+      "new_amount": 49,
+      "delta": 16
+    },
+    {
+      "island_id": "island:664",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 44,
+      "new_amount": 62,
+      "delta": 18
+    },
+    {
+      "island_id": "island:670",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 120,
+      "new_amount": 70,
+      "delta": -50
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 91,
+      "new_amount": 52,
+      "delta": -39
+    },
+    {
+      "island_id": "island:673",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 82,
+      "new_amount": 64,
+      "delta": -18
+    },
+    {
+      "island_id": "island:676",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 107,
+      "new_amount": 94,
+      "delta": -13
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 747,
+      "new_amount": 564,
+      "delta": -183
+    },
+    {
+      "island_id": "island:681",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 191,
+      "new_amount": 123,
+      "delta": -68
+    },
+    {
+      "island_id": "island:682",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 133,
+      "new_amount": 85,
+      "delta": -48
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 264,
+      "new_amount": 157,
+      "delta": -107
+    },
+    {
+      "island_id": "island:691",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 19,
+      "new_amount": 56,
+      "delta": 37
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 493,
+      "new_amount": 270,
+      "delta": -223
+    },
+    {
+      "island_id": "island:697",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 104,
+      "new_amount": 82,
+      "delta": -22
+    },
+    {
+      "island_id": "island:699",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 66,
+      "new_amount": 56,
+      "delta": -10
+    },
+    {
+      "island_id": "island:702",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 65,
+      "new_amount": 96,
+      "delta": 31
+    },
+    {
+      "island_id": "island:704",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 248,
+      "new_amount": 179,
+      "delta": -69
+    },
+    {
+      "island_id": "island:717",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 103,
+      "new_amount": 111,
+      "delta": 8
+    },
+    {
+      "island_id": "island:720",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 53,
+      "new_amount": 62,
+      "delta": 9
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 103,
+      "new_amount": 69,
+      "delta": -34
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 104,
+      "new_amount": 51,
+      "delta": -53
+    },
+    {
+      "island_id": "island:753",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 56,
+      "new_amount": 64,
+      "delta": 8
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 339,
+      "new_amount": 292,
+      "delta": -47
+    },
+    {
+      "island_id": "island:791",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 168,
+      "new_amount": 155,
+      "delta": -13
+    },
+    {
+      "island_id": "island:798",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 85,
+      "new_amount": 111,
+      "delta": 26
+    },
+    {
+      "island_id": "island:799",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 55,
+      "new_amount": 80,
+      "delta": 25
+    },
+    {
+      "island_id": "island:859",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 77,
+      "new_amount": 119,
+      "delta": 42
+    },
+    {
+      "island_id": "island:868",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 85,
+      "new_amount": 77,
+      "delta": -8
+    },
+    {
+      "island_id": "island:879",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 32,
+      "new_amount": 86,
+      "delta": 54
+    },
+    {
+      "island_id": "island:895",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 82,
+      "delta": 57
+    },
+    {
+      "island_id": "island:896",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 32,
+      "new_amount": 51,
+      "delta": 19
+    },
+    {
+      "island_id": "island:906",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 114,
+      "new_amount": 105,
+      "delta": -9
+    },
+    {
+      "island_id": "island:907",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 19,
+      "new_amount": 52,
+      "delta": 33
+    },
+    {
+      "island_id": "island:933",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 75,
+      "new_amount": 65,
+      "delta": -10
+    },
+    {
+      "island_id": "island:934",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 62,
+      "new_amount": 72,
+      "delta": 10
+    },
+    {
+      "island_id": "island:941",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 30,
+      "new_amount": 63,
+      "delta": 33
+    },
+    {
+      "island_id": "island:944",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 50,
+      "new_amount": 76,
+      "delta": 26
+    },
+    {
+      "island_id": "island:945",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 148,
+      "new_amount": 116,
+      "delta": -32
+    },
+    {
+      "island_id": "island:948",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 140,
+      "new_amount": 128,
+      "delta": -12
+    },
+    {
+      "island_id": "island:949",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 58,
+      "new_amount": 73,
+      "delta": 15
+    },
+    {
+      "island_id": "island:952",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 99,
+      "new_amount": 69,
+      "delta": -30
+    },
+    {
+      "island_id": "island:966",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 163,
+      "new_amount": 100,
+      "delta": -63
+    },
+    {
+      "island_id": "island:970",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 54,
+      "delta": 23
+    },
+    {
+      "island_id": "island:972",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 46,
+      "new_amount": 95,
+      "delta": 49
+    },
+    {
+      "island_id": "island:979",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 69,
+      "new_amount": 98,
+      "delta": 29
+    },
+    {
+      "island_id": "island:988",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 110,
+      "new_amount": 109,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1012",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 124,
+      "new_amount": 143,
+      "delta": 19
+    },
+    {
+      "island_id": "island:1027",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 44,
+      "new_amount": 74,
+      "delta": 30
+    },
+    {
+      "island_id": "island:1045",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 37,
+      "new_amount": 57,
+      "delta": 20
+    },
+    {
+      "island_id": "island:1046",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 79,
+      "new_amount": 83,
+      "delta": 4
+    },
+    {
+      "island_id": "island:1047",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 55,
+      "new_amount": 73,
+      "delta": 18
+    },
+    {
+      "island_id": "island:1048",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 52,
+      "new_amount": 60,
+      "delta": 8
+    },
+    {
+      "island_id": "island:1055",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 141,
+      "new_amount": 130,
+      "delta": -11
+    },
+    {
+      "island_id": "island:1057",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 47,
+      "new_amount": 65,
+      "delta": 18
+    },
+    {
+      "island_id": "island:1062",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 99,
+      "new_amount": 96,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1063",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 135,
+      "new_amount": 139,
+      "delta": 4
+    },
+    {
+      "island_id": "island:1066",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 237,
+      "new_amount": 211,
+      "delta": -26
+    },
+    {
+      "island_id": "island:1070",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 46,
+      "new_amount": 52,
+      "delta": 6
+    },
+    {
+      "island_id": "island:1073",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 41,
+      "new_amount": 61,
+      "delta": 20
+    },
+    {
+      "island_id": "island:1075",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 127,
+      "new_amount": 133,
+      "delta": 6
+    },
+    {
+      "island_id": "island:1120",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 99,
+      "new_amount": 102,
+      "delta": 3
+    },
+    {
+      "island_id": "island:1162",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 177,
+      "new_amount": 133,
+      "delta": -44
+    },
+    {
+      "island_id": "island:1163",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 48,
+      "new_amount": 64,
+      "delta": 16
+    },
+    {
+      "island_id": "island:1166",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 124,
+      "new_amount": 113,
+      "delta": -11
+    },
+    {
+      "island_id": "island:1169",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 68,
+      "new_amount": 55,
+      "delta": -13
+    },
+    {
+      "island_id": "island:1171",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 185,
+      "new_amount": 143,
+      "delta": -42
+    },
+    {
+      "island_id": "island:1173",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 58,
+      "new_amount": 71,
+      "delta": 13
+    },
+    {
+      "island_id": "island:1174",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 36,
+      "new_amount": 56,
+      "delta": 20
+    },
+    {
+      "island_id": "island:1175",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 52,
+      "new_amount": 55,
+      "delta": 3
+    },
+    {
+      "island_id": "island:1176",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 105,
+      "new_amount": 89,
+      "delta": -16
+    },
+    {
+      "island_id": "island:1177",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 82,
+      "new_amount": 70,
+      "delta": -12
+    },
+    {
+      "island_id": "island:1178",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 41,
+      "new_amount": 67,
+      "delta": 26
+    },
+    {
+      "island_id": "island:1181",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 71,
+      "new_amount": 93,
+      "delta": 22
+    },
+    {
+      "island_id": "island:1189",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 71,
+      "new_amount": 62,
+      "delta": -9
+    },
+    {
+      "island_id": "island:1192",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 68,
+      "new_amount": 98,
+      "delta": 30
+    },
+    {
+      "island_id": "island:1212",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 32,
+      "new_amount": 64,
+      "delta": 32
+    },
+    {
+      "island_id": "island:1218",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 53,
+      "new_amount": 50,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1222",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 37,
+      "new_amount": 61,
+      "delta": 24
+    },
+    {
+      "island_id": "island:1229",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 89,
+      "new_amount": 88,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1234",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 85,
+      "new_amount": 103,
+      "delta": 18
+    },
+    {
+      "island_id": "island:1242",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 38,
+      "new_amount": 60,
+      "delta": 22
+    },
+    {
+      "island_id": "island:1249",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 101,
+      "new_amount": 106,
+      "delta": 5
+    },
+    {
+      "island_id": "island:1252",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 110,
+      "new_amount": 89,
+      "delta": -21
+    },
+    {
+      "island_id": "island:1254",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 77,
+      "delta": 52
+    },
+    {
+      "island_id": "island:1274",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 108,
+      "new_amount": 96,
+      "delta": -12
+    },
+    {
+      "island_id": "island:1275",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 52,
+      "new_amount": 77,
+      "delta": 25
+    },
+    {
+      "island_id": "island:1280",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 58,
+      "new_amount": 75,
+      "delta": 17
+    },
+    {
+      "island_id": "island:1281",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 72,
+      "new_amount": 77,
+      "delta": 5
+    },
+    {
+      "island_id": "island:1286",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 30,
+      "new_amount": 87,
+      "delta": 57
+    },
+    {
+      "island_id": "island:1290",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 21,
+      "new_amount": 78,
+      "delta": 57
+    },
+    {
+      "island_id": "island:1291",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 46,
+      "new_amount": 91,
+      "delta": 45
+    },
+    {
+      "island_id": "island:1292",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 46,
+      "new_amount": 101,
+      "delta": 55
+    },
+    {
+      "island_id": "island:1302",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 93,
+      "delta": 86
+    },
+    {
+      "island_id": "island:1334",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 752,
+      "new_amount": 508,
+      "delta": -244
+    },
+    {
+      "island_id": "island:1338",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 248,
+      "new_amount": 151,
+      "delta": -97
+    },
+    {
+      "island_id": "island:1339",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 92,
+      "new_amount": 121,
+      "delta": 29
+    },
+    {
+      "island_id": "island:1358",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 92,
+      "new_amount": 112,
+      "delta": 20
+    },
+    {
+      "island_id": "island:1364",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 142,
+      "new_amount": 123,
+      "delta": -19
+    },
+    {
+      "island_id": "island:1372",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 125,
+      "new_amount": 121,
+      "delta": -4
+    },
+    {
+      "island_id": "island:1380",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 153,
+      "new_amount": 137,
+      "delta": -16
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 460,
+      "new_amount": 406,
+      "delta": -54
+    },
+    {
+      "island_id": "island:1427",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 123,
+      "new_amount": 142,
+      "delta": 19
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 310,
+      "new_amount": 278,
+      "delta": -32
+    },
+    {
+      "island_id": "island:1464",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 68,
+      "new_amount": 120,
+      "delta": 52
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 147,
+      "new_amount": 56,
+      "delta": -91
+    },
+    {
+      "island_id": "island:1531",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 179,
+      "new_amount": 186,
+      "delta": 7
+    },
+    {
+      "island_id": "island:1552",
+      "vehicle_category": "motor_cycle",
+      "source_locality": "Other atolls",
+      "old_amount": 249,
+      "new_amount": 167,
+      "delta": -82
+    },
+    {
+      "island_id": "island:1129",
+      "vehicle_category": "car",
+      "source_locality": "Addu",
+      "old_amount": 229,
+      "new_amount": 224,
+      "delta": -5
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "car",
+      "source_locality": "Addu",
+      "old_amount": 73,
+      "new_amount": 71,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "car",
+      "source_locality": "Addu",
+      "old_amount": 132,
+      "new_amount": 129,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "car",
+      "source_locality": "Addu",
+      "old_amount": 775,
+      "new_amount": 772,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "car",
+      "source_locality": "Addu",
+      "old_amount": 136,
+      "new_amount": 143,
+      "delta": 7
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "car",
+      "source_locality": "Addu",
+      "old_amount": 93,
+      "new_amount": 99,
+      "delta": 6
+    },
+    {
+      "island_id": "island:16",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 12,
+      "delta": 1
+    },
+    {
+      "island_id": "island:90",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:317",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:429",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 14,
+      "delta": -1
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 30,
+      "delta": -1
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 16,
+      "delta": -1
+    },
+    {
+      "island_id": "island:634",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 13,
+      "delta": -1
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:673",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 49,
+      "new_amount": 47,
+      "delta": -2
+    },
+    {
+      "island_id": "island:681",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 13,
+      "delta": 1
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 18,
+      "delta": 1
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 32,
+      "new_amount": 34,
+      "delta": 2
+    },
+    {
+      "island_id": "island:699",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:720",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 21,
+      "delta": -1
+    },
+    {
+      "island_id": "island:798",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:906",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:952",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:979",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1048",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1062",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1063",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1066",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 15,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1169",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1175",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1177",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1234",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1249",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1338",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 17,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 30,
+      "new_amount": 28,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 20,
+      "new_amount": 19,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 11,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1531",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 11,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1552",
+      "vehicle_category": "car",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 17,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "bus",
+      "source_locality": "Addu",
+      "old_amount": 25,
+      "new_amount": 24,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "bus",
+      "source_locality": "Addu",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:315",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:612",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:670",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:948",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1055",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1063",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1364",
+      "vehicle_category": "bus",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1129",
+      "vehicle_category": "pick_up",
+      "source_locality": "Addu",
+      "old_amount": 42,
+      "new_amount": 38,
+      "delta": -4
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "pick_up",
+      "source_locality": "Addu",
+      "old_amount": 14,
+      "new_amount": 12,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "pick_up",
+      "source_locality": "Addu",
+      "old_amount": 24,
+      "new_amount": 21,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "pick_up",
+      "source_locality": "Addu",
+      "old_amount": 142,
+      "new_amount": 139,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "pick_up",
+      "source_locality": "Addu",
+      "old_amount": 25,
+      "new_amount": 31,
+      "delta": 6
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "pick_up",
+      "source_locality": "Addu",
+      "old_amount": 17,
+      "new_amount": 23,
+      "delta": 6
+    },
+    {
+      "island_id": "island:8",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:15",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:16",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 10,
+      "delta": 1
+    },
+    {
+      "island_id": "island:25",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:47",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:60",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:68",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:74",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:146",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:193",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 8,
+      "delta": -2
+    },
+    {
+      "island_id": "island:219",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 7,
+      "delta": 3
+    },
+    {
+      "island_id": "island:245",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:260",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 13,
+      "delta": -1
+    },
+    {
+      "island_id": "island:315",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:316",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:318",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:329",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:369",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:415",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:429",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 11,
+      "delta": -1
+    },
+    {
+      "island_id": "island:458",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 22,
+      "delta": -3
+    },
+    {
+      "island_id": "island:483",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 8,
+      "delta": 3
+    },
+    {
+      "island_id": "island:550",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:612",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:618",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:624",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 10,
+      "delta": 3
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 12,
+      "delta": -2
+    },
+    {
+      "island_id": "island:634",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 9,
+      "delta": -2
+    },
+    {
+      "island_id": "island:640",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 11,
+      "delta": 3
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 10,
+      "delta": 4
+    },
+    {
+      "island_id": "island:653",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:664",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:670",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 9,
+      "delta": 3
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 7,
+      "delta": 2
+    },
+    {
+      "island_id": "island:673",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 6,
+      "delta": 2
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 40,
+      "new_amount": 33,
+      "delta": -7
+    },
+    {
+      "island_id": "island:681",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 12,
+      "delta": 2
+    },
+    {
+      "island_id": "island:682",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 9,
+      "delta": 2
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 17,
+      "delta": 3
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 26,
+      "new_amount": 33,
+      "delta": 7
+    },
+    {
+      "island_id": "island:699",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 7,
+      "delta": 2
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 9,
+      "delta": 3
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 14,
+      "delta": -4
+    },
+    {
+      "island_id": "island:791",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 7,
+      "delta": -2
+    },
+    {
+      "island_id": "island:859",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:933",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:952",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 7,
+      "delta": 2
+    },
+    {
+      "island_id": "island:966",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 11,
+      "delta": 2
+    },
+    {
+      "island_id": "island:979",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:988",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1012",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1055",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1057",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1063",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1066",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 10,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1070",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1075",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1162",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 10,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1166",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1169",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1175",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1177",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1181",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1189",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1192",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1218",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1234",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1286",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1334",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 40,
+      "new_amount": 39,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1338",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 16,
+      "delta": 3
+    },
+    {
+      "island_id": "island:1339",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1358",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1364",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1372",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1380",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 18,
+      "delta": -7
+    },
+    {
+      "island_id": "island:1427",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 12,
+      "delta": -5
+    },
+    {
+      "island_id": "island:1464",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 13,
+      "delta": 5
+    },
+    {
+      "island_id": "island:1531",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 7,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1552",
+      "vehicle_category": "pick_up",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 14,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "lorry",
+      "source_locality": "Addu",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "lorry",
+      "source_locality": "Addu",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "lorry",
+      "source_locality": "Addu",
+      "old_amount": 29,
+      "new_amount": 28,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "lorry",
+      "source_locality": "Addu",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "lorry",
+      "source_locality": "Addu",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:90",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:133",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:193",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:205",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:219",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:458",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:483",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:624",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:639",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:640",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:662",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 9,
+      "delta": -2
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 9,
+      "delta": 2
+    },
+    {
+      "island_id": "island:697",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:896",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:952",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:966",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:972",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:988",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1012",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1045",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1075",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1174",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1292",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1427",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 3,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 4,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1531",
+      "vehicle_category": "lorry",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1129",
+      "vehicle_category": "van",
+      "source_locality": "Addu",
+      "old_amount": 33,
+      "new_amount": 30,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "van",
+      "source_locality": "Addu",
+      "old_amount": 10,
+      "new_amount": 9,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "van",
+      "source_locality": "Addu",
+      "old_amount": 19,
+      "new_amount": 16,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "van",
+      "source_locality": "Addu",
+      "old_amount": 111,
+      "new_amount": 108,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "van",
+      "source_locality": "Addu",
+      "old_amount": 19,
+      "new_amount": 24,
+      "delta": 5
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "van",
+      "source_locality": "Addu",
+      "old_amount": 13,
+      "new_amount": 18,
+      "delta": 5
+    },
+    {
+      "island_id": "island:5",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:16",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:23",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:47",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:66",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:193",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:200",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:219",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:260",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:315",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:329",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:369",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:413",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:415",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:429",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 10,
+      "delta": -2
+    },
+    {
+      "island_id": "island:483",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 4,
+      "delta": 2
+    },
+    {
+      "island_id": "island:612",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:618",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:620",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:624",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:628",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:634",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:640",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:670",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 4,
+      "delta": 2
+    },
+    {
+      "island_id": "island:673",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 19,
+      "new_amount": 16,
+      "delta": -3
+    },
+    {
+      "island_id": "island:681",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:682",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:691",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 1,
+      "delta": 1
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 16,
+      "delta": 3
+    },
+    {
+      "island_id": "island:702",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:717",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:720",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:753",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 7,
+      "delta": -2
+    },
+    {
+      "island_id": "island:948",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:966",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:979",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1012",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1048",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1055",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1062",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1066",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1070",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1120",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1173",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1175",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1192",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1218",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1249",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1338",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 8,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1364",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1380",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 8,
+      "delta": -4
+    },
+    {
+      "island_id": "island:1427",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 6,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1464",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 6,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1531",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 3,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1552",
+      "vehicle_category": "van",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "jeep",
+      "source_locality": "Addu",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "jeep",
+      "source_locality": "Addu",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "jeep",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:798",
+      "vehicle_category": "jeep",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 0,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Addu",
+      "old_amount": 3,
+      "new_amount": 8,
+      "delta": 5
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Addu",
+      "old_amount": 5,
+      "new_amount": 9,
+      "delta": 4
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Addu",
+      "old_amount": 32,
+      "new_amount": 23,
+      "delta": -9
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Addu",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Addu",
+      "old_amount": 4,
+      "new_amount": 5,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:5",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:9",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:15",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:16",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:23",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:47",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:54",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:60",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:66",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 2,
+      "delta": 2
+    },
+    {
+      "island_id": "island:68",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:74",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:90",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:133",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:146",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:168",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:174",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:185",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:188",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:190",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:193",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:219",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:221",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:227",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:245",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:254",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:260",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:267",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:282",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:316",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:318",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:329",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:368",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:369",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:387",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:399",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:429",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 10,
+      "delta": -4
+    },
+    {
+      "island_id": "island:483",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 1,
+      "delta": -2
+    },
+    {
+      "island_id": "island:584",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:611",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:618",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:624",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 2,
+      "delta": -2
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:629",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:634",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:637",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:640",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 2,
+      "delta": -2
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 1,
+      "delta": -2
+    },
+    {
+      "island_id": "island:653",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:655",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:661",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:664",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:670",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 2,
+      "delta": -2
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 17,
+      "delta": -5
+    },
+    {
+      "island_id": "island:681",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 4,
+      "delta": -2
+    },
+    {
+      "island_id": "island:682",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 2,
+      "delta": -2
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 5,
+      "delta": -3
+    },
+    {
+      "island_id": "island:691",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 8,
+      "delta": -6
+    },
+    {
+      "island_id": "island:697",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:702",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:704",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 1,
+      "delta": -2
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 9,
+      "delta": -1
+    },
+    {
+      "island_id": "island:798",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:859",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:879",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:895",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:907",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:941",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:944",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:945",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:952",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 2,
+      "delta": -1
+    },
+    {
+      "island_id": "island:966",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 3,
+      "delta": -2
+    },
+    {
+      "island_id": "island:970",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:972",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:979",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1027",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1045",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1057",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1066",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1073",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1162",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1163",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1166",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1171",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1174",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1178",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1181",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1192",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1212",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1218",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 1,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1222",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1234",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 3,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1242",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1254",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1286",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1290",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 2,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1291",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1292",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 1,
+      "new_amount": 3,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1302",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 0,
+      "new_amount": 3,
+      "delta": 3
+    },
+    {
+      "island_id": "island:1334",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 15,
+      "delta": -7
+    },
+    {
+      "island_id": "island:1338",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 4,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1339",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 12,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1464",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 2,
+      "new_amount": 4,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 2,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1552",
+      "vehicle_category": "battery_scooter",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 5,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1129",
+      "vehicle_category": "other",
+      "source_locality": "Addu",
+      "old_amount": 39,
+      "new_amount": 35,
+      "delta": -4
+    },
+    {
+      "island_id": "island:1130",
+      "vehicle_category": "other",
+      "source_locality": "Addu",
+      "old_amount": 12,
+      "new_amount": 11,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1131",
+      "vehicle_category": "other",
+      "source_locality": "Addu",
+      "old_amount": 23,
+      "new_amount": 20,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1152",
+      "vehicle_category": "other",
+      "source_locality": "Addu",
+      "old_amount": 133,
+      "new_amount": 130,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1559",
+      "vehicle_category": "other",
+      "source_locality": "Addu",
+      "old_amount": 23,
+      "new_amount": 29,
+      "delta": 6
+    },
+    {
+      "island_id": "island:1560",
+      "vehicle_category": "other",
+      "source_locality": "Addu",
+      "old_amount": 16,
+      "new_amount": 21,
+      "delta": 5
+    },
+    {
+      "island_id": "island:5",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 10,
+      "delta": -1
+    },
+    {
+      "island_id": "island:8",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 13,
+      "delta": -3
+    },
+    {
+      "island_id": "island:15",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 7,
+      "delta": -2
+    },
+    {
+      "island_id": "island:16",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 34,
+      "delta": 3
+    },
+    {
+      "island_id": "island:23",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 9,
+      "delta": -2
+    },
+    {
+      "island_id": "island:25",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 13,
+      "delta": -3
+    },
+    {
+      "island_id": "island:47",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 10,
+      "delta": -2
+    },
+    {
+      "island_id": "island:54",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:60",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 11,
+      "delta": -1
+    },
+    {
+      "island_id": "island:68",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 11,
+      "delta": -2
+    },
+    {
+      "island_id": "island:74",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:90",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 6,
+      "delta": -1
+    },
+    {
+      "island_id": "island:146",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 10,
+      "delta": -3
+    },
+    {
+      "island_id": "island:168",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:185",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:188",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 16,
+      "delta": 1
+    },
+    {
+      "island_id": "island:190",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:193",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 33,
+      "new_amount": 27,
+      "delta": -6
+    },
+    {
+      "island_id": "island:205",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 21,
+      "new_amount": 18,
+      "delta": -3
+    },
+    {
+      "island_id": "island:219",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 23,
+      "delta": 8
+    },
+    {
+      "island_id": "island:227",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:245",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:251",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:254",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 4,
+      "delta": -1
+    },
+    {
+      "island_id": "island:260",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 45,
+      "new_amount": 44,
+      "delta": -1
+    },
+    {
+      "island_id": "island:267",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 9,
+      "delta": -1
+    },
+    {
+      "island_id": "island:282",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 13,
+      "delta": -2
+    },
+    {
+      "island_id": "island:315",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 23,
+      "delta": -2
+    },
+    {
+      "island_id": "island:316",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:317",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:318",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 11,
+      "delta": -2
+    },
+    {
+      "island_id": "island:329",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 9,
+      "delta": -3
+    },
+    {
+      "island_id": "island:368",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:369",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 16,
+      "delta": 6
+    },
+    {
+      "island_id": "island:387",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 12,
+      "delta": -2
+    },
+    {
+      "island_id": "island:412",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 15,
+      "delta": -2
+    },
+    {
+      "island_id": "island:413",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 11,
+      "delta": 2
+    },
+    {
+      "island_id": "island:415",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 17,
+      "delta": -1
+    },
+    {
+      "island_id": "island:429",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 39,
+      "new_amount": 36,
+      "delta": -3
+    },
+    {
+      "island_id": "island:458",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 19,
+      "new_amount": 18,
+      "delta": -1
+    },
+    {
+      "island_id": "island:470",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 82,
+      "new_amount": 71,
+      "delta": -11
+    },
+    {
+      "island_id": "island:483",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 19,
+      "delta": 3
+    },
+    {
+      "island_id": "island:510",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 26,
+      "delta": 10
+    },
+    {
+      "island_id": "island:545",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 10,
+      "delta": 1
+    },
+    {
+      "island_id": "island:550",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 14,
+      "delta": 3
+    },
+    {
+      "island_id": "island:584",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:607",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 15,
+      "delta": -2
+    },
+    {
+      "island_id": "island:611",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:612",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 23,
+      "delta": -2
+    },
+    {
+      "island_id": "island:618",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 15,
+      "delta": 5
+    },
+    {
+      "island_id": "island:624",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 23,
+      "new_amount": 32,
+      "delta": 9
+    },
+    {
+      "island_id": "island:625",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 45,
+      "new_amount": 38,
+      "delta": -7
+    },
+    {
+      "island_id": "island:629",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 10,
+      "delta": 1
+    },
+    {
+      "island_id": "island:634",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 16,
+      "delta": 7
+    },
+    {
+      "island_id": "island:635",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 37,
+      "new_amount": 30,
+      "delta": -7
+    },
+    {
+      "island_id": "island:639",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 7,
+      "delta": 2
+    },
+    {
+      "island_id": "island:640",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 26,
+      "new_amount": 37,
+      "delta": 11
+    },
+    {
+      "island_id": "island:641",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 20,
+      "new_amount": 34,
+      "delta": 14
+    },
+    {
+      "island_id": "island:653",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 16,
+      "delta": 5
+    },
+    {
+      "island_id": "island:661",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 12,
+      "delta": -2
+    },
+    {
+      "island_id": "island:662",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 8,
+      "delta": 2
+    },
+    {
+      "island_id": "island:664",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 9,
+      "delta": 1
+    },
+    {
+      "island_id": "island:670",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 21,
+      "new_amount": 29,
+      "delta": 8
+    },
+    {
+      "island_id": "island:672",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 24,
+      "delta": 8
+    },
+    {
+      "island_id": "island:673",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 18,
+      "delta": 4
+    },
+    {
+      "island_id": "island:680",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 131,
+      "new_amount": 110,
+      "delta": -21
+    },
+    {
+      "island_id": "island:681",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 33,
+      "new_amount": 39,
+      "delta": 6
+    },
+    {
+      "island_id": "island:682",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 23,
+      "new_amount": 29,
+      "delta": 6
+    },
+    {
+      "island_id": "island:684",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 46,
+      "new_amount": 55,
+      "delta": 9
+    },
+    {
+      "island_id": "island:691",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 4,
+      "delta": 1
+    },
+    {
+      "island_id": "island:692",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 86,
+      "new_amount": 106,
+      "delta": 20
+    },
+    {
+      "island_id": "island:697",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 21,
+      "delta": 3
+    },
+    {
+      "island_id": "island:699",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 15,
+      "delta": 3
+    },
+    {
+      "island_id": "island:702",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 11,
+      "new_amount": 10,
+      "delta": -1
+    },
+    {
+      "island_id": "island:717",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 16,
+      "delta": -2
+    },
+    {
+      "island_id": "island:720",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 10,
+      "delta": 1
+    },
+    {
+      "island_id": "island:723",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 24,
+      "delta": 6
+    },
+    {
+      "island_id": "island:746",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 29,
+      "delta": 11
+    },
+    {
+      "island_id": "island:753",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 11,
+      "delta": 1
+    },
+    {
+      "island_id": "island:777",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 60,
+      "new_amount": 45,
+      "delta": -15
+    },
+    {
+      "island_id": "island:791",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 29,
+      "new_amount": 24,
+      "delta": -5
+    },
+    {
+      "island_id": "island:798",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 12,
+      "delta": -3
+    },
+    {
+      "island_id": "island:799",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 9,
+      "delta": -1
+    },
+    {
+      "island_id": "island:859",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 10,
+      "delta": -4
+    },
+    {
+      "island_id": "island:868",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 16,
+      "delta": 1
+    },
+    {
+      "island_id": "island:879",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 5,
+      "delta": -1
+    },
+    {
+      "island_id": "island:896",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:904",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 14,
+      "delta": 1
+    },
+    {
+      "island_id": "island:906",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 20,
+      "new_amount": 19,
+      "delta": -1
+    },
+    {
+      "island_id": "island:907",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 3,
+      "new_amount": 5,
+      "delta": 2
+    },
+    {
+      "island_id": "island:933",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 16,
+      "delta": 3
+    },
+    {
+      "island_id": "island:941",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 6,
+      "delta": 1
+    },
+    {
+      "island_id": "island:944",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:948",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 22,
+      "delta": -3
+    },
+    {
+      "island_id": "island:952",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 22,
+      "delta": 5
+    },
+    {
+      "island_id": "island:966",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 29,
+      "new_amount": 36,
+      "delta": 7
+    },
+    {
+      "island_id": "island:970",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 5,
+      "new_amount": 7,
+      "delta": 2
+    },
+    {
+      "island_id": "island:972",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:979",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 10,
+      "delta": -2
+    },
+    {
+      "island_id": "island:988",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 19,
+      "new_amount": 17,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1012",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 17,
+      "delta": -5
+    },
+    {
+      "island_id": "island:1027",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1045",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1047",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 10,
+      "new_amount": 9,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1048",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 11,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1055",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 22,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1057",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 9,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1063",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 24,
+      "new_amount": 19,
+      "delta": -5
+    },
+    {
+      "island_id": "island:1066",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 42,
+      "new_amount": 33,
+      "delta": -9
+    },
+    {
+      "island_id": "island:1070",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 10,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1073",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 7,
+      "new_amount": 8,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1075",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 18,
+      "delta": -4
+    },
+    {
+      "island_id": "island:1120",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 17,
+      "new_amount": 16,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1162",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 32,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1166",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 20,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1169",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 16,
+      "delta": 4
+    },
+    {
+      "island_id": "island:1174",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 6,
+      "new_amount": 7,
+      "delta": 1
+    },
+    {
+      "island_id": "island:1175",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 11,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1176",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 20,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1177",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 14,
+      "new_amount": 17,
+      "delta": 3
+    },
+    {
+      "island_id": "island:1181",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 13,
+      "new_amount": 11,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1189",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 15,
+      "delta": 3
+    },
+    {
+      "island_id": "island:1192",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 10,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1218",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 13,
+      "delta": 4
+    },
+    {
+      "island_id": "island:1229",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 15,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1234",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 15,
+      "new_amount": 13,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1249",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 18,
+      "new_amount": 16,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1252",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 19,
+      "new_amount": 21,
+      "delta": 2
+    },
+    {
+      "island_id": "island:1275",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 9,
+      "new_amount": 8,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1290",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 4,
+      "new_amount": 3,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1291",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 7,
+      "delta": -1
+    },
+    {
+      "island_id": "island:1292",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 8,
+      "new_amount": 6,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1334",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 132,
+      "new_amount": 129,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1338",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 44,
+      "new_amount": 52,
+      "delta": 8
+    },
+    {
+      "island_id": "island:1339",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 13,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1358",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 16,
+      "new_amount": 13,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1364",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 25,
+      "new_amount": 23,
+      "delta": -2
+    },
+    {
+      "island_id": "island:1372",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 19,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1380",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 27,
+      "new_amount": 24,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1382",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 81,
+      "new_amount": 58,
+      "delta": -23
+    },
+    {
+      "island_id": "island:1427",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 22,
+      "new_amount": 17,
+      "delta": -5
+    },
+    {
+      "island_id": "island:1431",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 54,
+      "new_amount": 41,
+      "delta": -13
+    },
+    {
+      "island_id": "island:1464",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 12,
+      "new_amount": 9,
+      "delta": -3
+    },
+    {
+      "island_id": "island:1483",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 26,
+      "new_amount": 43,
+      "delta": 17
+    },
+    {
+      "island_id": "island:1531",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 31,
+      "new_amount": 23,
+      "delta": -8
+    },
+    {
+      "island_id": "island:1552",
+      "vehicle_category": "other",
+      "source_locality": "Other atolls",
+      "old_amount": 44,
+      "new_amount": 47,
+      "delta": 3
+    }
+  ]
+}

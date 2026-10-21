@@ -18,7 +18,8 @@ import {
   Population,
   Service,
   TransportConnection,
-  TransportRoute
+  TransportRoute,
+  VehicleCount
 } from '../src/lib/db/models';
 import db from '../src/lib/server/database';
 
@@ -681,6 +682,7 @@ for (const route of rtlFerry.routes) {
 
 await db.transaction(async (tx) => {
   await tx.delete(JobLocation);
+  await tx.delete(VehicleCount);
   await tx.delete(TransportConnection);
   await tx.delete(TransportRoute);
   await tx.delete(Service);
