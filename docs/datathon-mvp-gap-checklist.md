@@ -76,7 +76,7 @@ The application has RTL route and schedule artifacts, but the interface does not
 
 ### Transport planning
 
-The scenario builder can add, upgrade, move, and delete services. It does not yet simulate a transport intervention such as increasing ferry frequency or adding a connection.
+The scenario builder can add, upgrade, downgrade, move, and delete services. It does not yet simulate a transport intervention such as increasing ferry frequency or adding a connection.
 
 ### Passenger movement
 

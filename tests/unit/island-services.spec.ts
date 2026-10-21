@@ -213,4 +213,100 @@ describe('island service demand map data', () => {
       Math.max(...singleService.features.map((feature) => feature.properties.healthWeight))
     );
   });
+
+  it('reacts to health service upgrades without residential artifacts', () => {
+    const geometry = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [72.998, 2.998],
+          [73.006, 2.998],
+          [73.006, 3.006],
+          [72.998, 3.006],
+          [72.998, 2.998]
+        ]
+      ]
+    };
+    const statuses = {
+      health: 'numeric' as const,
+      education: 'unavailable' as const,
+      transport: 'unavailable' as const
+    };
+    const clinic = buildServiceDemandHexes(
+      geometry,
+      [73, 3],
+      [
+        {
+          coordinates: [73, 3],
+          weights: { health: 1, education: 0, transport: 0 },
+          coverageWeights: { health: 0.35, education: 0, transport: 0 },
+          statuses
+        }
+      ]
+    );
+    const healthCenter = buildServiceDemandHexes(
+      geometry,
+      [73, 3],
+      [
+        {
+          coordinates: [73, 3],
+          weights: { health: 1, education: 0, transport: 0 },
+          coverageWeights: { health: 0.65, education: 0, transport: 0 },
+          statuses
+        }
+      ]
+    );
+
+    expect(Math.max(...healthCenter.features.map((feature) => feature.properties.healthWeight))).toBeLessThan(
+      Math.max(...clinic.features.map((feature) => feature.properties.healthWeight))
+    );
+  });
+
+  it('reacts to education service upgrades without residential artifacts', () => {
+    const geometry = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [72.998, 2.998],
+          [73.006, 2.998],
+          [73.006, 3.006],
+          [72.998, 3.006],
+          [72.998, 2.998]
+        ]
+      ]
+    };
+    const statuses = {
+      health: 'unavailable' as const,
+      education: 'numeric' as const,
+      transport: 'unavailable' as const
+    };
+    const preschool = buildServiceDemandHexes(
+      geometry,
+      [73, 3],
+      [
+        {
+          coordinates: [73, 3],
+          weights: { health: 0, education: 1, transport: 0 },
+          coverageWeights: { health: 0, education: 0.35, transport: 0 },
+          statuses
+        }
+      ]
+    );
+    const school = buildServiceDemandHexes(
+      geometry,
+      [73, 3],
+      [
+        {
+          coordinates: [73, 3],
+          weights: { health: 0, education: 1, transport: 0 },
+          coverageWeights: { health: 0, education: 0.55, transport: 0 },
+          statuses
+        }
+      ]
+    );
+
+    expect(Math.max(...school.features.map((feature) => feature.properties.educationWeight))).toBeLessThan(
+      Math.max(...preschool.features.map((feature) => feature.properties.educationWeight))
+    );
+  });
 });

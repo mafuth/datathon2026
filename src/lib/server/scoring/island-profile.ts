@@ -11,12 +11,7 @@ import type {
 } from '$components/mobility/island-profile';
 import type { Island, Service, TransportConnection } from '$models';
 
-import { Atoll, Island as IslandModel } from '$models';
-import { eq } from 'drizzle-orm';
-
-import db from '$lib/server/database';
-
-import { loadScoringSnapshot } from './database-input';
+import { loadIslandContext, loadScoringSnapshot } from './database-input';
 import { getIslandScore } from './island-score';
 import { sustainabilityDto } from './sustainability-score';
 
@@ -315,16 +310,7 @@ export async function getIslandProfile(islandId: string): Promise<IslandProfileW
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new IslandProfileNotFoundError(islandId);
 
-  const [snapshot, islandRow] = await Promise.all([
-    loadScoringSnapshot(),
-    db
-      .select({ island: IslandModel, atollName: Atoll.name })
-      .from(IslandModel)
-      .innerJoin(Atoll, eq(IslandModel.atollId, Atoll.id))
-      .where(eq(IslandModel.id, normalizedId))
-      .limit(1)
-  ]);
-  const island = islandRow[0];
+  const [snapshot, island] = await Promise.all([loadScoringSnapshot(), loadIslandContext(normalizedId)]);
   if (!island) throw new IslandProfileNotFoundError(normalizedId);
 
   const score = await getIslandScore(normalizedId, snapshot);

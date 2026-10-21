@@ -44,7 +44,7 @@ The current application includes:
 - Inbound and outbound service demand by island.
 - Transport hub load and capacity proxy calculations.
 - Healthcare routing and care-transfer demand calculations.
-- A draft scenario builder for adding, upgrading, moving, and deleting services.
+- A draft scenario builder for adding, upgrading, downgrading, moving, and deleting services.
 - Island-boundary validation for proposed services.
 - A scripted presentation story showing a healthcare journey from Baarah to Hulhumale.
 - Keyboard-controlled presentation and reader modes.
@@ -148,6 +148,7 @@ Health and education should explain the consequences of transport gaps and ident
 
 - `add_service`
 - `upgrade_service`
+- `downgrade_service`
 - `move_service`
 - `delete_service`
 

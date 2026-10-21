@@ -18,6 +18,10 @@ export type ScoreCardMetric = {
   value: number | null | undefined;
 };
 
+export type ScoreColorOptions = {
+  higherIsWorse?: boolean;
+};
+
 export type NoDataCopy = {
   title: string;
   description: string;
@@ -90,12 +94,18 @@ export function scorePercentage(value: number | null | undefined): string {
   return isUnavailableScore(value) ? 'N/A' : `${Math.round(value as number)}%`;
 }
 
-export function scoreColor(value: number | null | undefined): string {
+export function averagePercentage(values: readonly (number | null | undefined)[]): number | null {
+  const numericValues = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+  if (numericValues.length === 0) return null;
+  return Math.max(0, Math.min(100, numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length));
+}
+
+export function scoreColor(value: number | null | undefined, options: ScoreColorOptions = {}): string {
   if (isUnavailableScore(value)) return '#a1a1aa';
 
   const score = Math.max(0, Math.min(100, value ?? 0));
-  const severity = 100 - score;
-  return [...SCORE_MOODS].reverse().find((candidate) => severity >= candidate.min)?.color ?? SCORE_MOODS[0].color;
+  const moodScore = options.higherIsWorse ? 100 - score : score;
+  return [...SCORE_MOODS].reverse().find((candidate) => moodScore >= candidate.min)?.color ?? SCORE_MOODS[0].color;
 }
 
 export function scorePresentation(value: number | null | undefined, unavailableLabel: string): ScorePresentation {

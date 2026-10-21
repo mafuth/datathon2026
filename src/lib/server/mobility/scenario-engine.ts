@@ -4,7 +4,7 @@ import type { Island, Service } from '$models';
 
 import { isTransportStopSubtype, serviceCatalogEntry } from '$lib/mobility/service-catalog';
 
-import { serviceUpgradeOptions } from './service-rules';
+import { serviceDowngradeOptions, serviceUpgradeOptions } from './service-rules';
 
 export class ScenarioDomainError extends Error {
   constructor(
@@ -17,6 +17,7 @@ export class ScenarioDomainError extends Error {
       | 'ADD_OUTSIDE_ISLAND'
       | 'SERVICE_ID_COLLISION'
       | 'UPGRADE_NOT_ELIGIBLE'
+      | 'DOWNGRADE_NOT_ELIGIBLE'
       | 'MOVE_OUTSIDE_ISLAND'
       | 'BASELINE_VERSION_MISMATCH'
       | 'OPERATION_CONFLICT',
@@ -32,7 +33,7 @@ type Coordinate = [number, number];
 
 type ProjectedScenario = {
   snapshot: ScoringSnapshot;
-  changes: Map<string, 'added' | 'upgraded' | 'moved'>;
+  changes: Map<string, 'added' | 'upgraded' | 'downgraded' | 'moved'>;
   deleted: Set<string>;
   results: ScenarioOperationResult[];
 };
@@ -136,7 +137,7 @@ export function projectScenario(
   }
 
   const services = snapshot.services.map((service) => ({ ...service }));
-  const changes = new Map<string, 'added' | 'upgraded' | 'moved'>();
+  const changes = new Map<string, 'added' | 'upgraded' | 'downgraded' | 'moved'>();
   const deleted = new Set<string>();
   const added = new Set<string>();
   const results: ScenarioOperationResult[] = [];
@@ -207,16 +208,18 @@ export function projectScenario(
       throw new ScenarioDomainError('SERVICE_ALREADY_DELETED', `Service ${service.id} has already been deleted.`);
     }
 
-    if (operation.kind === 'upgrade_service') {
-      const option = serviceUpgradeOptions(service).find((entry) => entry.targetSubtype === operation.targetSubtype);
+    if (operation.kind === 'upgrade_service' || operation.kind === 'downgrade_service') {
+      const isUpgrade = operation.kind === 'upgrade_service';
+      const options = isUpgrade ? serviceUpgradeOptions(service) : serviceDowngradeOptions(service);
+      const option = options.find((entry) => entry.targetSubtype === operation.targetSubtype);
       if (!option) {
         throw new ScenarioDomainError(
-          'UPGRADE_NOT_ELIGIBLE',
-          `${service.subtype} cannot be upgraded to ${operation.targetSubtype}.`
+          isUpgrade ? 'UPGRADE_NOT_ELIGIBLE' : 'DOWNGRADE_NOT_ELIGIBLE',
+          `${service.subtype} cannot be ${isUpgrade ? 'upgraded' : 'downgraded'} to ${operation.targetSubtype}.`
         );
       }
       services[serviceIndex] = { ...service, subtype: operation.targetSubtype };
-      changes.set(service.id, changes.get(service.id) === 'added' ? 'added' : 'upgraded');
+      changes.set(service.id, changes.get(service.id) === 'added' ? 'added' : isUpgrade ? 'upgraded' : 'downgraded');
       results.push({
         operationId: operation.operationId,
         kind: operation.kind,

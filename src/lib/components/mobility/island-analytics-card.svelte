@@ -3,7 +3,6 @@
   import type { AnalyticsIsland } from './national-analytics-card.svelte';
   import type { SustainabilityFactorKey, SustainabilityScore } from './sustainability-types';
 
-  import Briefcase from '@lucide/svelte/icons/briefcase';
   import Bus from '@lucide/svelte/icons/bus';
   import Car from '@lucide/svelte/icons/car';
   import Plane from '@lucide/svelte/icons/plane';
@@ -19,7 +18,7 @@
   import { Progress } from '$components/ui/progress';
   import { Skeleton } from '$components/ui/skeleton';
 
-  import { scoreColor } from './score-presentation';
+  import { averagePercentage, scoreColor } from './score-presentation';
   import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
   type Props = {
@@ -45,6 +44,7 @@
   let connectionsExpanded = $derived(autoExpandConnections);
   let transportLoadExpanded = $state(false);
   let inboundDemandExpanded = $state(false);
+  let vehicleIntensity = $derived(profile ? vehicleIntensityPercent(profile.sustainability) : null);
 
   const drivers = [
     { key: 'health', label: 'Health', note: 'Population-weighted health access' },
@@ -82,9 +82,14 @@
   }
   function driverScore(key: (typeof drivers)[number]['key']): number | null {
     if (!island) return null;
-    if (key === 'demand') return island.demand.score;
+    if (key === 'demand') {
+      return averagePercentage([island.demand.health.demandPercent, island.demand.education.demandPercent]);
+    }
     if (key === 'crowdedness') return island.crowdedness.score;
     return island[key].score;
+  }
+  function driverColor(key: (typeof drivers)[number]['key'], value: number | null): string {
+    return scoreColor(value, { higherIsWorse: key === 'demand' || key === 'crowdedness' });
   }
   function titleCase(value: string): string {
     return value
@@ -94,6 +99,11 @@
   }
   function categoryShare(count: number, total: number): number {
     return total > 0 ? Math.min(100, (count / total) * 100) : 0;
+  }
+
+  function vehicleIntensityPercent(score: SustainabilityScore): number | null {
+    if (score.publicTransportReliance === null) return null;
+    return Math.min(100, Math.max(0, (1 - score.publicTransportReliance) * 100));
   }
 
   function factorContribution(score: SustainabilityScore, key: SustainabilityFactorKey): number | null {
@@ -415,13 +425,14 @@
                 {@const value = driverScore(driver.key)}
                 <div class="driver-row">
                   <div class="driver-topline">
-                    <span>{driver.label}</span><strong class="driver-score" style={`color: ${scoreColor(value)}`}
-                      >{percentage(value)}</strong
+                    <span>{driver.label}</span><strong
+                      class="driver-score"
+                      style={`color: ${driverColor(driver.key, value)}`}>{percentage(value)}</strong
                     >
                   </div>
                   <Progress
                     class="driver-progress"
-                    style={`--driver-score-color: ${scoreColor(value)}`}
+                    style={`--driver-score-color: ${driverColor(driver.key, value)}`}
                     value={value ?? 0}
                     max={100}
                     aria-label={`${driver.label} score`}
@@ -500,10 +511,7 @@
                 <div>
                   <h3>Pollution pressure</h3>
                 </div>
-                <Car size={17} strokeWidth={2.2} />
-              </div>
-              <div class="sustainability-scoreline">
-                <strong>{percentage(profile.sustainability.score)}</strong>
+                <strong class="card-heading-score">{percentage(profile.sustainability.score)}</strong>
               </div>
               <div class="sustainability-metrics">
                 <span>Vehicles <b>{number(profile.sustainability.vehicleTotal)}</b></span>
@@ -600,23 +608,25 @@
                 <div>
                   <h3>Available connections</h3>
                 </div>
-                <div class="card-heading-actions">
-                  <Badge variant="outline">{profile.connections.direct.length}</Badge>
-                  <Button
-                    class="view-more-button"
-                    variant="ghost"
-                    size="xs"
-                    type="button"
-                    aria-expanded={connectionsExpanded}
-                    aria-controls="island-connections-details"
-                    onclick={() => (connectionsExpanded = !connectionsExpanded)}
-                  >
-                    {connectionsExpanded ? 'View less' : 'View more'}
-                  </Button>
-                </div>
+                {#if profile.connections.direct.length > 2}
+                  <div class="card-heading-actions">
+                    <Badge variant="outline">{profile.connections.direct.length}</Badge>
+                    <Button
+                      class="view-more-button"
+                      variant="ghost"
+                      size="xs"
+                      type="button"
+                      aria-expanded={connectionsExpanded}
+                      aria-controls="island-connections-details"
+                      onclick={() => (connectionsExpanded = !connectionsExpanded)}
+                    >
+                      {connectionsExpanded ? 'View less' : 'View more'}
+                    </Button>
+                  </div>
+                {/if}
               </div>
               <div id="island-connections-details">
-                {#if connectionsExpanded}
+                {#if connectionsExpanded || profile.connections.direct.length <= 2}
                   <div class="connection-modes">
                     {#each profile.connections.byType as connection (connection.type)}
                       {@const Icon = connectionIcon(connection.type)}
@@ -723,11 +733,7 @@
                   <div>
                     <h3>Employment balance</h3>
                   </div>
-                  <Briefcase size={17} strokeWidth={2.2} />
-                </div>
-                <div class="employment-scoreline">
-                  <strong>{percentage(profile.employment.score)}</strong>
-                  <span>{number(profile.employment.jobLocationCount)} recorded workplaces</span>
+                  <strong class="card-heading-score">{percentage(profile.employment.score)}</strong>
                 </div>
                 <div class="demand-metrics">
                   <span>Foreign residents <b>{number(profile.employment.foreignPopulation)}</b></span>
@@ -776,23 +782,31 @@
                   <div>
                     <h3>Transport load</h3>
                   </div>
-                  <Button
-                    class="view-more-button"
-                    variant="ghost"
-                    size="xs"
-                    type="button"
-                    aria-expanded={transportLoadExpanded}
-                    aria-controls="island-transport-load-details"
-                    onclick={() => (transportLoadExpanded = !transportLoadExpanded)}
-                  >
-                    {transportLoadExpanded ? 'View less' : 'View more'}
-                  </Button>
+                  {#if profile.demand.transport.stops.length > 2}
+                    <Button
+                      class="view-more-button"
+                      variant="ghost"
+                      size="xs"
+                      type="button"
+                      aria-expanded={transportLoadExpanded}
+                      aria-controls="island-transport-load-details"
+                      onclick={() => (transportLoadExpanded = !transportLoadExpanded)}
+                    >
+                      {transportLoadExpanded ? 'View less' : 'View more'}
+                    </Button>
+                  {/if}
                 </div>
                 <div id="island-transport-load-details">
-                  {#if transportLoadExpanded}
+                  {#if transportLoadExpanded || profile.demand.transport.stops.length <= 2}
                     <div class="demand-metrics transport-demand-metrics">
                       <span>Resident population <b>{number(profile.demand.transport.residentPopulation)}</b></span><span
-                        >Inbound load <b>{number(profile.demand.transport.inboundPopulation)}</b></span
+                        >Inbound care + education
+                        <b
+                          >{number(
+                            profile.demand.transport.careTransferDemand +
+                              profile.demand.transport.educationTransferDemand
+                          )}</b
+                        ></span
                       ><span>Outbound load <b>{number(profile.demand.transport.outboundPopulation)}</b></span><span
                         >Working demand <b>{number(profile.demand.transport.workingDemand)}</b></span
                       ><span>Student demand <b>{number(profile.demand.transport.studentDemand)}</b></span><span
@@ -807,6 +821,42 @@
                       >
                     </div>
                     <div class="hub-list">
+                      <div class="hub-row vehicle-hub-row">
+                        <div class="hub-row-main">
+                          <div class="hub-row-heading">
+                            <span class="hub-mode-icon" aria-hidden="true"><Car size={13} strokeWidth={2.2} /></span>
+                            <span class="hub-row-copy">
+                              <b>Vehicle registrations</b>
+                              <small>Road · registration-based proxy</small>
+                            </span>
+                          </div>
+                          <div
+                            class="hub-load-bar"
+                            role="img"
+                            aria-label={`${percentage(vehicleIntensity)} registration-based vehicle intensity`}
+                          >
+                            <div class="hub-load-fill" style={`width: ${vehicleIntensity ?? 0}%`}>
+                              <span class="hub-load-local" style="width: 100%"></span>
+                            </div>
+                          </div>
+                          <div class="hub-load-legend">
+                            <span
+                              ><i class="hub-dot hub-dot-vehicle"></i>{number(profile.sustainability.vehicleTotal)} registered</span
+                            >
+                            <span
+                              ><i class="hub-dot hub-dot-vehicle-density"></i>{decimal(
+                                profile.sustainability.vehiclesPerThousandPopulation
+                              )} / 1,000 residents</span
+                            >
+                          </div>
+                        </div>
+                        <div
+                          class="hub-row-values"
+                          aria-label={`${percentage(vehicleIntensity)} registration-based vehicle intensity`}
+                        >
+                          <strong>{percentage(vehicleIntensity)}</strong>
+                        </div>
+                      </div>
                       {#each profile.demand.transport.stops as stop (stop.stopId)}
                         {@const Icon = connectionIcon(stop.mode === 'marine' ? 'ferry' : stop.mode)}
                         {@const routedDemand = stop.localDemand + stop.connectedDemand}
@@ -847,7 +897,6 @@
                           </div>
                           <div class="hub-row-values" aria-label={`${percentage(loadPercent)} capacity load`}>
                             <strong>{percentage(loadPercent)}</strong>
-                            <small>capacity load</small>
                           </div>
                         </div>
                       {:else}
@@ -884,9 +933,9 @@
                 <div>
                   <h3>Highest inbound demand from</h3>
                 </div>
-                <div class="card-heading-actions">
-                  <Badge variant="outline">{island.demand.inboundSources.length}</Badge>
-                  {#if island.demand.inboundSources.length > 2}
+                {#if island.demand.inboundSources.length > 2}
+                  <div class="card-heading-actions">
+                    <Badge variant="outline">{island.demand.inboundSources.length}</Badge>
                     <Button
                       class="view-more-button"
                       variant="ghost"
@@ -898,8 +947,8 @@
                     >
                       {inboundDemandExpanded ? 'View less' : 'View more'}
                     </Button>
-                  {/if}
-                </div>
+                  </div>
+                {/if}
               </div>
               <div id="island-inbound-demand-details" class="inbound-source-list">
                 {#each inboundDemandExpanded ? island.demand.inboundSources : island.demand.inboundSources.slice(0, 2) as source (source.originIslandId)}
@@ -1237,19 +1286,14 @@
     border-color: var(--mobility-border, #e4e4e7);
     background: var(--mobility-surface, #ffffff);
   }
-  .sustainability-scoreline {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-top: 0.72rem;
-  }
-  .sustainability-scoreline strong {
+  .card-heading-score {
+    align-self: center;
     color: var(--mobility-text, #09090b);
-    font-size: 1.45rem;
+    font-size: 1rem;
     font-weight: 900;
     letter-spacing: -0.04em;
     line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
   .sustainability-metrics {
     display: grid;
@@ -1620,8 +1664,7 @@
     white-space: nowrap;
   }
   .hub-row-copy small,
-  .hub-load-legend,
-  .hub-row-values small {
+  .hub-load-legend {
     color: #71717a;
     font-size: 0.54rem;
   }
@@ -1671,6 +1714,12 @@
     background: var(--mobility-accent, #09090b);
   }
   .hub-dot-linked {
+    background: #a1a1aa;
+  }
+  .hub-dot-vehicle {
+    background: var(--mobility-accent, #09090b);
+  }
+  .hub-dot-vehicle-density {
     background: #a1a1aa;
   }
   .hub-dot-care {

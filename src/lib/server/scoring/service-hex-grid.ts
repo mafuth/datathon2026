@@ -22,12 +22,23 @@ type ParsedGeometry = {
   polygons: Polygon[];
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
 };
+type PreparedHexCell = {
+  id: string;
+  center: LocalPoint;
+  polygon: Coordinate[][];
+};
+type PreparedHexGrid = {
+  cells: PreparedHexCell[];
+  influenceRadius: number;
+};
 
 const HEX_RADIUS_METERS = 18;
 const METERS_PER_DEGREE_LATITUDE = 110_574;
 const METERS_PER_DEGREE_LONGITUDE = 111_320;
 const HEX_X_SPACING = Math.sqrt(3) * HEX_RADIUS_METERS;
 const HEX_Y_SPACING = HEX_RADIUS_METERS * 1.5;
+const parsedGeometryCache = new WeakMap<object, ParsedGeometry>();
+const preparedHexGridCache = new WeakMap<ParsedGeometry, Map<string, PreparedHexGrid>>();
 
 function isCoordinate(value: unknown): value is Coordinate {
   return (
@@ -54,6 +65,8 @@ function parsePolygon(value: unknown): Polygon | null {
 
 function parseGeometry(geometry: unknown): ParsedGeometry | null {
   if (!geometry || typeof geometry !== 'object') return null;
+  const cached = parsedGeometryCache.get(geometry);
+  if (cached) return cached;
   const candidate = geometry as { type?: unknown; coordinates?: unknown };
   const polygons =
     candidate.type === 'Polygon'
@@ -68,7 +81,7 @@ function parseGeometry(geometry: unknown): ParsedGeometry | null {
   const coordinates = polygons.flat(2);
   const longitudes = coordinates.map(([longitude]) => longitude);
   const latitudes = coordinates.map(([, latitude]) => latitude);
-  return {
+  const parsed = {
     polygons,
     bounds: {
       minX: Math.min(...longitudes),
@@ -77,6 +90,8 @@ function parseGeometry(geometry: unknown): ParsedGeometry | null {
       maxY: Math.max(...latitudes)
     }
   };
+  parsedGeometryCache.set(geometry, parsed);
+  return parsed;
 }
 
 function toLocal(coordinate: Coordinate, origin: Coordinate): LocalPoint {
@@ -135,6 +150,47 @@ function hexPolygon(center: LocalPoint, origin: Coordinate): Coordinate[][] {
   return [coordinates];
 }
 
+function prepareHexGrid(parsedGeometry: ParsedGeometry, origin: Coordinate): PreparedHexGrid {
+  const serviceSigma = scoringConfig.serviceHeatmap.serviceInfluenceSigmaMeters;
+  const residentialSigma = scoringConfig.serviceHeatmap.residentialInfluenceSigmaMeters;
+  const influenceRadius = Math.max(serviceSigma, residentialSigma) * 3.2;
+  const cacheKey = `${origin[0]}:${origin[1]}:${serviceSigma}:${residentialSigma}`;
+  let grids = preparedHexGridCache.get(parsedGeometry);
+  if (!grids) {
+    grids = new Map();
+    preparedHexGridCache.set(parsedGeometry, grids);
+  }
+  const cached = grids.get(cacheKey);
+  if (cached) return cached;
+
+  const localBounds = {
+    minX: toLocal([parsedGeometry.bounds.minX, origin[1]], origin).x - influenceRadius,
+    minY: toLocal([origin[0], parsedGeometry.bounds.minY], origin).y - influenceRadius,
+    maxX: toLocal([parsedGeometry.bounds.maxX, origin[1]], origin).x + influenceRadius,
+    maxY: toLocal([origin[0], parsedGeometry.bounds.maxY], origin).y + influenceRadius
+  };
+  const cells: PreparedHexCell[] = [];
+  for (
+    let row = Math.floor(localBounds.minY / HEX_Y_SPACING) - 1;
+    row <= Math.ceil(localBounds.maxY / HEX_Y_SPACING) + 1;
+    row += 1
+  ) {
+    for (
+      let column = Math.floor(localBounds.minX / HEX_X_SPACING) - 1;
+      column <= Math.ceil(localBounds.maxX / HEX_X_SPACING) + 1;
+      column += 1
+    ) {
+      const center = hexCenter(column, row);
+      if (!pointInGeometry(fromLocal(center, origin), parsedGeometry.polygons)) continue;
+      cells.push({ id: `${row}:${column}`, center, polygon: hexPolygon(center, origin) });
+    }
+  }
+
+  const prepared = { cells, influenceRadius };
+  grids.set(cacheKey, prepared);
+  return prepared;
+}
+
 function combineStatuses(statuses: ServiceDemandStatus[]): ServiceDemandStatus {
   if (statuses.some((status) => status === 'numeric')) return 'numeric';
   if (statuses.some((status) => status === 'partial')) return 'partial';
@@ -152,6 +208,44 @@ function boundFacilityPressure(values: number[]): number[] {
 
 function influence(distance: number, sigma: number): number {
   return Math.exp(-(distance * distance) / (2 * sigma * sigma));
+}
+
+type LocalResidentialPoint = ResidentialDemandPoint & { point: LocalPoint };
+type ResidentialPointBuckets = Map<string, LocalResidentialPoint[]>;
+
+function residentialBucketKey(x: number, y: number, bucketSize: number): string {
+  return `${Math.floor(x / bucketSize)}:${Math.floor(y / bucketSize)}`;
+}
+
+function residentialPointBuckets(
+  points: readonly LocalResidentialPoint[],
+  bucketSize: number
+): ResidentialPointBuckets {
+  const buckets: ResidentialPointBuckets = new Map();
+  for (const point of points) {
+    const key = residentialBucketKey(point.point.x, point.point.y, bucketSize);
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(point);
+    else buckets.set(key, [point]);
+  }
+  return buckets;
+}
+
+function nearbyResidentialPoints(
+  buckets: ResidentialPointBuckets,
+  center: LocalPoint,
+  bucketSize: number
+): LocalResidentialPoint[] {
+  const column = Math.floor(center.x / bucketSize);
+  const row = Math.floor(center.y / bucketSize);
+  const points: LocalResidentialPoint[] = [];
+  for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+    for (let columnOffset = -1; columnOffset <= 1; columnOffset += 1) {
+      const bucket = buckets.get(`${column + columnOffset}:${row + rowOffset}`);
+      if (bucket) points.push(...bucket);
+    }
+  }
+  return points;
 }
 
 function combinedHeatValue(
@@ -178,6 +272,18 @@ function combinedStatus(statuses: ServiceDemandStatus[], hasResidentialData: boo
   return hasResidentialData ? 'partial' : 'unavailable';
 }
 
+function coverageAdjustedFacilityPressure(
+  facilityPressure: number,
+  serviceCoverage: number,
+  hasResidentialData: boolean,
+  hasCoverageData: boolean
+): number {
+  if (hasResidentialData || !hasCoverageData) return facilityPressure;
+  const coverage = Math.min(1, Math.max(0, serviceCoverage));
+  const relief = coverage * scoringConfig.serviceHeatmap.coverageReliefWeight;
+  return Number((facilityPressure * (1 - relief)).toFixed(3));
+}
+
 export function buildServiceDemandHexes(
   geometry: unknown,
   islandCentroid: Coordinate,
@@ -190,84 +296,87 @@ export function buildServiceDemandHexes(
   }
 
   const origin = islandCentroid;
+  const preparedGrid = prepareHexGrid(parsedGeometry, origin);
   const serviceSigma = scoringConfig.serviceHeatmap.serviceInfluenceSigmaMeters;
   const residentialSigma = scoringConfig.serviceHeatmap.residentialInfluenceSigmaMeters;
-  const influenceRadius = Math.max(serviceSigma, residentialSigma) * 3.2;
-  const localBounds = {
-    minX: toLocal([parsedGeometry.bounds.minX, origin[1]], origin).x - influenceRadius,
-    minY: toLocal([origin[0], parsedGeometry.bounds.minY], origin).y - influenceRadius,
-    maxX: toLocal([parsedGeometry.bounds.maxX, origin[1]], origin).x + influenceRadius,
-    maxY: toLocal([origin[0], parsedGeometry.bounds.maxY], origin).y + influenceRadius
-  };
+  const influenceRadius = preparedGrid.influenceRadius;
   const localServices = services.map((service) => ({
     ...service,
     point: toLocal(service.coordinates, origin)
   }));
-  const localResidentialPoints = residentialPoints.map((point) => ({
+  const localResidentialPoints: LocalResidentialPoint[] = residentialPoints.map((point) => ({
     ...point,
     point: toLocal(point.coordinates, origin)
   }));
+  const residentialBuckets = residentialPointBuckets(localResidentialPoints, influenceRadius);
 
   const rawFeatures = [] as Array<{
     id: string;
     center: LocalPoint;
+    polygon: Coordinate[][];
     facilityPressure: Record<ServiceDemandCategory, number>;
     residentialAccessGap: Record<ServiceDemandCategory, number>;
+    serviceCoverage: Record<ServiceDemandCategory, number>;
+    hasCoverageData: Record<ServiceDemandCategory, boolean>;
     statuses: Record<ServiceDemandCategory, ServiceDemandStatus[]>;
   }>;
-  for (
-    let row = Math.floor(localBounds.minY / HEX_Y_SPACING) - 1;
-    row <= Math.ceil(localBounds.maxY / HEX_Y_SPACING) + 1;
-    row += 1
-  ) {
-    for (
-      let column = Math.floor(localBounds.minX / HEX_X_SPACING) - 1;
-      column <= Math.ceil(localBounds.maxX / HEX_X_SPACING) + 1;
-      column += 1
-    ) {
-      const center = hexCenter(column, row);
-      const centerCoordinate = fromLocal(center, origin);
-      // Keep boundary cells; the map mask trims their polygons to the coastline.
-      if (!pointInGeometry(centerCoordinate, parsedGeometry.polygons)) continue;
-
-      const facilityPressure: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
-      const residentialAccessGap: Record<ServiceDemandCategory, number> = {
-        health: 0,
-        education: 0,
-        transport: 0
-      };
-      const serviceCoverage: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
-      const statuses: Record<ServiceDemandCategory, ServiceDemandStatus[]> = {
-        health: [],
-        education: [],
-        transport: []
-      };
-      for (const service of localServices) {
-        const distance = Math.hypot(center.x - service.point.x, center.y - service.point.y);
-        if (distance > influenceRadius) continue;
-        const serviceInfluence = influence(distance, serviceSigma);
-        for (const category of ['health', 'education', 'transport'] as const) {
-          if (service.statuses[category] !== 'unavailable') statuses[category].push(service.statuses[category]);
-          facilityPressure[category] += service.weights[category] * serviceInfluence;
-          const coverageWeight = service.coverageWeights?.[category] ?? service.weights[category];
-          serviceCoverage[category] = Math.max(
-            serviceCoverage[category],
-            Math.min(1, Math.max(0, coverageWeight)) * serviceInfluence
-          );
-        }
+  for (const cell of preparedGrid.cells) {
+    const center = cell.center;
+    const facilityPressure: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
+    const residentialAccessGap: Record<ServiceDemandCategory, number> = {
+      health: 0,
+      education: 0,
+      transport: 0
+    };
+    const serviceCoverage: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
+    const hasCoverageData: Record<ServiceDemandCategory, boolean> = {
+      health: false,
+      education: false,
+      transport: false
+    };
+    const statuses: Record<ServiceDemandCategory, ServiceDemandStatus[]> = {
+      health: [],
+      education: [],
+      transport: []
+    };
+    for (const service of localServices) {
+      const distance = Math.hypot(center.x - service.point.x, center.y - service.point.y);
+      if (distance > influenceRadius) continue;
+      const serviceInfluence = influence(distance, serviceSigma);
+      for (const category of ['health', 'education', 'transport'] as const) {
+        if (service.statuses[category] !== 'unavailable') statuses[category].push(service.statuses[category]);
+        facilityPressure[category] += service.weights[category] * serviceInfluence;
+        const coverageWeight = service.coverageWeights?.[category];
+        if (coverageWeight !== undefined) hasCoverageData[category] = true;
+        serviceCoverage[category] = Math.max(
+          serviceCoverage[category],
+          Math.min(1, Math.max(0, coverageWeight ?? service.weights[category])) * serviceInfluence
+        );
       }
+    }
 
-      const residentialDensity = localResidentialPoints.reduce((sum, residentialPoint) => {
+    const residentialDensity = nearbyResidentialPoints(residentialBuckets, center, influenceRadius).reduce(
+      (sum, residentialPoint) => {
         const distance = Math.hypot(center.x - residentialPoint.point.x, center.y - residentialPoint.point.y);
         if (distance > influenceRadius) return sum;
         return sum + Math.max(0, residentialPoint.weight) * influence(distance, residentialSigma);
-      }, 0);
-      for (const category of ['health', 'education', 'transport'] as const) {
-        residentialAccessGap[category] = residentialDensity * (1 - serviceCoverage[category]);
-      }
-
-      rawFeatures.push({ id: `${row}:${column}`, center, facilityPressure, residentialAccessGap, statuses });
+      },
+      0
+    );
+    for (const category of ['health', 'education', 'transport'] as const) {
+      residentialAccessGap[category] = residentialDensity * (1 - serviceCoverage[category]);
     }
+
+    rawFeatures.push({
+      id: cell.id,
+      center,
+      polygon: cell.polygon,
+      facilityPressure,
+      residentialAccessGap,
+      serviceCoverage,
+      hasCoverageData,
+      statuses
+    });
   }
 
   const hasResidentialData = localResidentialPoints.length > 0;
@@ -283,10 +392,26 @@ export function buildServiceDemandHexes(
       transport: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.transport))
     }
   };
+  const healthPressures = rawFeatures.map((feature, index) =>
+    coverageAdjustedFacilityPressure(
+      normalizedValues.facilityPressure.health[index] ?? 0,
+      feature.serviceCoverage.health,
+      hasResidentialData,
+      feature.hasCoverageData.health
+    )
+  );
+  const educationPressures = rawFeatures.map((feature, index) =>
+    coverageAdjustedFacilityPressure(
+      normalizedValues.facilityPressure.education[index] ?? 0,
+      feature.serviceCoverage.education,
+      hasResidentialData,
+      feature.hasCoverageData.education
+    )
+  );
 
   const hasFacilityPressure = {
-    health: normalizedValues.facilityPressure.health.some((value) => value > 0),
-    education: normalizedValues.facilityPressure.education.some((value) => value > 0),
+    health: healthPressures.some((value) => value > 0),
+    education: educationPressures.some((value) => value > 0),
     transport: normalizedValues.facilityPressure.transport.some((value) => value > 0)
   };
   const hasResidentialAccessGap = {
@@ -299,13 +424,13 @@ export function buildServiceDemandHexes(
     type: 'FeatureCollection',
     features: rawFeatures.map((feature, index) => {
       const healthWeight = combinedHeatValue(
-        normalizedValues.facilityPressure.health[index] ?? 0,
+        healthPressures[index] ?? 0,
         normalizedValues.residentialAccessGap.health[index] ?? 0,
         hasFacilityPressure.health,
         hasResidentialAccessGap.health
       );
       const educationWeight = combinedHeatValue(
-        normalizedValues.facilityPressure.education[index] ?? 0,
+        educationPressures[index] ?? 0,
         normalizedValues.residentialAccessGap.education[index] ?? 0,
         hasFacilityPressure.education,
         hasResidentialAccessGap.education
@@ -324,7 +449,7 @@ export function buildServiceDemandHexes(
       return {
         type: 'Feature' as const,
         id: feature.id,
-        geometry: { type: 'Polygon' as const, coordinates: hexPolygon(feature.center, origin) },
+        geometry: { type: 'Polygon' as const, coordinates: feature.polygon },
         properties: {
           healthWeight,
           educationWeight,

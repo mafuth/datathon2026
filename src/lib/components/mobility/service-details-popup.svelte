@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { IslandMapService, IslandServiceDemand, ServiceDemandCategory } from './island-services';
 
+  import ArrowDown from '@lucide/svelte/icons/arrow-down';
   import ArrowUp from '@lucide/svelte/icons/arrow-up';
   import Hospital from '@lucide/svelte/icons/hospital';
   import MapPin from '@lucide/svelte/icons/map-pin';
@@ -18,6 +19,7 @@
     onClose?: () => void;
     proposalMode?: boolean;
     onUpgrade?: (targetSubtype: string) => void;
+    onDowngrade?: (targetSubtype: string) => void;
     onMove?: () => void;
     onDelete?: () => void;
   };
@@ -32,6 +34,7 @@
     onClose = () => {},
     proposalMode = false,
     onUpgrade = () => {},
+    onDowngrade = () => {},
     onMove = () => {},
     onDelete = () => {}
   }: Props = $props();
@@ -76,6 +79,7 @@
   function changeLabel(): string | null {
     if (service.change === 'added') return 'Draft addition';
     if (service.change === 'upgraded') return 'Draft upgrade';
+    if (service.change === 'downgraded') return 'Draft downgrade';
     if (service.change === 'moved') return 'Draft move';
     return null;
   }
@@ -161,6 +165,7 @@
 
   {#if proposalMode}
     {@const upgrade = service.eligibility?.upgrades[0]}
+    {@const downgrade = service.eligibility?.downgrades[0]}
     <Card.Footer class="service-popup-actions">
       <div class="service-popup-action-row">
         <Button
@@ -173,6 +178,17 @@
         >
           <ArrowUp data-icon="inline-start" />
           {upgrade ? 'Upgrade' : 'No upgrade'}
+        </Button>
+        <Button
+          class="service-popup-outline-action"
+          variant="outline"
+          size="sm"
+          disabled={!downgrade}
+          title={downgrade ? downgrade.label : 'No downgrade is available for this service'}
+          onclick={() => downgrade && onDowngrade(downgrade.targetSubtype)}
+        >
+          <ArrowDown data-icon="inline-start" />
+          {downgrade ? 'Downgrade' : 'No downgrade'}
         </Button>
         <Button
           class="service-popup-outline-action"

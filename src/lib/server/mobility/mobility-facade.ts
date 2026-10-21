@@ -1,33 +1,41 @@
 import type { IslandServiceChange } from '$components/mobility/island-services';
 import type { ScenarioPreviewRequest, ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Atoll, Island } from '$models';
-import { eq } from 'drizzle-orm';
 
-import db from '$lib/server/database';
-import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
+import { loadIslandContext, loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { getIslandServices, IslandServicesNotFoundError } from '$lib/server/scoring/island-services';
 
 import { projectScenario, ScenarioDomainError } from './scenario-engine';
 
 type BaselineArtifact = { schema_version?: unknown };
+let baselineVersionCache: { modifiedAt: number; value: string } | null = null;
 
 function baselineVersion(): string {
+  const path = resolve(process.cwd(), 'data/mobility/normalized/current-db-baseline.json');
+  let modifiedAt = 0;
   try {
-    const artifact = JSON.parse(
-      readFileSync(resolve(process.cwd(), 'data/mobility/normalized/current-db-baseline.json'), 'utf8')
-    ) as BaselineArtifact;
-    return typeof artifact.schema_version === 'string' ? artifact.schema_version : 'current-db-mobility-baseline-v1';
+    modifiedAt = statSync(path).mtimeMs;
   } catch {
-    return 'current-db-mobility-baseline-v1';
+    // Fall back to the default version below when the optional artifact is unavailable.
   }
+  if (baselineVersionCache?.modifiedAt === modifiedAt) return baselineVersionCache.value;
+
+  let value = 'current-db-mobility-baseline-v1';
+  try {
+    const artifact = JSON.parse(readFileSync(path, 'utf8')) as BaselineArtifact;
+    if (typeof artifact.schema_version === 'string') value = artifact.schema_version;
+  } catch {
+    // Keep the stable fallback when the optional artifact is unavailable.
+  }
+  baselineVersionCache = { modifiedAt, value };
+  return value;
 }
 
 function changesForServices(
   services: ScenarioPreviewResponse['services'],
-  changes: Map<string, 'added' | 'upgraded' | 'moved'>,
+  changes: Map<string, 'added' | 'upgraded' | 'downgraded' | 'moved'>,
   deleted: Set<string>
 ): Record<string, IslandServiceChange> {
   return Object.fromEntries([
@@ -51,21 +59,15 @@ export class MobilityFacade {
       );
     }
 
-    const [snapshot, islandRows] = await Promise.all([
+    const [snapshot, islandRow] = await Promise.all([
       loadScoringSnapshot({ includeResidentialDemandPoints: true }),
-      db
-        .select({ island: Island, atollName: Atoll.name })
-        .from(Island)
-        .innerJoin(Atoll, eq(Island.atollId, Atoll.id))
-        .where(eq(Island.id, input.selectedIslandId))
-        .limit(1)
+      loadIslandContext(input.selectedIslandId)
     ]);
-    const islandRow = islandRows[0];
     if (!islandRow)
       throw new ScenarioDomainError('ISLAND_NOT_FOUND', `Island ${input.selectedIslandId} was not found.`, 404);
 
     const projection = projectScenario(snapshot, islandRow.island, input.selectedIslandId, input.operations);
-    const services = await getIslandServices(input.selectedIslandId, projection.snapshot);
+    const services = await getIslandServices(input.selectedIslandId, projection.snapshot, islandRow);
     const projectedServices = services.services.map((service) => ({
       ...service,
       change: projection.changes.get(service.id) ?? 'unchanged'

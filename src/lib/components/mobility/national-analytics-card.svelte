@@ -18,7 +18,7 @@
   import { Progress } from '$components/ui/progress';
   import { Skeleton } from '$components/ui/skeleton';
 
-  import { scoreColor } from './score-presentation';
+  import { averagePercentage, scoreColor } from './score-presentation';
   import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
   type ComponentScore = {
@@ -327,7 +327,10 @@
       {
         key: 'external-demand',
         label: 'External demand',
-        score: category.externalDemand?.score ?? null,
+        score: averagePercentage([
+          data.national.demand.health.demandPercent,
+          data.national.demand.education.demandPercent
+        ]),
         status: category.externalDemand?.status ?? 'unavailable',
         note: 'Combined local and inbound service pressure'
       }
@@ -343,12 +346,6 @@
     (data?.rankings.demand ?? [])
       .map((id) => data?.islands.find((island) => island.id === id))
       .filter((island): island is AnalyticsIsland => island !== undefined)
-  );
-  let outboundIslands = $derived(
-    (data?.rankings.outbound ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
-      .slice(0, 3)
   );
   let inboundSources = $derived((data?.national.demand.inboundSources ?? []).slice(0, 3));
   let underservedIslands = $derived(
@@ -453,6 +450,12 @@
     return value === null ? 0 : Math.min(100, Math.max(0, value));
   }
 
+  function driverColor(driver: Driver): string {
+    return scoreColor(driver.score, {
+      higherIsWorse: driver.key === 'crowdedness' || driver.key === 'external-demand'
+    });
+  }
+
   function islandLabel(island: AnalyticsIsland): string {
     return `${island.atollName} ${island.name}`;
   }
@@ -550,13 +553,13 @@
                 <div class="driver-row">
                   <div class="driver-topline">
                     <span class="driver-label"><Icon size={15} strokeWidth={2.2} />{driver.label}</span>
-                    <strong class="driver-score" style={`color: ${scoreColor(driver.score)}`}
+                    <strong class="driver-score" style={`color: ${driverColor(driver)}`}
                       >{percentage(driver.score)}</strong
                     >
                   </div>
                   <Progress
                     class="driver-progress"
-                    style={`--driver-score-color: ${scoreColor(driver.score)}`}
+                    style={`--driver-score-color: ${driverColor(driver)}`}
                     value={driverWidth(driver.score)}
                     max={100}
                     aria-label={`${driver.label} score`}
@@ -757,11 +760,7 @@
               <div>
                 <h3>Employment balance</h3>
               </div>
-              <Briefcase size={17} strokeWidth={2.2} />
-            </div>
-            <div class="employment-scoreline">
-              <strong>{percentage(data.national.employment.score)}</strong>
-              <span>{data.national.employment.jobLocationCount.toLocaleString()} recorded workplaces</span>
+              <strong class="card-heading-score">{percentage(data.national.employment.score)}</strong>
             </div>
             <div class="employment-metrics">
               <span>Foreign residents <strong>{number(data.national.employment.foreignPopulation)}</strong></span>
@@ -824,10 +823,7 @@
                 <div>
                   <h3>Pollution pressure</h3>
                 </div>
-                <Car size={17} strokeWidth={2.2} />
-              </div>
-              <div class="sustainability-scoreline">
-                <strong>{percentage(data.national.sustainability.score)}</strong>
+                <strong class="card-heading-score">{percentage(data.national.sustainability.score)}</strong>
               </div>
               <div class="sustainability-factors">
                 <div class="sustainability-factor sustainability-benefit-factor">
@@ -964,26 +960,6 @@
                 </Button>
               {:else}
                 <p class="analytics-state">No job-demand gap ranking is available.</p>
-              {/each}
-            </div>
-          </Card.Root>
-
-          <Card.Root class="insight-card ranking-card" size="sm">
-            <div class="card-heading">
-              <div>
-                <h3>High outbound service dependence</h3>
-              </div>
-              <Route size={17} strokeWidth={2.2} />
-            </div>
-            <div class="mini-list">
-              {#each outboundIslands as island (island.id)}
-                <Button class="mini-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
-                  <span>
-                    <strong>{islandLabel(island)}</strong>
-                    <small>{number(island.demand.outboundTotal)} outbound demand</small>
-                  </span>
-                  <b>{percentage(outboundShare(island))}</b>
-                </Button>
               {/each}
             </div>
           </Card.Root>
@@ -1290,23 +1266,6 @@
     color: #09090b;
     font-variant-numeric: tabular-nums;
   }
-  .employment-scoreline {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-top: 0.72rem;
-  }
-  .employment-scoreline strong {
-    color: #09090b;
-    font-size: 1.45rem;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-  .employment-scoreline span {
-    color: #71717a;
-    font-size: 0.57rem;
-  }
   .employment-metrics,
   .employment-breakdown {
     display: grid;
@@ -1372,7 +1331,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
   }
-  .sustainability-scoreline,
   .vehicle-summary {
     display: flex;
     align-items: baseline;
@@ -1380,13 +1338,21 @@
     gap: 0.5rem;
     margin-top: 0.72rem;
   }
-  .sustainability-scoreline strong,
   .vehicle-summary strong {
     color: var(--mobility-text, #09090b);
     font-size: 1.45rem;
     font-weight: 900;
     letter-spacing: -0.04em;
     line-height: 1;
+  }
+  .card-heading-score {
+    align-self: center;
+    color: var(--mobility-text, #09090b);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
   .sustainability-factors,
   .vehicle-category-list {

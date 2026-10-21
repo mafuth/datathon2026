@@ -8,6 +8,8 @@ export const scoringConfig = {
   },
   transportWeights: { land: 1 / 3, marine: 1 / 3, air: 1 / 3 },
   healthQuality: { hospital: 1, health_center: 0.65, clinic: 0.35 },
+  // Heatmap-only coverage proxies; education scoring keeps its configured quality values separate.
+  educationHeatmapCoverage: { preschool: 0.35, school: 0.55, high_school: 0.75, tertiary: 1 },
   healthDemandPolicy: {
     baselineSubtypes: ['hospital', 'health_center', 'clinic'],
     youngerPriority: ['clinic', 'health_center', 'hospital'],
@@ -47,6 +49,8 @@ export const scoringConfig = {
   serviceHeatmap: {
     facilityPressureWeight: 0.5,
     residentialAccessGapWeight: 0.5,
+    // Cap coverage relief so a service upgrade does not invert a hotspot into a ring.
+    coverageReliefWeight: 0.35,
     serviceInfluenceSigmaMeters: 260,
     residentialInfluenceSigmaMeters: 260
   },

@@ -3,16 +3,18 @@ export const ISLAND_DEMAND_CATEGORIES = ['all', 'health', 'education', 'transpor
 export type IslandDemandCategory = (typeof ISLAND_DEMAND_CATEGORIES)[number];
 export type ServiceDemandCategory = Exclude<IslandDemandCategory, 'all'>;
 export type ServiceDemandStatus = 'numeric' | 'partial' | 'unavailable';
-export type IslandServiceChange = 'unchanged' | 'added' | 'upgraded' | 'moved' | 'deleted';
+export type IslandServiceChange = 'unchanged' | 'added' | 'upgraded' | 'downgraded' | 'moved' | 'deleted';
 
-export type IslandServiceUpgradeOption = {
+export type IslandServiceSubtypeOption = {
   targetSubtype: string;
   label: string;
 };
 
 export type IslandServiceEligibility = {
   canUpgrade: boolean;
-  upgrades: IslandServiceUpgradeOption[];
+  upgrades: IslandServiceSubtypeOption[];
+  canDowngrade: boolean;
+  downgrades: IslandServiceSubtypeOption[];
   canMove: boolean;
   canDelete: boolean;
 };

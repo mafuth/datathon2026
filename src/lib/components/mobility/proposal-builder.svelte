@@ -50,9 +50,10 @@
   }: Props = $props();
 
   let addActive = $derived(activeSelection !== null);
+  let mappedServices = $derived(services.filter((service) => service.coordinates !== null));
 
   let visibleServices = $derived(
-    services.filter((service) => {
+    mappedServices.filter((service) => {
       const normalizedQuery = query.trim().toLowerCase();
       const matchesQuery =
         normalizedQuery.length === 0 ||
@@ -69,6 +70,7 @@
   function changeLabel(change: IslandServiceChange | undefined): string | null {
     if (change === 'added') return 'Added';
     if (change === 'upgraded') return 'Upgraded';
+    if (change === 'downgraded') return 'Downgraded';
     if (change === 'moved') return 'Moved';
     return null;
   }
@@ -129,7 +131,7 @@
     {/if}
 
     <div class="proposal-builder-summary">
-      <span>{visibleServices.length} of {services.length} services</span>
+      <span>{visibleServices.length} of {mappedServices.length} services</span>
     </div>
 
     {#if visibleServices.length === 0}

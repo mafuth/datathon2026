@@ -292,10 +292,12 @@
   let islandProfileLoading = $state(false);
   let islandProfileError = $state<string | null>(null);
   let islandProfileRequest = 0;
+  const islandProfileCache = new SvelteMap<string, IslandProfile>();
   let islandServices = $state<IslandServicesResponse | null>(null);
   let islandServicesLoading = $state(false);
   let islandServicesError = $state<string | null>(null);
   let islandServicesRequest = 0;
+  const islandServicesCache = new SvelteMap<string, IslandServicesResponse>();
   let selectedDemandCategory = $state<IslandDemandCategory>('all');
   let proposalQuery = $state('');
   let proposalServiceFilter = $state<ProposalServiceFilter>('all');
@@ -306,7 +308,9 @@
   let proposalLastMessage = $state<string | null>(null);
   let addServiceDraft = $state<AddServiceSelection | null>(null);
   let suppressMapClickUntil = 0;
-  let mountedServiceMarkers = new SvelteMap<string, MountedServiceMarker>();
+  // MapLibre marker instances are imperative bookkeeping, not rendered Svelte state.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  let mountedServiceMarkers = new Map<string, MountedServiceMarker>();
   let serviceMarkerServices = new SvelteMap<string, IslandMapService>();
   let serviceMarkerSyncFrame: number | null = null;
   let selectedIslandLoadingTimer: number | null = null;
@@ -1176,9 +1180,15 @@
     islandProfileLoading = true;
     islandProfileError = null;
     try {
-      const response = await fetch(`/api/map/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
+      const cachedProfile = islandProfileCache.get(id);
+      if (cachedProfile) {
+        if (requestId === islandProfileRequest) islandProfile = cachedProfile;
+        return;
+      }
+      const response = await fetch(`/api/v1/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Island profile request failed with status ${response.status}`);
       const profile = (await response.json()) as IslandProfile;
+      islandProfileCache.set(id, profile);
       if (requestId === islandProfileRequest) islandProfile = profile;
     } catch (error) {
       if (requestId === islandProfileRequest) {
@@ -1455,6 +1465,16 @@
     });
   }
 
+  function downgradeService(service: IslandMapService, targetSubtype: string): void {
+    if (!service.eligibility?.canDowngrade) return;
+    void applyDraftOperation({
+      operationId: operationId(),
+      kind: 'downgrade_service',
+      serviceId: service.id,
+      targetSubtype
+    });
+  }
+
   function deleteService(service: IslandMapService): void {
     if (!service.eligibility?.canDelete) return;
     void applyDraftOperation({
@@ -1544,6 +1564,7 @@
         onClose: () => popup.remove(),
         proposalMode,
         onUpgrade: (targetSubtype: string) => upgradeService(service, targetSubtype),
+        onDowngrade: (targetSubtype: string) => downgradeService(service, targetSubtype),
         onMove: () => startMoveService(service),
         onDelete: () => deleteService(service)
       }
@@ -1880,17 +1901,17 @@
         0.01,
         '#a1d99b',
         0.03,
-        '#fee08b',
+        '#d9ef8b',
         0.06,
-        '#fdae61',
+        '#fee08b',
         0.1,
-        '#f46d43',
+        '#fdae61',
         0.16,
-        '#d73027',
+        '#f97316',
         0.22,
-        '#b2182b',
+        '#ef4444',
         0.3,
-        '#67000d'
+        '#dc2626'
       ]
     ];
   }
@@ -2135,10 +2156,20 @@
     islandServicesLoading = true;
     islandServicesError = null;
     try {
-      const response = await fetch(`/api/map/islands/${encodeURIComponent(id)}/services`, { cache: 'no-store' });
+      const cachedServices = islandServicesCache.get(id);
+      if (cachedServices) {
+        if (requestId !== islandServicesRequest) return;
+        islandServices = cachedServices;
+        applySelectedIslandMask(id);
+        startDemandHeatmapReveal(cachedServices.hexes, cachedServices.services, id);
+        renderServiceMarkers(cachedServices);
+        return;
+      }
+      const response = await fetch(`/api/v1/islands/${encodeURIComponent(id)}/services`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Island services request failed with status ${response.status}`);
       const data = (await response.json()) as IslandServicesResponse;
       if (requestId !== islandServicesRequest) return;
+      islandServicesCache.set(id, data);
       islandServices = data;
       applySelectedIslandMask(id);
       startDemandHeatmapReveal(data.hexes, data.services, id);
@@ -3173,7 +3204,7 @@
   }
 
   :global(.maplibregl-popup) {
-    z-index: 3;
+    z-index: 40;
   }
 
   .heatmap-loading {
@@ -3438,12 +3469,12 @@
       90deg,
       #e5f5e0 0%,
       #a1d99b 16%,
-      #fee08b 32%,
-      #fdae61 48%,
-      #f46d43 64%,
-      #d73027 80%,
-      #b2182b 90%,
-      #67000d 100%
+      #d9ef8b 32%,
+      #fee08b 48%,
+      #fdae61 64%,
+      #f97316 80%,
+      #ef4444 90%,
+      #dc2626 100%
     );
   }
 

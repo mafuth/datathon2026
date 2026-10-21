@@ -1,25 +1,29 @@
-import type { DemandAllocationResult, ScoringSnapshot } from './types';
+import type { DemandAllocationResult, ResidentialDemandPoint, ScoringSnapshot } from './types';
 import type {
   IslandServiceDemand,
   IslandServicesResponse,
   ServiceDemandCategory,
   ServiceDemandStatus
 } from '$components/mobility/island-services';
+import type { Island } from '$models';
 
-import { Atoll, Island as IslandModel } from '$models';
-import { eq } from 'drizzle-orm';
-
-import db from '$lib/server/database';
 import { serviceEligibility } from '$lib/server/mobility/service-rules';
 
 import { scoringConfig } from './config';
-import { loadScoringSnapshot } from './database-input';
+import { loadIslandContext, loadScoringSnapshot } from './database-input';
 import { buildDemandAllocation } from './demand-allocation';
-import { calculateIslandScore } from './factors';
 import { healthDemandLayer, healthServiceTargetSubtypes } from './health-demand';
 import { buildServiceDemandHexes } from './service-hex-grid';
+import { calculateTransportDemand } from './transport-demand';
 
 type Coordinate = [number, number];
+const islandGeometryCache = new WeakMap<ScoringSnapshot, Map<string, unknown>>();
+const residentialPointsCache = new WeakMap<ScoringSnapshot, Map<string, ResidentialDemandPoint[]>>();
+
+export type IslandServiceIslandRow = {
+  island: Island;
+  atollName: string;
+};
 
 type AllocationTotals = {
   local: number;
@@ -241,7 +245,7 @@ function healthDemandForService(
 
 function transportDemandForService(
   serviceId: string,
-  stops: Awaited<ReturnType<typeof calculateIslandScore>>['transport']['demand']['stops']
+  stops: ReturnType<typeof calculateTransportDemand>['stops']
 ): IslandServiceDemand {
   const stop = stops.find((entry) => entry.stopId === serviceId);
   if (!stop) return emptyDemand();
@@ -300,35 +304,62 @@ function serviceCoverageWeights(service: { serviceType: string; subtype: string 
         : 0,
     education:
       service.serviceType === 'education'
-        ? (scoringConfig.educationQuality[service.subtype as keyof typeof scoringConfig.educationQuality] ?? 0)
+        ? (scoringConfig.educationHeatmapCoverage[
+            service.subtype as keyof typeof scoringConfig.educationHeatmapCoverage
+          ] ?? 0)
         : 0,
     transport: service.serviceType === 'transport' ? 1 : 0
   } satisfies Record<ServiceDemandCategory, number>;
 }
 
+function islandGeometry(snapshot: ScoringSnapshot, islandId: string, geoJson: string): unknown {
+  let geometries = islandGeometryCache.get(snapshot);
+  if (!geometries) {
+    geometries = new Map();
+    islandGeometryCache.set(snapshot, geometries);
+  }
+  if (geometries.has(islandId)) return geometries.get(islandId);
+  let geometry: unknown = null;
+  try {
+    geometry = JSON.parse(geoJson) as unknown;
+  } catch {
+    // Invalid optional geometry produces no heatmap rather than failing the services response.
+  }
+  geometries.set(islandId, geometry);
+  return geometry;
+}
+
+function residentialPointsForIsland(snapshot: ScoringSnapshot, islandId: string): ResidentialDemandPoint[] {
+  let pointsByIsland = residentialPointsCache.get(snapshot);
+  if (!pointsByIsland) {
+    pointsByIsland = new Map();
+    residentialPointsCache.set(snapshot, pointsByIsland);
+  }
+  const cached = pointsByIsland.get(islandId);
+  if (cached) return cached;
+  const points = snapshot.residentialDemandPoints?.filter((point) => point.islandId === islandId) ?? [];
+  pointsByIsland.set(islandId, points);
+  return points;
+}
+
 export async function getIslandServices(
   islandId: string,
-  snapshotOverride: ScoringSnapshot | undefined = undefined
+  snapshotOverride: ScoringSnapshot | undefined = undefined,
+  islandRowOverride: IslandServiceIslandRow | undefined = undefined
 ): Promise<IslandServicesResponse> {
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new IslandServicesNotFoundError(islandId);
 
-  const [snapshot, islandRows] = await Promise.all([
+  const [snapshot, islandRow] = await Promise.all([
     snapshotOverride
       ? Promise.resolve(snapshotOverride)
       : loadScoringSnapshot({ includeResidentialDemandPoints: true }),
-    db
-      .select({ island: IslandModel, atollName: Atoll.name })
-      .from(IslandModel)
-      .innerJoin(Atoll, eq(IslandModel.atollId, Atoll.id))
-      .where(eq(IslandModel.id, normalizedId))
-      .limit(1)
+    islandRowOverride ? Promise.resolve(islandRowOverride) : loadIslandContext(normalizedId)
   ]);
-  const islandRow = islandRows[0];
   if (!islandRow) throw new IslandServicesNotFoundError(normalizedId);
 
   const allocations = buildDemandAllocation(snapshot);
-  const score = calculateIslandScore(normalizedId, snapshot, allocations);
+  const transportDemand = calculateTransportDemand(normalizedId, snapshot, allocations);
   const services = snapshot.services
     .filter((service) => service.islandId === normalizedId)
     .sort(
@@ -340,7 +371,7 @@ export async function getIslandServices(
   const population = allocations.byIsland.get(normalizedId)?.population ?? null;
   const populationTotals = aggregatePopulationDemand(allocations, normalizedId);
   const healthTotals = aggregateHealthDemand(allocations, normalizedId);
-  const transportStops = score.transport.demand.stops;
+  const transportStops = transportDemand.stops;
   const servicesForMatching = services.map((service) => ({
     serviceType: service.serviceType,
     subtype: service.subtype
@@ -386,17 +417,10 @@ export async function getIslandServices(
   const healthWeights = normalizeProportionalDemandWeights(mapServices.map((service) => service.demand.health.value));
   const educationWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.education.value));
   const transportWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.transport.value));
-  const islandGeometry: unknown = (() => {
-    try {
-      return JSON.parse(islandRow.island.geoJson) as unknown;
-    } catch {
-      return null;
-    }
-  })();
-  const islandResidentialPoints =
-    snapshot.residentialDemandPoints?.filter((point) => point.islandId === normalizedId) ?? [];
+  const geometry = islandGeometry(snapshot, normalizedId, islandRow.island.geoJson);
+  const islandResidentialPoints = residentialPointsForIsland(snapshot, normalizedId);
   const hexes = buildServiceDemandHexes(
-    islandGeometry,
+    geometry,
     [islandRow.island.longitude, islandRow.island.latitude],
     mapServices.flatMap((service, index) =>
       service.coordinates
@@ -453,7 +477,7 @@ export async function getIslandServices(
       ...(islandResidentialPoints.length > 0
         ? ['Residential demand assumes one unit of population pressure per mapped residential building.']
         : [
-            'No residential building artifact is available for this island; the heat map uses facility demand pressure only.'
+            'No residential building artifact is available for this island; the heat map uses facility demand pressure with health and education service coverage relief.'
           ]),
       ...(mapServices.some((service) => service.coordinates === null)
         ? ['Some services are missing valid coordinates and are omitted from map layers.']

@@ -25,6 +25,12 @@ export const scenarioOperationSchema = v.variant('kind', [
   }),
   v.object({
     operationId,
+    kind: v.literal('downgrade_service'),
+    serviceId,
+    targetSubtype: v.pipe(v.string(), v.minLength(1), v.maxLength(80))
+  }),
+  v.object({
+    operationId,
     kind: v.literal('move_service'),
     serviceId,
     coordinates: v.tuple([coordinate, coordinate])
