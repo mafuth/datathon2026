@@ -73,6 +73,8 @@ function emptyDemand(source: IslandServiceDemand['source'] = 'unavailable'): Isl
     inbound: null,
     connected: null,
     transfer: null,
+    careTransfer: null,
+    educationTransfer: null,
     total: null,
     loadRatio: null,
     score: null,
@@ -103,7 +105,7 @@ function aggregatePopulationDemand(
 ): Map<string, AllocationTotals> {
   const totals = new Map<string, AllocationTotals>();
 
-  for (const allocation of allocations.byOriginCohort.values()) {
+  for (const allocation of [...allocations.byOriginCohort.values(), ...allocations.educationOverlays]) {
     if (
       allocation.destinationIslandId !== islandId ||
       allocation.category !== 'education' ||
@@ -128,7 +130,7 @@ function aggregateHealthDemand(allocations: DemandAllocationResult, islandId: st
     specialist: emptyAllocationTotals()
   };
 
-  for (const allocation of allocations.byOriginNeed.values()) {
+  for (const allocation of [...allocations.byOriginNeed.values(), ...allocations.hospitalOverlays]) {
     if (allocation.category !== 'health' || allocation.destinationIslandId !== islandId) continue;
     const layer = healthDemandLayer(allocation.needKey);
     if (!layer) continue;
@@ -164,6 +166,8 @@ function populationDemandForService(
     inbound: round(inbound),
     connected: null,
     transfer: null,
+    careTransfer: null,
+    educationTransfer: null,
     total: round(total),
     loadRatio: null,
     score: null,
@@ -224,6 +228,8 @@ function healthDemandForService(
     inbound: round(inbound),
     connected: null,
     transfer: null,
+    careTransfer: null,
+    educationTransfer: null,
     total: round(total),
     loadRatio: null,
     score: null,
@@ -245,7 +251,9 @@ function transportDemandForService(
     local: round(stop.localDemand),
     inbound: round(stop.connectedDemand),
     connected: round(stop.connectedDemand),
-    transfer: round(stop.careTransferDemand),
+    transfer: round(stop.careTransferDemand + stop.educationTransferDemand),
+    careTransfer: round(stop.careTransferDemand),
+    educationTransfer: round(stop.educationTransferDemand),
     total: round(stop.totalDemand),
     loadRatio: round(stop.loadRatio),
     score: round(stop.score),
@@ -439,7 +447,7 @@ export async function getIslandServices(
     },
     limitations: [
       'Health and education demand is an age-based population proxy, not measured facility usage.',
-      'Health map demand uses a non-elderly baseline, a children/adolescents clinic preference, and hospital-only elderly/emergency overlays; duplicate facilities within a subtype share that subtype demand.',
+      'Health map demand uses a non-elderly baseline, a children/adolescents clinic preference, and hospital-only elderly/emergency overlays; elderly overlays can intentionally increase central and nearest-hospital inbound demand. Education map demand routes each required level through eligible paths and uses same-atoll or Malé/Hulhumalé overlays when route evidence is missing.',
       'Transport demand uses estimated stop capacity and load proxies.',
       'Heat-map intensity combines facility demand pressure with residential building distance as a planning proxy; it does not affect island or national scores.',
       ...(islandResidentialPoints.length > 0

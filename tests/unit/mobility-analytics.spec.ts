@@ -16,7 +16,11 @@ import {
 import { flattenRtlRouteDetails } from '../../src/lib/server/mobility/rtl-bus-routes';
 import { classifyZeroScore } from '../../src/lib/server/scoring/analytics-coverage';
 import { buildAnalyticsRankings } from '../../src/lib/server/scoring/analytics-rankings';
-import { bestHealthService, buildDemandAllocation } from '../../src/lib/server/scoring/demand-allocation';
+import {
+  bestEducationService,
+  bestHealthService,
+  buildDemandAllocation
+} from '../../src/lib/server/scoring/demand-allocation';
 import { calculateCrowdedness, calculateIslandScore } from '../../src/lib/server/scoring/factors';
 
 describe('reviewed mobility mappings', () => {
@@ -275,6 +279,27 @@ describe('age-based service demand allocation', () => {
         'chronic_elderly'
       )
     ).toBeNull();
+  });
+
+  it('maps every education level to its required service subtype', () => {
+    const services = ['preschool', 'school', 'high_school', 'tertiary'].map(
+      (subtype) =>
+        ({
+          id: subtype,
+          islandId: 'island',
+          serviceType: 'education',
+          subtype,
+          name: subtype,
+          latitude: null,
+          longitude: null
+        }) as Service
+    );
+
+    expect(bestEducationService(services, 'preschool')?.subtype).toBe('preschool');
+    expect(bestEducationService(services, 'primary')?.subtype).toBe('school');
+    expect(bestEducationService(services, 'secondary')?.subtype).toBe('high_school');
+    expect(bestEducationService(services, 'higher_secondary')?.subtype).toBe('high_school');
+    expect(bestEducationService(services, 'tertiary')?.subtype).toBe('tertiary');
   });
 
   it('deduplicates age cohorts while preserving detailed service demand', () => {
@@ -553,6 +578,7 @@ describe('age-based service demand allocation', () => {
     const noRouteHealthSnapshot: ScoringSnapshot = { ...childOnlyHealthSnapshot, connections: [] };
     const noRouteAllocations = buildDemandAllocation(noRouteHealthSnapshot);
     const noRouteOrigin = noRouteAllocations.byIsland.get('origin');
+    const noRouteDestination = noRouteAllocations.byIsland.get('destination');
     const noRouteElderlyCare = noRouteAllocations.byOriginCohort.get('origin:health:chronic_elderly');
 
     expect(noRouteElderlyCare).toMatchObject({
@@ -562,5 +588,7 @@ describe('age-based service demand allocation', () => {
     });
     expect(noRouteOrigin?.healthByNeed.chronic_elderly.outbound).toBe(10);
     expect(noRouteOrigin?.healthByNeed.chronic_elderly.unserved).toBe(10);
+    expect(noRouteDestination?.healthByNeed.chronic_elderly.inbound).toBe(10);
+    expect(noRouteDestination?.health.inbound).toBe(10);
   });
 });

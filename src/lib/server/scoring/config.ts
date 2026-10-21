@@ -5,9 +5,13 @@ export const scoringConfig = {
   healthDemandPolicy: {
     baselineSubtypes: ['hospital', 'health_center', 'clinic'],
     youngerPriority: ['clinic', 'health_center', 'hospital'],
-    specialistSubtypes: ['hospital']
+    specialistSubtypes: ['hospital'],
+    centralHospitalIslandNames: ['male', 'hulhumale']
   },
   educationQuality: { preschool: 1, school: 1, high_school: 1, tertiary: 1 },
+  educationDemandPolicy: {
+    centralEducationIslandNames: ['male', 'hulhumale']
+  },
   // Density at which the bounded crowdedness pressure reaches 0.5.
   densityReferencePersonsPerKm2: 5000,
   healthCrowdingImpact: 0.2,
@@ -16,6 +20,14 @@ export const scoringConfig = {
   externalDemandImpact: 0.2,
   minimumExternalDemandFactor: 0.5,
   airConnectionFactor: 0.5,
+  transportDemandPolicy: {
+    hospitalHubRouting: {
+      maleMarineStopNameAliases: ['prost jetty'],
+      maleMarineStopNameTokens: ['port', 'jetty', 'ferry terminal'],
+      hulhuleAirportStopIds: ['airport:vrmm'],
+      hulhuleAirportNameTokens: ['velana international airport', 'hulhule airport']
+    }
+  },
   hubDemandImpact: 0.2,
   transferDemandShare: 0.25,
   minimumHubFactor: 0.5,

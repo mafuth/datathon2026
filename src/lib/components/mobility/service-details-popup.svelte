@@ -136,6 +136,14 @@
                   <dt>Transfer</dt>
                   <dd>{value(demand.transfer)}</dd>
                 </div>{/if}
+              {#if demand.careTransfer !== null}<div class="metric-card">
+                  <dt>Care transfer</dt>
+                  <dd>{value(demand.careTransfer)}</dd>
+                </div>{/if}
+              {#if demand.educationTransfer !== null}<div class="metric-card">
+                  <dt>Student transfer</dt>
+                  <dd>{value(demand.educationTransfer)}</dd>
+                </div>{/if}
               {#if demand.score !== null}<div class="metric-card">
                   <dt>Score</dt>
                   <dd>{score(demand.score)}</dd>

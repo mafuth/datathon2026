@@ -98,12 +98,19 @@ export type DemandAllocation = {
   routeType: ServiceScore['routeType'];
   routeFactor: number;
   serviceSubtype: string | null;
+  distanceM?: number | null;
+  hopCount?: number;
+  pathIslandIds?: string[];
+  pathConnectionIds?: string[];
+  knownConnectivity?: boolean;
 };
 
 export type DemandAllocationResult = {
   byIsland: Map<string, DemandSummary>;
   byOriginNeed: Map<string, DemandAllocation>;
   byOriginCohort: Map<string, DemandAllocation>;
+  hospitalOverlays: DemandAllocation[];
+  educationOverlays: DemandAllocation[];
 };
 
 export type AirportAccess = {
@@ -148,6 +155,8 @@ export type HubDemandImpact = {
   incomingDemand: number | null;
   outboundDemand: number | null;
   transferDemand: number | null;
+  careTransferDemand: number | null;
+  educationTransferDemand: number | null;
   totalDemand: number | null;
   capacity: number | null;
   pressure: number | null;
@@ -171,6 +180,7 @@ export type TransportDemandStop = {
   studentDemand: number;
   elderlyDemand: number;
   careTransferDemand: number;
+  educationTransferDemand: number;
   totalDemand: number;
   capacity: number;
   loadRatio: number;
@@ -183,6 +193,7 @@ export type TransportDemandModeSummary = {
   stopCount: number;
   totalDemand: number;
   careTransferDemand: number;
+  educationTransferDemand: number;
   averageLoad: number | null;
   score: number | null;
 };
@@ -192,6 +203,7 @@ export type TransportDemandResult = {
   studentDemand: number;
   elderlyDemand: number;
   careTransferDemand: number;
+  educationTransferDemand: number;
   totalDemand: number;
   averageLoad: number | null;
   score: number | null;

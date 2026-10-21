@@ -109,6 +109,7 @@ function transportDemandDto(demand: TransportDemandResult) {
     studentDemand: demand.studentDemand,
     elderlyDemand: demand.elderlyDemand,
     careTransferDemand: demand.careTransferDemand,
+    educationTransferDemand: demand.educationTransferDemand,
     totalDemand: demand.totalDemand,
     averageLoad: demand.averageLoad,
     score: demand.score,
@@ -125,6 +126,7 @@ function transportDemandDto(demand: TransportDemandResult) {
       studentDemand: stop.studentDemand,
       elderlyDemand: stop.elderlyDemand,
       careTransferDemand: stop.careTransferDemand,
+      educationTransferDemand: stop.educationTransferDemand,
       totalDemand: stop.totalDemand,
       capacity: stop.capacity,
       loadRatio: stop.loadRatio,
@@ -145,6 +147,7 @@ function aggregateTransportDemand(results: TransportDemandResult[]) {
     stopCount: results.reduce((sum, result) => sum + result.modes[key].stopCount, 0),
     totalDemand: average(results.map((result) => result.modes[key].totalDemand)) ?? 0,
     careTransferDemand: average(results.map((result) => result.modes[key].careTransferDemand)) ?? 0,
+    educationTransferDemand: average(results.map((result) => result.modes[key].educationTransferDemand)) ?? 0,
     averageLoad: average(results.map((result) => result.modes[key].averageLoad)),
     score: average(results.map((result) => result.modes[key].score))
   });
@@ -153,6 +156,7 @@ function aggregateTransportDemand(results: TransportDemandResult[]) {
     studentDemand: average(results.map((result) => result.studentDemand)) ?? 0,
     elderlyDemand: average(results.map((result) => result.elderlyDemand)) ?? 0,
     careTransferDemand: average(results.map((result) => result.careTransferDemand)) ?? 0,
+    educationTransferDemand: average(results.map((result) => result.educationTransferDemand)) ?? 0,
     totalDemand: average(results.map((result) => result.totalDemand)) ?? 0,
     averageLoad: average(results.map((result) => result.averageLoad)),
     score: average(results.map((result) => result.score)),

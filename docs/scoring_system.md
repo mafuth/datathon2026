@@ -274,17 +274,27 @@ land-network distance data. These limitations must appear in the response.
 ### Education
 
 1. Find education services assigned to the island.
-2. Match the service subtype to the relevant education level.
+2. Match preschool to `preschool`, primary to `school`, secondary and
+   higher-secondary to `high_school`, and tertiary to `tertiary`.
 3. Calculate same-island access when the required level exists locally.
-4. If a level is absent locally, look for a supported relocation destination
-   only when the required route and relocation evidence exist.
-5. Do not treat relocation as a repeated daily commute.
-6. Mark missing age groups, education-level classification, or relocation data
+4. If a level is absent locally, prefer an eligible known multi-hop path, with
+   same-atoll destinations preferred before cross-atoll destinations.
+5. When no known path exists, add the nearest same-atoll service as a demand
+   overlay; if none exists, add Malé and Hulhumalé services as central
+   overlays. These overlays do not invent a transport route.
+6. Use children for preschool and primary demand, adolescents for secondary
+   and higher-secondary demand, and youth aged 18-35 for tertiary demand. If
+   the 18-35 row is absent, use youth aged 15-24; if the adolescent row is
+   absent, use the child cohort.
+7. Count each age cohort once in aggregate education demand while retaining
+   all five education-level rows for detailed access scoring.
+8. Do not treat relocation as a repeated daily commute.
+9. Mark missing age groups, education-level classification, or relocation data
    as partial evidence.
 
-The current database can calculate local education availability, but it cannot
-fully calculate relocation burden until approved route-time, age, and support
-data are available.
+The current database can calculate local education availability and eligible
+path evidence, but it cannot fully calculate relocation burden until approved
+route-time, age, and support data are available.
 
 ### Cross-Island Service Demand
 
@@ -297,7 +307,12 @@ For every available population need group, the scorer must inspect:
 
 The best route is selected using the available evidence. A cross-island route
 must retain its origin island, destination island, route type, hop count, and
-any modeled or missing travel-time evidence.
+any modeled or missing travel-time evidence. Chronic elderly demand prefers a
+known same-atoll hospital path, then the shortest known hospital path. Education
+demand applies the same path preference to the required education subtype. If
+no known path exists, the scorer uses the nearest same-atoll service as a demand
+overlay without inventing route access. If no same-atoll service exists, the
+overlay targets the required service on Malé and Hulhumalé.
 
 Examples:
 
@@ -307,8 +322,13 @@ Examples:
   relocation route, not an assumed daily commute.
 
 The first pass identifies the best destinations and estimates the population
-demand sent to each destination. The second pass applies destination
-crowding and external demand pressure to those routes.
+demand sent to each destination. The elderly hospital policy may intentionally
+send the same elderly demand to the nearest hospital and to the Malé/Hulhumalé
+hospital hubs. Education overlays use the same intentional duplicate-destination
+policy for missing required levels. These overlay destinations increase inbound
+health or education pressure and score calculations, while only known routes
+create care-transfer or student-transfer demand. The second pass applies
+destination crowding and external demand pressure to those routes and overlays.
 
 ### Crowdedness
 
@@ -367,13 +387,15 @@ corresponding education levels.
 
 Aggregate health and education demand must count each configured age cohort once.
 Aggregate health pressure uses the non-elderly baseline once plus the hospital-only
-chronic overlay; the children/adolescents and emergency rows remain explicit
-detailed specialist or preference overlays. The aggregate education load is
-children plus adolescents plus youth. Preschool and primary
+chronic overlay; explicit elderly hospital destination overlays are added to
+destination inbound pressure. The children/adolescents and emergency rows remain
+explicit detailed specialist or preference overlays. The aggregate education load
+is children plus adolescents plus youth. Preschool and primary
 education both use the child cohort, and secondary and higher-secondary
 education both use the adolescent cohort, so those service rows must not be
 added together again. The detailed per-service rows remain available for route
-and access scoring.
+and access scoring. Missing adolescent data falls back to the child cohort, and
+tertiary demand prefers the 18-35 youth row before the 15-24 fallback row.
 
 ```text
 non_elderly_baseline = max(0, total_population - elderly_population)
@@ -416,9 +438,13 @@ access using combined local and inbound pressure. Inbound-only pressure remains
 available as a diagnostic value. The percentage shown in analytics is capped at
 100%, but raw demand values are retained.
 
-Inbound demand uses the same unique-cohort rule. A source island contributes its
-children, elderly, adolescents, and youth cohorts once to the selected demand
-destination; repeated service rows do not create repeated inbound population.
+Inbound demand uses the same unique-cohort rule for ordinary service demand. A
+source island contributes its children, elderly, adolescents, and youth cohorts
+once to the selected demand destination; repeated service rows do not create
+repeated inbound population. Chronic elderly hospital overlays are the explicit
+exception: the same elderly demand may be added to the nearest hospital and to
+the Malé/Hulhumalé hospital hubs, so destination inbound demand can intentionally
+exceed the origin's outbound demand.
 
 Outbound demand is retained at the origin:
 
@@ -434,9 +460,10 @@ outbound_demand_percent = min(
 
 Outbound demand represents the need to leave the origin, even when no eligible
 connection or destination is available. A missing external route also marks the
-need `unserved`; it must not erase the outbound demand signal. A second standalone
-outbound penalty must not be applied because it would count the same route burden
-twice.
+need `unserved`; it must not erase the outbound demand signal. Same-atoll and
+central hospital overlays may still add inbound destination pressure when the
+origin route remains unavailable. A second standalone outbound penalty must not
+be applied because it would count the same route burden twice.
 
 The first implementation should use this as a clearly labelled demand proxy
 because the current database has no service capacity table. Once capacity is
@@ -468,7 +495,12 @@ stop_demand =
 ```
 
 Missing local care adds demand to the relevant marine or air departure and
-arrival hubs. The same transfer is not copied to unrelated stops.
+arrival hubs. Missing education adds a separate student-transfer demand stream
+to the same known transport legs. Configured hospital-hub preferences route
+Male marine demand to named port/jetty hubs and Hulhule air demand to Velana
+International Airport when those stops are present. The same transfer is not
+copied to unrelated stops, and no hub route is invented when the underlying leg
+is unavailable.
 
 ```text
 stop_load_ratio = stop_demand / estimated_stop_capacity
@@ -750,6 +782,7 @@ type TransportDemandStop = {
   studentDemand: number;
   elderlyDemand: number;
   careTransferDemand: number;
+  educationTransferDemand: number;
   totalDemand: number;
   capacity: number;
   loadRatio: number;
@@ -761,6 +794,7 @@ type TransportDemandResult = {
   studentDemand: number;
   elderlyDemand: number;
   careTransferDemand: number;
+  educationTransferDemand: number;
   totalDemand: number;
   averageLoad: number | null;
   score: number | null;
@@ -769,6 +803,7 @@ type TransportDemandResult = {
       stopCount: number;
       totalDemand: number;
       careTransferDemand: number;
+      educationTransferDemand: number;
       averageLoad: number | null;
       score: number | null;
     };
@@ -776,6 +811,7 @@ type TransportDemandResult = {
       stopCount: number;
       totalDemand: number;
       careTransferDemand: number;
+      educationTransferDemand: number;
       averageLoad: number | null;
       score: number | null;
     };
@@ -783,6 +819,7 @@ type TransportDemandResult = {
       stopCount: number;
       totalDemand: number;
       careTransferDemand: number;
+      educationTransferDemand: number;
       averageLoad: number | null;
       score: number | null;
     };
@@ -797,6 +834,8 @@ type HubDemandImpact = {
   incomingDemand: number | null;
   outboundDemand: number | null;
   transferDemand: number | null;
+  careTransferDemand: number | null;
+  educationTransferDemand: number | null;
   totalDemand: number | null;
   capacity: number | null;
   pressure: number | null;

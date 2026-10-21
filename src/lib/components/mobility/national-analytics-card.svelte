@@ -80,6 +80,7 @@
     studentDemand: number;
     elderlyDemand: number;
     careTransferDemand: number;
+    educationTransferDemand: number;
     totalDemand: number;
     capacity: number;
     loadRatio: number;
@@ -91,6 +92,7 @@
     studentDemand: number;
     elderlyDemand: number;
     careTransferDemand: number;
+    educationTransferDemand: number;
     totalDemand: number;
     averageLoad: number | null;
     score: number | null;
@@ -100,6 +102,7 @@
         stopCount: number;
         totalDemand: number;
         careTransferDemand: number;
+        educationTransferDemand: number;
         averageLoad: number | null;
         score: number | null;
       }
@@ -553,6 +556,11 @@
                 <span
                   >Elderly hospital outbound <strong
                     >{number(data.national.demand.healthCareDemand.elderly?.outbound ?? 0)}</strong
+                  ></span
+                >
+                <span>Care transfers <strong>{number(data.national.transportDemand.careTransferDemand)}</strong></span>
+                <span
+                  >Education transfers <strong>{number(data.national.transportDemand.educationTransferDemand)}</strong
                   ></span
                 >
                 <span

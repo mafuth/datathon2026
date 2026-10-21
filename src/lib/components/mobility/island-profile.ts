@@ -65,6 +65,7 @@ export type IslandTransportDemandStop = {
   studentDemand: number;
   elderlyDemand: number;
   careTransferDemand: number;
+  educationTransferDemand: number;
   totalDemand: number;
   capacity: number;
   loadRatio: number;
@@ -103,6 +104,7 @@ export type IslandDemandProfile = {
     studentDemand: number;
     elderlyDemand: number;
     careTransferDemand: number;
+    educationTransferDemand: number;
     totalDemand: number;
     averageLoad: number | null;
     score: number | null;
@@ -111,6 +113,7 @@ export type IslandDemandProfile = {
         stopCount: number;
         totalDemand: number;
         careTransferDemand: number;
+        educationTransferDemand: number;
         averageLoad: number | null;
         score: number | null;
       };
@@ -118,6 +121,7 @@ export type IslandDemandProfile = {
         stopCount: number;
         totalDemand: number;
         careTransferDemand: number;
+        educationTransferDemand: number;
         averageLoad: number | null;
         score: number | null;
       };
@@ -125,6 +129,7 @@ export type IslandDemandProfile = {
         stopCount: number;
         totalDemand: number;
         careTransferDemand: number;
+        educationTransferDemand: number;
         averageLoad: number | null;
         score: number | null;
       };
@@ -138,6 +143,8 @@ export type IslandDemandProfile = {
       incomingDemand: number | null;
       outboundDemand: number | null;
       transferDemand: number | null;
+      careTransferDemand: number | null;
+      educationTransferDemand: number | null;
       totalDemand: number | null;
       capacity: number | null;
       pressure: number | null;

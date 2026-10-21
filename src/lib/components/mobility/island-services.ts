@@ -23,6 +23,8 @@ export type IslandServiceDemand = {
   inbound: number | null;
   connected: number | null;
   transfer: number | null;
+  careTransfer: number | null;
+  educationTransfer: number | null;
   total: number | null;
   loadRatio: number | null;
   score: number | null;

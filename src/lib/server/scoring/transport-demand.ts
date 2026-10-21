@@ -25,11 +25,13 @@ type StopAccumulator = {
   students: number;
   elderly: number;
   careTransfer: number;
+  educationTransfer: number;
 };
 
 const LAND_STOP_TYPES = new Set(['bus_station', 'bus_stop', 'public_transport']);
 const MARINE_STOP_TYPES = new Set(['port', 'jetty']);
 const AIR_STOP_TYPES = new Set(['airport', 'air_terminal', 'helipad']);
+const LAND_CONNECTION_TYPES = new Set(['bridge', 'bus', 'causeway', 'land_link']);
 
 function round(value: number): number {
   return Number(value.toFixed(2));
@@ -49,7 +51,7 @@ function cohortDemand(snapshot: ScoringSnapshot, islandId: string): CohortDemand
   const children =
     populationAmount(snapshot, islandId, 'child_population_0_14') ||
     populationAmount(snapshot, islandId, 'child_population_0_17');
-  const adolescents = populationAmount(snapshot, islandId, 'adolescent_population_10_19');
+  const adolescents = populationAmount(snapshot, islandId, 'adolescent_population_10_19') || children;
   const youth =
     populationAmount(snapshot, islandId, 'youth_population_18_35') ||
     populationAmount(snapshot, islandId, 'youth_population_15_24');
@@ -161,6 +163,55 @@ function routeLinksIslands(
   });
 }
 
+function normalizeLabel(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function preferredDestinationStops(
+  snapshot: ScoringSnapshot,
+  candidates: TransportStop[],
+  mode: TransportStopMode,
+  destinationIslandId: string
+): TransportStop[] {
+  const destination = snapshot.islands.find((island) => island.id === destinationIslandId);
+  const destinationName = destination ? normalizeLabel(destination.name) : '';
+  const hubRouting = scoringConfig.transportDemandPolicy.hospitalHubRouting;
+
+  if (mode === 'air' && destinationName === 'hulhule') {
+    const preferred = candidates.filter(
+      (stop) =>
+        hubRouting.hulhuleAirportStopIds.includes(stop.id) ||
+        (stop.subtype === 'airport' &&
+          hubRouting.hulhuleAirportNameTokens.some((token) =>
+            normalizeLabel(stop.name ?? '').includes(normalizeLabel(token))
+          ))
+    );
+    return preferred.length > 0 ? preferred : candidates.filter((stop) => stop.subtype === 'airport');
+  }
+
+  if (mode === 'marine' && destinationName === 'male') {
+    const named = candidates.filter((stop) => stop.name !== null);
+    const preferred = named.filter((stop) =>
+      hubRouting.maleMarineStopNameAliases.some((alias) =>
+        normalizeLabel(stop.name ?? '').includes(normalizeLabel(alias))
+      )
+    );
+    if (preferred.length > 0) return preferred;
+    const fallback = named.filter((stop) =>
+      hubRouting.maleMarineStopNameTokens.some((token) =>
+        normalizeLabel(stop.name ?? '').includes(normalizeLabel(token))
+      )
+    );
+    return fallback.length > 0 ? fallback : candidates;
+  }
+
+  return candidates;
+}
+
 function eligibleStops(
   snapshot: ScoringSnapshot,
   originIslandId: string,
@@ -186,6 +237,7 @@ function eligibleStops(
 }
 
 function endpointStops(
+  snapshot: ScoringSnapshot,
   stops: TransportStop[],
   mode: TransportStopMode,
   originIslandId: string,
@@ -198,10 +250,65 @@ function endpointStops(
       (stop.islandId === originIslandId || stop.islandId === destinationIslandId) &&
       routeLinksIslands(stop, originIslandId, destinationIslandId, islandsByRoute)
   );
-  if (linked.length > 0) return linked;
-  return stops.filter(
-    (stop) => stopMode(stop) === mode && (stop.islandId === originIslandId || stop.islandId === destinationIslandId)
-  );
+  const candidates =
+    linked.length > 0
+      ? linked
+      : stops.filter(
+          (stop) =>
+            stopMode(stop) === mode && (stop.islandId === originIslandId || stop.islandId === destinationIslandId)
+        );
+  const destinationCandidates = candidates.filter((stop) => stop.islandId === destinationIslandId);
+  const preferredDestination = preferredDestinationStops(snapshot, destinationCandidates, mode, destinationIslandId);
+  if (preferredDestination.length === 0 || preferredDestination.length === destinationCandidates.length)
+    return candidates;
+
+  const preferredIds = new Set(preferredDestination.map((stop) => stop.id));
+  return candidates.filter((stop) => stop.islandId === originIslandId || preferredIds.has(stop.id));
+}
+
+function connectionMode(
+  connection: ScoringSnapshot['connections'][number],
+  includeLand: boolean
+): TransportStopMode | null {
+  if (connection.connectionType === 'ferry') return 'marine';
+  if (connection.connectionType === 'air') return 'air';
+  if (includeLand && LAND_CONNECTION_TYPES.has(connection.connectionType)) return 'land';
+  return null;
+}
+
+function transferLegs(
+  snapshot: ScoringSnapshot,
+  allocation: DemandAllocation,
+  includeLand: boolean
+): Array<{ mode: TransportStopMode; originIslandId: string; destinationIslandId: string }> {
+  const pathIslandIds = allocation.pathIslandIds ?? [];
+  const pathConnectionIds = allocation.pathConnectionIds ?? [];
+  if (pathConnectionIds.length > 0 && pathIslandIds.length === pathConnectionIds.length + 1) {
+    const connectionsById = new Map(snapshot.connections.map((connection) => [connection.id, connection]));
+    return pathConnectionIds.flatMap((connectionId, index) => {
+      const connection = connectionsById.get(connectionId);
+      const mode = connection ? connectionMode(connection, includeLand) : null;
+      const originIslandId = pathIslandIds[index];
+      const destinationIslandId = pathIslandIds[index + 1];
+      return mode && originIslandId && destinationIslandId ? [{ mode, originIslandId, destinationIslandId }] : [];
+    });
+  }
+
+  if (
+    allocation.destinationIslandId &&
+    allocation.destinationIslandId !== allocation.originIslandId &&
+    (allocation.routeType === 'marine' || allocation.routeType === 'airport')
+  ) {
+    return [
+      {
+        mode: allocation.routeType === 'airport' ? 'air' : 'marine',
+        originIslandId: allocation.originIslandId,
+        destinationIslandId: allocation.destinationIslandId
+      }
+    ];
+  }
+
+  return [];
 }
 
 function modeHubType(mode: TransportStopMode): HubDemandImpact['hubType'] {
@@ -211,13 +318,65 @@ function modeHubType(mode: TransportStopMode): HubDemandImpact['hubType'] {
 }
 
 function careAllocations(result: DemandAllocationResult): DemandAllocation[] {
-  return [...(result.byOriginCohort?.values() ?? [])].filter(
+  return [
+    ...(result.byOriginCohort?.values() ?? []),
+    ...(result.hospitalOverlays ?? []).filter((allocation) => allocation.knownConnectivity)
+  ].filter(
     (allocation) =>
       allocation.category === 'health' &&
       allocation.destinationIslandId !== null &&
       allocation.destinationIslandId !== allocation.originIslandId &&
-      (allocation.routeType === 'marine' || allocation.routeType === 'airport')
+      ((allocation.pathConnectionIds?.length ?? 0) > 0 ||
+        allocation.routeType === 'marine' ||
+        allocation.routeType === 'airport')
   );
+}
+
+function educationAllocations(result: DemandAllocationResult): DemandAllocation[] {
+  return [
+    ...(result.byOriginCohort?.values() ?? []),
+    ...(result.educationOverlays ?? []).filter((allocation) => allocation.knownConnectivity)
+  ].filter(
+    (allocation) =>
+      allocation.category === 'education' &&
+      allocation.destinationIslandId !== null &&
+      allocation.destinationIslandId !== allocation.originIslandId &&
+      ((allocation.pathConnectionIds?.length ?? 0) > 0 ||
+        allocation.routeType === 'marine' ||
+        allocation.routeType === 'airport')
+  );
+}
+
+function addTransferDemand(
+  snapshot: ScoringSnapshot,
+  allocations: DemandAllocation[],
+  accumulators: Map<string, StopAccumulator>,
+  allStops: TransportStop[],
+  islandsByRoute: Map<string, Set<string>>,
+  field: 'careTransfer' | 'educationTransfer'
+): number {
+  const demandByAllocation = new Map<string, number>();
+  for (const allocation of allocations) {
+    const legs = transferLegs(snapshot, allocation, field === 'educationTransfer');
+    for (const [legIndex, leg] of legs.entries()) {
+      const endpoints = endpointStops(
+        snapshot,
+        allStops,
+        leg.mode,
+        leg.originIslandId,
+        leg.destinationIslandId,
+        islandsByRoute
+      );
+      if (endpoints.length === 0) continue;
+      const share = allocation.demand / endpoints.length;
+      demandByAllocation.set(`${allocationKey(allocation)}:${legIndex}`, allocation.demand);
+      for (const stop of endpoints) {
+        const accumulator = accumulators.get(stop.id);
+        if (accumulator) accumulator[field] += share;
+      }
+    }
+  }
+  return round([...demandByAllocation.values()].reduce((sum, value) => sum + value, 0));
 }
 
 export function calculateTransportDemand(
@@ -241,7 +400,8 @@ export function calculateTransportDemand(
       working: 0,
       students: 0,
       elderly: 0,
-      careTransfer: 0
+      careTransfer: 0,
+      educationTransfer: 0
     });
   }
 
@@ -264,24 +424,22 @@ export function calculateTransportDemand(
     }
   }
 
-  const careByAllocation = new Map<string, number>();
-  for (const allocation of careAllocations(demandAllocations)) {
-    const mode: TransportStopMode = allocation.routeType === 'airport' ? 'air' : 'marine';
-    const endpoints = endpointStops(
-      allStops,
-      mode,
-      allocation.originIslandId,
-      allocation.destinationIslandId as string,
-      islandsByRoute
-    );
-    if (endpoints.length === 0) continue;
-    const share = allocation.demand / endpoints.length;
-    careByAllocation.set(allocationKey(allocation), allocation.demand);
-    for (const stop of endpoints) {
-      const accumulator = accumulators.get(stop.id);
-      if (accumulator) accumulator.careTransfer += share;
-    }
-  }
+  const careTransferDemand = addTransferDemand(
+    snapshot,
+    careAllocations(demandAllocations),
+    accumulators,
+    allStops,
+    islandsByRoute,
+    'careTransfer'
+  );
+  const educationTransferDemand = addTransferDemand(
+    snapshot,
+    educationAllocations(demandAllocations),
+    accumulators,
+    allStops,
+    islandsByRoute,
+    'educationTransfer'
+  );
 
   const demandStops: TransportDemandStop[] = stops.map((stop) => {
     const accumulator = accumulators.get(stop.id) as StopAccumulator;
@@ -295,7 +453,12 @@ export function calculateTransportDemand(
       1,
       (servedPopulation / Math.max(1, stops.length)) * scoringConfig.transportStopCapacityProxyByMode[mode]
     );
-    const totalDemand = accumulator.working + accumulator.students + accumulator.elderly + accumulator.careTransfer;
+    const totalDemand =
+      accumulator.working +
+      accumulator.students +
+      accumulator.elderly +
+      accumulator.careTransfer +
+      accumulator.educationTransfer;
     const loadRatio = totalDemand / capacity;
     const factor = Math.max(
       scoringConfig.minimumTransportStopFactor,
@@ -315,13 +478,14 @@ export function calculateTransportDemand(
       studentDemand: round(accumulator.students),
       elderlyDemand: round(accumulator.elderly),
       careTransferDemand: round(accumulator.careTransfer),
+      educationTransferDemand: round(accumulator.educationTransfer),
       totalDemand: round(totalDemand),
       capacity: round(capacity),
       loadRatio: round(loadRatio),
       score: round(factor * 100),
       status: 'partial',
       limitation:
-        'Stop capacity and passenger counts are estimated because validated transport capacity is unavailable; each configured population cohort is allocated once.'
+        'Stop capacity and passenger counts are estimated because validated transport capacity is unavailable; resident cohorts are allocated once and only known hospital or education routes add transfer demand.'
     };
   });
 
@@ -331,6 +495,7 @@ export function calculateTransportDemand(
       stopCount: entries.length,
       totalDemand: round(entries.reduce((sum, stop) => sum + stop.totalDemand, 0)),
       careTransferDemand: round(entries.reduce((sum, stop) => sum + stop.careTransferDemand, 0)),
+      educationTransferDemand: round(entries.reduce((sum, stop) => sum + stop.educationTransferDemand, 0)),
       averageLoad: average(entries.map((stop) => stop.loadRatio * 100)),
       score: average(entries.map((stop) => stop.score))
     };
@@ -347,7 +512,6 @@ export function calculateTransportDemand(
     },
     { working: 0, students: 0, elderly: 0 }
   );
-  const careTransferDemand = round([...careByAllocation.values()].reduce((sum, value) => sum + value, 0));
   const score = average(demandStops.map((stop) => stop.score));
   const averageLoad = average(demandStops.map((stop) => stop.loadRatio * 100));
   const hubImpacts = demandStops.map((stop): HubDemandImpact => ({
@@ -356,7 +520,9 @@ export function calculateTransportDemand(
     localDemand: stop.localDemand,
     incomingDemand: stop.connectedDemand,
     outboundDemand: 0,
-    transferDemand: stop.careTransferDemand,
+    transferDemand: round(stop.careTransferDemand + stop.educationTransferDemand),
+    careTransferDemand: stop.careTransferDemand,
+    educationTransferDemand: stop.educationTransferDemand,
     totalDemand: stop.totalDemand,
     capacity: stop.capacity,
     pressure: stop.loadRatio,
@@ -371,7 +537,10 @@ export function calculateTransportDemand(
     studentDemand: round(allCohorts.students),
     elderlyDemand: round(allCohorts.elderly),
     careTransferDemand,
-    totalDemand: round(allCohorts.working + allCohorts.students + allCohorts.elderly + careTransferDemand),
+    educationTransferDemand,
+    totalDemand: round(
+      allCohorts.working + allCohorts.students + allCohorts.elderly + careTransferDemand + educationTransferDemand
+    ),
     averageLoad,
     score,
     modes,
@@ -381,5 +550,7 @@ export function calculateTransportDemand(
 }
 
 function allocationKey(allocation: DemandAllocation): string {
-  return `${allocation.originIslandId}:${allocation.category}:${allocation.needKey}`;
+  return `${allocation.originIslandId}:${allocation.category}:${allocation.needKey}:${allocation.destinationIslandId ?? 'unserved'}:${(
+    allocation.pathConnectionIds ?? []
+  ).join('|')}`;
 }

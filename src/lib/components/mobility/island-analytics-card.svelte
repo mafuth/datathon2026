@@ -509,12 +509,12 @@
                   ><span>Student demand <b>{number(profile.demand.transport.studentDemand)}</b></span><span
                     >Elderly demand <b>{number(profile.demand.transport.elderlyDemand)}</b></span
                   ><span>Care transfers <b>{number(profile.demand.transport.careTransferDemand)}</b></span><span
-                    >Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span
-                  ><span>Transport score <b>{percentage(profile.demand.transport.score)}</b></span><span
-                    >Marine load <b>{percentage(profile.demand.transport.modes.marine.averageLoad)}</b></span
-                  ><span>Air load <b>{percentage(profile.demand.transport.modes.air.averageLoad)}</b></span><span
-                    >Stops <b>{profile.demand.transport.stops.length}</b></span
-                  >
+                    >Education transfers <b>{number(profile.demand.transport.educationTransferDemand)}</b></span
+                  ><span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span><span
+                    >Transport score <b>{percentage(profile.demand.transport.score)}</b></span
+                  ><span>Marine load <b>{percentage(profile.demand.transport.modes.marine.averageLoad)}</b></span><span
+                    >Air load <b>{percentage(profile.demand.transport.modes.air.averageLoad)}</b></span
+                  ><span>Stops <b>{profile.demand.transport.stops.length}</b></span>
                 </div>
                 <div class="hub-list">
                   {#each profile.demand.transport.stops as stop (stop.stopId)}
@@ -546,6 +546,11 @@
                           <span><i class="hub-dot hub-dot-linked"></i>{number(stop.connectedDemand)} linked</span>
                           {#if stop.careTransferDemand > 0}
                             <span><i class="hub-dot hub-dot-care"></i>{number(stop.careTransferDemand)} care</span>
+                          {/if}
+                          {#if stop.educationTransferDemand > 0}
+                            <span
+                              ><i class="hub-dot hub-dot-education"></i>{number(stop.educationTransferDemand)} student transfers</span
+                            >
                           {/if}
                         </div>
                       </div>
@@ -1081,6 +1086,9 @@
   }
   .hub-dot-care {
     background: #c69a5c;
+  }
+  .hub-dot-education {
+    background: #6b8eaf;
   }
   .hub-row-values {
     display: grid;

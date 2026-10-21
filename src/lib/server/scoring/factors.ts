@@ -166,7 +166,7 @@ function weightedDemandFactor(
 ): number | null {
   if (!metrics || population === null) return null;
   const values = Object.values(metrics)
-    .map((metric) => ({ value: demandFactor(metric, population), weight: metric.local }))
+    .map((metric) => ({ value: demandFactor(metric, population), weight: metric.local + metric.inbound }))
     .filter((entry): entry is { value: number; weight: number } => entry.value !== null && entry.weight > 0);
   if (values.length === 0) return null;
   const totalWeight = values.reduce((sum, entry) => sum + entry.weight, 0);
@@ -195,7 +195,7 @@ function externalDemand(
     weightedDemandFactor(demand?.educationByNeed, population) ?? demandFactor(demand?.education, population);
   const limitations = [
     'Service demand is estimated from age-based population need; validated service capacity is not stored in the current database.',
-    'Health pressure uses one non-elderly baseline plus hospital-only chronic and emergency overlays; overlapping age indicators are not summed as separate residents.',
+    'Health pressure uses one non-elderly baseline plus hospital-only chronic and emergency overlays; intentional elderly hospital overlays can duplicate destination inbound demand.',
     'Aggregate demand percentages are capped at 100%; detailed service rows may represent multiple needs for the same resident.',
     ...(crowding.status === 'unavailable' ? ['Destination land area is unavailable for demand adjustment.'] : [])
   ];
@@ -273,7 +273,7 @@ function serviceBreakdown(
       status: 'partial',
       limitations: [
         ...(base === null
-          ? ['No matching local or directly connected service was found; this need contributes partial score 0.']
+          ? ['No matching local or reachable service was found; this need contributes partial score 0.']
           : []),
         ...(destinationCrowding.status === 'unavailable' ? ['Destination land area is unavailable.'] : []),
         'Age-specific service capacity and approved travel times are not stored in the current database.'
@@ -383,11 +383,11 @@ export function calculateIslandScore(
   const educationBreakdown = serviceBreakdown(island, snapshot, 'education', crowding, external, allocations);
   const health = scoreFromBreakdown(healthBreakdown, population, crowding.healthFactor, [
     ...external.limitations,
-    'Health access prioritizes clinics for children/adolescents, accepts all health subtypes for the non-elderly baseline, and requires hospitals for chronic elderly and emergency demand.'
+    'Health access prioritizes clinics for children/adolescents, accepts all health subtypes for the non-elderly baseline, and routes chronic elderly demand through reachable hospitals or explicit same-atoll/central fallback overlays.'
   ]);
   const education = scoreFromBreakdown(educationBreakdown, population, crowding.educationFactor, [
     ...external.limitations,
-    'Education relocation support and approved travel times are not stored in the current database.'
+    'Education relocation support and approved travel times are not stored in the current database; same-atoll and central overlays are demand evidence rather than invented route access.'
   ]);
   const transport = transportScores(island, snapshot, population, airport, transportDemand);
   const overallScore = weightedMean([
@@ -415,7 +415,7 @@ export function calculateIslandScore(
     airportAccess: airport,
     limitations: [...new Set(limitations)],
     assumptions: [
-      'Cross-island demand uses directly connected land and marine routes only.',
+      'Cross-island health and education demand uses eligible connected paths, same-atoll fallbacks, and Malé/Hulhumalé overlays when route evidence is missing.',
       'Transport hub capacity uses a configured population proxy because measured capacity is unavailable.'
     ],
     evidence: {

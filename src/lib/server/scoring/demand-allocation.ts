@@ -1,4 +1,5 @@
 import type { Population, Service, TransportConnection } from '../../db/models';
+import type { ServiceRoute } from './hospital-routing';
 import type {
   DemandAllocation,
   DemandAllocationResult,
@@ -11,13 +12,25 @@ import type {
 
 import { scoringConfig } from './config';
 import { healthDemand as buildHealthDemand, healthPopulationProfile, healthServicePriority } from './health-demand';
+import {
+  connectionFromIsland,
+  connectionRoute,
+  resolveEducationRouting,
+  resolveElderlyHospitalRouting
+} from './hospital-routing';
 
 export { healthDemand } from './health-demand';
 
 export const HEALTH_TYPES = ['hospital', 'health_center', 'clinic'] as const;
 export const AIR_TRANSPORT_TYPES = ['airport', 'air_terminal', 'helipad'] as const;
 
-const LAND_CONNECTIONS = new Set(['bridge', 'bus', 'causeway', 'land_link']);
+const EDUCATION_SERVICE_SUBTYPES = {
+  preschool: 'preschool',
+  primary: 'school',
+  secondary: 'high_school',
+  higher_secondary: 'high_school',
+  tertiary: 'tertiary'
+} as const;
 
 type UniqueDemand = {
   category: 'health' | 'education';
@@ -74,7 +87,7 @@ export function educationDemand(records: Population[]): Record<string, number> {
 function uniqueDemand(records: Population[]): UniqueDemand[] {
   const healthProfile = healthPopulationProfile(records);
   const children = healthProfile.children;
-  const adolescents = populationAmount(records, 'adolescent_population_10_19') ?? 0;
+  const adolescents = populationAmount(records, 'adolescent_population_10_19') ?? children;
   const youth =
     populationAmount(records, 'youth_population_18_35') ?? populationAmount(records, 'youth_population_15_24') ?? 0;
 
@@ -120,32 +133,20 @@ export function bestHealthService(services: Service[], key: string): Service | n
 }
 
 export function bestEducationService(services: Service[], key: string): Service | null {
+  const requiredSubtype = educationServiceSubtype(key);
+  if (!requiredSubtype) return null;
   const candidates = services.filter((service) => {
-    if (key === 'preschool') return service.subtype === 'preschool';
-    if (key === 'higher_secondary') return service.subtype === 'high_school';
-    if (key === 'tertiary') return service.subtype === 'tertiary';
-    return service.subtype === key || (key === 'primary' && service.subtype === 'school');
+    return service.subtype === requiredSubtype;
   });
-  return candidates.sort((left, right) => educationQuality(right) - educationQuality(left))[0] ?? null;
+  return (
+    candidates.sort(
+      (left, right) => educationQuality(right) - educationQuality(left) || left.id.localeCompare(right.id)
+    )[0] ?? null
+  );
 }
 
-function connectionFromIsland(connection: TransportConnection, islandId: string): string | null {
-  if (connection.scoreEligible === false) return null;
-  if (connection.fromIslandId === islandId) return connection.toIslandId;
-  if (connection.toIslandId === islandId && connection.directionality === 'bidirectional') {
-    return connection.fromIslandId;
-  }
-  return null;
-}
-
-function connectionFactor(connection: TransportConnection): {
-  routeType: ServiceScore['routeType'];
-  factor: number;
-} {
-  if (LAND_CONNECTIONS.has(connection.connectionType)) return { routeType: 'land', factor: 0.9 };
-  if (connection.connectionType === 'ferry') return { routeType: 'marine', factor: connection.modeled ? 0.6 : 0.7 };
-  if (connection.connectionType === 'air') return { routeType: 'airport', factor: scoringConfig.airConnectionFactor };
-  return { routeType: 'unavailable', factor: 0 };
+export function educationServiceSubtype(key: string): string | null {
+  return EDUCATION_SERVICE_SUBTYPES[key as keyof typeof EDUCATION_SERVICE_SUBTYPES] ?? null;
 }
 
 export function directConnections(
@@ -159,9 +160,8 @@ export function directConnections(
 }> {
   return snapshot.connections.flatMap((connection) => {
     const target = connectionFromIsland(connection, islandId);
-    if (!target) return [];
-    const route = connectionFactor(connection);
-    return route.factor > 0 ? [{ islandId: target, connection, ...route }] : [];
+    const route = connectionRoute(connection);
+    return target && route ? [{ islandId: target, connection, ...route }] : [];
   });
 }
 
@@ -260,17 +260,84 @@ function addInboundSource(
   source.total += amount;
 }
 
+function unavailableDestination(): Omit<DemandAllocation, 'originIslandId' | 'category' | 'needKey' | 'demand'> {
+  return {
+    destinationIslandId: null,
+    routeType: 'unavailable',
+    routeFactor: 0,
+    serviceSubtype: null,
+    distanceM: null,
+    hopCount: 0,
+    pathIslandIds: [],
+    pathConnectionIds: [],
+    knownConnectivity: false
+  };
+}
+
+function destinationFromServiceRoute(
+  route: ServiceRoute | null
+): Omit<DemandAllocation, 'originIslandId' | 'category' | 'needKey' | 'demand'> {
+  if (!route) return unavailableDestination();
+  return {
+    destinationIslandId: route.destinationIslandId,
+    routeType: route.routeType,
+    routeFactor: route.routeFactor,
+    serviceSubtype: route.serviceSubtype,
+    distanceM: route.distanceM,
+    hopCount: route.hopCount,
+    pathIslandIds: route.pathIslandIds,
+    pathConnectionIds: route.pathConnectionIds,
+    knownConnectivity: route.knownConnectivity
+  };
+}
+
+function destinationFromHospitalRoute(
+  route: ServiceRoute | null
+): Omit<DemandAllocation, 'originIslandId' | 'category' | 'needKey' | 'demand'> {
+  return destinationFromServiceRoute(route);
+}
+
+function addHospitalOverlay(
+  byIsland: Map<string, DemandSummary>,
+  overlay: DemandAllocation,
+  originIslandId: string
+): void {
+  if (!overlay.destinationIslandId) return;
+  const destination = byIsland.get(overlay.destinationIslandId);
+  if (!destination) return;
+  addNeedDemand(destination, 'health', 'chronic_elderly', 'inbound', overlay.demand);
+  addAggregateDemand(destination, 'health', 'inbound', overlay.demand);
+  addInboundSource(destination, originIslandId, 'health', overlay.demand);
+}
+
+function addEducationOverlay(
+  byIsland: Map<string, DemandSummary>,
+  overlay: DemandAllocation,
+  originIslandId: string
+): void {
+  if (!overlay.destinationIslandId) return;
+  const destination = byIsland.get(overlay.destinationIslandId);
+  if (!destination) return;
+  addNeedDemand(destination, 'education', overlay.needKey, 'inbound', overlay.demand);
+  addAggregateDemand(destination, 'education', 'inbound', overlay.demand);
+  addInboundSource(destination, originIslandId, 'education', overlay.demand);
+}
+
 function selectDestination(
   snapshot: ScoringSnapshot,
   originIslandId: string,
   category: 'health' | 'education',
   needKey: string
 ): Omit<DemandAllocation, 'originIslandId' | 'category' | 'needKey' | 'demand'> {
+  if (category === 'education') {
+    const requiredSubtype = educationServiceSubtype(needKey);
+    return requiredSubtype
+      ? destinationFromServiceRoute(resolveEducationRouting(snapshot, originIslandId, requiredSubtype).canonical)
+      : unavailableDestination();
+  }
+
   const originServices = snapshot.services.filter((service) => service.islandId === originIslandId);
-  const local =
-    category === 'health'
-      ? bestHealthService(healthServices(originServices), needKey)
-      : bestEducationService(educationServices(originServices), needKey);
+  const local = bestHealthService(healthServices(originServices), needKey);
   if (local) {
     return {
       destinationIslandId: originIslandId,
@@ -283,10 +350,7 @@ function selectDestination(
   const candidate = directConnections(snapshot, originIslandId)
     .map((entry) => {
       const services = snapshot.services.filter((service) => service.islandId === entry.islandId);
-      const service =
-        category === 'health'
-          ? bestHealthService(healthServices(services), needKey)
-          : bestEducationService(educationServices(services), needKey);
+      const service = bestHealthService(healthServices(services), needKey);
       return { ...entry, service };
     })
     .filter((entry) => entry.service)
@@ -302,23 +366,47 @@ function selectDestination(
     : { destinationIslandId: null, routeType: 'unavailable', routeFactor: 0, serviceSubtype: null };
 }
 
-function selectUniqueDestination(
+function selectUniqueEducationRouting(
   snapshot: ScoringSnapshot,
   originIslandId: string,
-  category: 'health' | 'education',
   needKey: string
-): Omit<DemandAllocation, 'originIslandId' | 'category' | 'needKey' | 'demand'> {
-  const destination = selectDestination(snapshot, originIslandId, category, needKey);
-  if (destination.destinationIslandId !== null) return destination;
-  if (category === 'health') return destination;
-  const fallbackNeed = needKey === 'primary' ? 'preschool' : needKey === 'secondary' ? 'higher_secondary' : needKey;
-  return selectDestination(snapshot, originIslandId, category, fallbackNeed);
+): {
+  destination: Omit<DemandAllocation, 'originIslandId' | 'category' | 'needKey' | 'demand'>;
+  overlays: ServiceRoute[];
+} {
+  const requiredSubtype = educationServiceSubtype(needKey);
+  if (!requiredSubtype) return { destination: unavailableDestination(), overlays: [] };
+
+  const routing = resolveEducationRouting(snapshot, originIslandId, requiredSubtype);
+  if (routing.canonical || routing.overlays.length === 0) {
+    return { destination: destinationFromServiceRoute(routing.canonical), overlays: routing.overlays };
+  }
+
+  const fallbackNeed = needKey === 'primary' ? 'preschool' : needKey === 'secondary' ? 'higher_secondary' : null;
+  if (!fallbackNeed || fallbackNeed === needKey) {
+    return { destination: destinationFromServiceRoute(routing.canonical), overlays: routing.overlays };
+  }
+
+  const fallbackSubtype = educationServiceSubtype(fallbackNeed);
+  if (!fallbackSubtype)
+    return { destination: destinationFromServiceRoute(routing.canonical), overlays: routing.overlays };
+  const fallbackRouting = resolveEducationRouting(snapshot, originIslandId, fallbackSubtype);
+  if (fallbackRouting.canonical || fallbackRouting.overlays.length > 0) {
+    return {
+      destination: destinationFromServiceRoute(fallbackRouting.canonical),
+      overlays: fallbackRouting.overlays
+    };
+  }
+
+  return { destination: destinationFromServiceRoute(routing.canonical), overlays: routing.overlays };
 }
 
 export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocationResult {
   const byIsland = new Map<string, DemandSummary>();
   const byOriginNeed = new Map<string, DemandAllocation>();
   const byOriginCohort = new Map<string, DemandAllocation>();
+  const hospitalOverlays: DemandAllocation[] = [];
+  const educationOverlays: DemandAllocation[] = [];
 
   for (const island of snapshot.islands) {
     byIsland.set(island.id, summary(totalPopulation(populationForIsland(snapshot, island.id))));
@@ -329,8 +417,10 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
     const originSummary = byIsland.get(origin.id);
     if (!originSummary) continue;
 
+    const healthDemands = buildHealthDemand(records);
+    const elderlyHospitalRouting = resolveElderlyHospitalRouting(snapshot, origin.id);
     const categories = [
-      { category: 'health' as const, demands: buildHealthDemand(records) },
+      { category: 'health' as const, demands: healthDemands },
       { category: 'education' as const, demands: educationDemand(records) }
     ];
 
@@ -338,7 +428,10 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
       for (const [needKey, demand] of Object.entries(demands)) {
         if (demand <= 0) continue;
         addNeedDemand(originSummary, category, needKey, 'local', demand);
-        const destination = selectDestination(snapshot, origin.id, category, needKey);
+        const destination =
+          category === 'health' && needKey === 'chronic_elderly'
+            ? destinationFromServiceRoute(elderlyHospitalRouting.canonical)
+            : selectDestination(snapshot, origin.id, category, needKey);
         const allocation: DemandAllocation = {
           originIslandId: origin.id,
           category,
@@ -362,8 +455,23 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
       }
     }
 
+    if (healthDemands.chronic_elderly > 0) {
+      for (const route of elderlyHospitalRouting.overlays) {
+        const overlay: DemandAllocation = {
+          originIslandId: origin.id,
+          category: 'health',
+          needKey: 'chronic_elderly',
+          demand: round(healthDemands.chronic_elderly),
+          ...destinationFromHospitalRoute(route)
+        };
+        hospitalOverlays.push(overlay);
+        addHospitalOverlay(byIsland, overlay, origin.id);
+      }
+    }
+
     // Aggregate health pressure uses the non-elderly baseline once plus the
-    // hospital-only chronic overlay. Detailed health need rows remain separate.
+    // hospital-only chronic overlay. Additional elderly hospital overlays are
+    // applied to their destination summaries below.
     for (const needKey of ['primary', 'chronic_elderly'] as const) {
       const allocation = byOriginNeed.get(allocationKey(origin.id, 'health', needKey));
       if (!allocation) continue;
@@ -387,18 +495,41 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
       }
     }
 
-    // Aggregate education pressure uses one allocation per age cohort; the
-    // health cohort map remains available for transport care-transfer demand.
+    // Aggregate education pressure uses one allocation per age cohort; cohort
+    // allocations remain available for separate care and student transfers.
     for (const { category, needKey, amount } of uniqueDemand(records)) {
-      const destination = selectUniqueDestination(snapshot, origin.id, category, needKey);
-      const allocation: DemandAllocation = {
-        originIslandId: origin.id,
-        category,
-        needKey,
-        demand: round(amount),
-        ...destination
-      };
+      const existingHealthAllocation =
+        category === 'health' ? byOriginNeed.get(allocationKey(origin.id, category, needKey)) : undefined;
+      const educationRouting =
+        category === 'education' ? selectUniqueEducationRouting(snapshot, origin.id, needKey) : undefined;
+      const destination =
+        existingHealthAllocation ??
+        educationRouting?.destination ??
+        selectDestination(snapshot, origin.id, category, needKey);
+      const allocation =
+        existingHealthAllocation ??
+        ({
+          originIslandId: origin.id,
+          category,
+          needKey,
+          demand: round(amount),
+          ...destination
+        } satisfies DemandAllocation);
       byOriginCohort.set(allocationKey(origin.id, category, needKey), allocation);
+
+      if (category === 'education' && educationRouting) {
+        for (const route of educationRouting.overlays) {
+          const overlay: DemandAllocation = {
+            originIslandId: origin.id,
+            category: 'education',
+            needKey,
+            demand: round(amount),
+            ...destinationFromServiceRoute(route)
+          };
+          educationOverlays.push(overlay);
+          addEducationOverlay(byIsland, overlay, origin.id);
+        }
+      }
 
       if (category === 'health') continue;
 
@@ -422,7 +553,9 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
   return {
     byIsland: new Map([...byIsland.entries()].map(([islandId, value]) => [islandId, finalizeSummary(value)])),
     byOriginNeed,
-    byOriginCohort
+    byOriginCohort,
+    hospitalOverlays,
+    educationOverlays
   };
 }
 
