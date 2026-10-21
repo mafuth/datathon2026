@@ -30,6 +30,7 @@
     error?: string | null;
     onClose?: () => void;
     proposalMode?: boolean;
+    autoExpandConnections?: boolean;
   };
   let {
     open = $bindable(false),
@@ -38,9 +39,10 @@
     loading = false,
     error = null,
     onClose = () => (open = false),
-    proposalMode = false
+    proposalMode = false,
+    autoExpandConnections = false
   }: Props = $props();
-  let connectionsExpanded = $state(false);
+  let connectionsExpanded = $derived(autoExpandConnections);
   let transportLoadExpanded = $state(false);
   let inboundDemandExpanded = $state(false);
 
@@ -435,7 +437,7 @@
           </Card.Root>
 
           {#if profile}
-            <Card.Root class="insight-card population-panel" size="sm">
+            <Card.Root class="insight-card population-panel" size="sm" data-story-target="island-population">
               <div class="card-heading">
                 <div>
                   <h3>Population</h3>
@@ -593,7 +595,7 @@
               </Card.Root>
             </div>
 
-            <Card.Root class="insight-card connections-panel" size="sm">
+            <Card.Root class="insight-card connections-panel" size="sm" data-story-target="island-connections">
               <div class="card-heading">
                 <div>
                   <h3>Available connections</h3>

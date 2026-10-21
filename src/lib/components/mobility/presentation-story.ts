@@ -10,7 +10,12 @@ export type PresentationUiTarget =
   | 'island-analytics'
   | 'island-elderly-population'
   | 'national-analytics';
-export type PresentationScrollTarget = 'island-elderly-population' | 'island-health-demand' | 'national-focus-areas';
+export type PresentationScrollTarget =
+  | 'island-population'
+  | 'island-elderly-population'
+  | 'island-health-demand'
+  | 'island-connections'
+  | 'national-focus-areas';
 export type PresentationPanel = 'island-analytics' | 'national-analytics' | null;
 
 export type PresentationJourney = {
@@ -277,7 +282,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
     selectedIslandId: 'island:640',
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
-    scrollTargets: ['island-elderly-population', 'island-health-demand'],
+    scrollTargets: ['island-population', 'island-elderly-population', 'island-health-demand'],
     mapHighlightIds: ['baarah', 'baarashu-health-centre'],
     mapData: BAARAH_ONLY
   },
@@ -315,6 +320,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
     selectedIslandId: null,
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
+    scrollTargets: ['island-connections'],
     mapHighlightIds: ['baarah-vashafaru', 'baarah', 'vashafaru'],
     mapData: FERRY_BAARAH_VASHAFARU
   },
@@ -352,6 +358,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
     selectedIslandId: null,
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
+    scrollTargets: ['island-connections'],
     mapHighlightIds: ['vashafaru-dhihdhoo', 'vashafaru', 'dhihdhoo'],
     mapData: FERRY_TO_DHIHDDHOO
   },
@@ -389,6 +396,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
     selectedIslandId: null,
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
+    scrollTargets: ['island-connections'],
     mapHighlightIds: ['dhihdhoo-hanimaadhoo', 'dhihdhoo', 'hanimaadhoo'],
     mapData: FERRY_TO_HANIMAADHOO
   },
@@ -462,6 +470,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
     },
     selectedIslandId: null,
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
+    scrollTargets: ['island-health-demand'],
     mapHighlightIds: ['hulhule-tree-top-road', 'hulhule-airport', 'tree-top-hospital'],
     mapData: CARE_LAST_MILE
   },
@@ -494,7 +503,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
     camera: { center: [73.2, 3.4], zoom: 4.7 },
     selectedIslandId: null,
     panel: 'national-analytics',
-    uiTargets: ['national-score', 'national-analytics'],
+    uiTargets: ['national-score'],
     scrollTargets: ['national-focus-areas'],
     mapHighlightIds: [],
     mapData: EMPTY_PRESENTATION_MAP

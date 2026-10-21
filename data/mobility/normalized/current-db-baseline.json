@@ -86495,6 +86495,21 @@
       "sourceObjectId": "183:Z5R1:2",
       "modeled": false,
       "scoreEligible": false
+    },
+    {
+      "id": "rtl:ferry:S1C6:1:island:625:island:684",
+      "routeId": "rtl:ferry:S1C6",
+      "fromIslandId": "island:625",
+      "toIslandId": "island:684",
+      "connectionType": "ferry",
+      "directionality": "bidirectional",
+      "sequence": 1,
+      "distanceM": null,
+      "geoJson": null,
+      "source": "RTL",
+      "sourceObjectId": "124:S1C6:1",
+      "modeled": false,
+      "scoreEligible": false
     }
   ]
 }

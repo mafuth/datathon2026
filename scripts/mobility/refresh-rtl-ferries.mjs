@@ -27,6 +27,8 @@ function normalize(value) {
     .replace(/[^a-z0-9]+/g, '');
 }
 
+const stopNameAliases = new Map([['HA:dhihdhoo', 'dhidhdhoo']]);
+
 function numeric(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -103,7 +105,9 @@ function reconcileStops(stopRecords, baseline) {
     const name = String(stop.name ?? '').trim();
     const code = atollCode(name);
     const atollName = code ? atollNames.get(code) ?? null : null;
-    const matches = code ? candidates.get(`${code}:${normalize(localStopName(name))}`) ?? [] : [];
+    const localNameKey = normalize(localStopName(name));
+    const canonicalLocalName = stopNameAliases.get(`${code}:${localNameKey}`) ?? localNameKey;
+    const matches = code ? candidates.get(`${code}:${canonicalLocalName}`) ?? [] : [];
     const status = matches.length === 1 ? 'matched_exact_atoll_name' : matches.length > 1 ? 'ambiguous' : 'unmatched';
     const match = matches.length === 1 ? matches[0] : null;
     return {

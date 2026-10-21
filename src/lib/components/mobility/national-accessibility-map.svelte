@@ -898,7 +898,7 @@
     if (!presentationActive || presentationStep?.id !== step.id) return false;
 
     const scrollTargets = step.scrollTargets ?? [];
-    updateStoryUiHighlights([...step.uiTargets, ...scrollTargets]);
+    updateStoryUiHighlights(step.uiTargets);
 
     if (scrollTargets.length === 0) {
       storyFocusStepId = step.id;
@@ -909,6 +909,7 @@
       const target = document.querySelector<HTMLElement>(`[data-story-target="${scrollTarget}"]`);
       if (!target) return false;
       if (!(await animateStoryScroll(target, token))) return false;
+      updateStoryUiHighlights([...step.uiTargets, scrollTarget]);
       if (index < scrollTargets.length - 1 && !(await storyDelay(STORY_JOURNEY_SCROLL_PAUSE, token))) return false;
     }
     storyFocusStepId = step.id;
@@ -916,7 +917,7 @@
   }
 
   function clearStoryUiHighlights(): void {
-    document.querySelectorAll<HTMLElement>('[data-story-focus="true"]').forEach((element) => {
+    document.querySelectorAll<HTMLElement>('[data-story-focus]').forEach((element) => {
       element.removeAttribute('data-story-focus');
     });
     storyFocusStepId = null;
@@ -2073,7 +2074,7 @@
 
   function applySelectedIslandMask(id: string): void {
     if (!mapInstance) return;
-    setBaseRoadVisibility('none');
+    setBaseRoadVisibility('visible');
     mapInstance.setFilter('island-fill', ['==', ['get', 'id'], '']);
     mapInstance.setFilter('national-score-fields', ['==', ['get', 'islandId'], '']);
     mapInstance.setFilter('island-outline', ['==', ['get', 'id'], '']);
@@ -2922,15 +2923,18 @@
     {proposalMode}
   />
 
-  <IslandAnalyticsCard
-    bind:open={islandAnalyticsOpen}
-    island={selectedIsland}
-    profile={islandProfile}
-    loading={analyticsLoading || islandProfileLoading || !selectedIsland}
-    error={analyticsError ?? islandProfileError}
-    onClose={returnToNational}
-    {proposalMode}
-  />
+  {#key `${selectedIslandId ?? 'national'}:${presentationActive ? (presentationStep?.id ?? '') : ''}`}
+    <IslandAnalyticsCard
+      bind:open={islandAnalyticsOpen}
+      island={selectedIsland}
+      profile={islandProfile}
+      loading={analyticsLoading || islandProfileLoading || !selectedIsland}
+      error={analyticsError ?? islandProfileError}
+      onClose={returnToNational}
+      autoExpandConnections={presentationActive && presentationStep?.id === 'ferry-dhihdhoo-hanimaadhoo'}
+      {proposalMode}
+    />
+  {/key}
 
   {#if !readerMode}
     <section
@@ -3056,12 +3060,21 @@
       box-shadow 420ms ease;
   }
 
-  :global([data-story-focus='true']) {
+  :global([data-story-focus]) {
     outline: 3px solid #f97316;
     box-shadow:
       0 0 0 7px rgb(249 115 22 / 16%),
       0 0.7rem 2rem rgb(16 24 32 / 14%);
     animation: story-focus-pulse 2.4s ease-in-out 2;
+  }
+
+  :global([data-story-target='island-elderly-population'][data-story-focus]) {
+    outline-color: #2563eb;
+    background: #eff6ff;
+    box-shadow:
+      0 0 0 7px rgb(37 99 235 / 18%),
+      0 0.7rem 2rem rgb(16 24 32 / 14%);
+    animation-name: story-focus-pulse-elderly;
   }
 
   @keyframes story-focus-pulse {
@@ -3074,8 +3087,21 @@
     }
   }
 
+  @keyframes story-focus-pulse-elderly {
+    0%,
+    100% {
+      outline-color: #2563eb;
+    }
+    50% {
+      outline-color: #93c5fd;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    :global([data-story-focus='true']) {
+    :global([data-story-focus]) {
+      animation: none;
+    }
+    :global([data-story-target='island-elderly-population'][data-story-focus]) {
       animation: none;
     }
     :global([data-story-target]) {
