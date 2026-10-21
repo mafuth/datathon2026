@@ -247,10 +247,16 @@ from being counted twice.
 
 Health capability rules used by the demand allocator:
 
-- `maternal_child` demand may use a local health centre, clinic, or hospital.
-- `chronic_elderly` demand requires a hospital; a health centre or clinic does
-  not satisfy elderly care.
-- Aggregate transport demand keeps child and elderly health cohorts separate so
+- `primary` demand represents the non-elderly baseline and may use a local
+  clinic, health centre, or hospital. Hospital quality remains preferred for
+  the generic route when all three are available. Elderly residents are
+  represented by hospital-only specialist demand.
+- `maternal_child` demand uses the deduplicated children/adolescents band and
+  prefers a clinic, then a health centre, then a hospital fallback.
+- `chronic_elderly` and `hospital_emergency` demand require a hospital; a
+  health centre or clinic does not satisfy specialist elderly or emergency
+  care.
+- Aggregate transport demand keeps younger and elderly health cohorts separate so
   elderly residents without a local hospital generate outbound travel demand.
 
 The initial quality values should be versioned configuration, not hidden
@@ -351,21 +357,27 @@ External demand is the demand arriving from other islands for a destination's
 health or education services.
 
 Service demand must also include the destination island's own age-based demand.
-The local demand mapping is versioned configuration. For the current population
-artifact, hospital emergency demand uses children plus elderly residents because
-there is no baby-specific population row. Education demand uses children,
-adolescents, and youth for the corresponding education levels.
+The local demand mapping is versioned configuration. The health model uses one
+non-elderly baseline from total population minus elderly residents, a
+deduplicated children/adolescents overlay for clinic preference, and separate
+hospital-only chronic and emergency overlays. Hospital emergency demand
+continues to use children plus elderly residents because there is no baby-specific
+population row. Education demand uses children, adolescents, and youth for the
+corresponding education levels.
 
 Aggregate health and education demand must count each configured age cohort once.
-The aggregate health load is children plus elderly residents. The aggregate
-education load is children plus adolescents plus youth. Preschool and primary
+Aggregate health pressure uses the non-elderly baseline once plus the hospital-only
+chronic overlay; the children/adolescents and emergency rows remain explicit
+detailed specialist or preference overlays. The aggregate education load is
+children plus adolescents plus youth. Preschool and primary
 education both use the child cohort, and secondary and higher-secondary
 education both use the adolescent cohort, so those service rows must not be
 added together again. The detailed per-service rows remain available for route
 and access scoring.
 
 ```text
-aggregate_health_demand = children + elderly
+non_elderly_baseline = max(0, total_population - elderly_population)
+aggregate_health_demand = non_elderly_baseline + chronic_elderly_overlay
 aggregate_education_demand = children + adolescents + youth
 ```
 

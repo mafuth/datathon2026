@@ -1,3 +1,4 @@
+import type { Service } from '../../src/lib/db/models';
 import type { ScoringSnapshot } from '../../src/lib/server/scoring/types';
 
 import { describe, expect, it } from 'vitest';
@@ -15,7 +16,7 @@ import {
 import { flattenRtlRouteDetails } from '../../src/lib/server/mobility/rtl-bus-routes';
 import { classifyZeroScore } from '../../src/lib/server/scoring/analytics-coverage';
 import { buildAnalyticsRankings } from '../../src/lib/server/scoring/analytics-rankings';
-import { buildDemandAllocation } from '../../src/lib/server/scoring/demand-allocation';
+import { bestHealthService, buildDemandAllocation } from '../../src/lib/server/scoring/demand-allocation';
 import { calculateCrowdedness, calculateIslandScore } from '../../src/lib/server/scoring/factors';
 
 describe('reviewed mobility mappings', () => {
@@ -251,6 +252,31 @@ describe('crowdedness calculation', () => {
 });
 
 describe('age-based service demand allocation', () => {
+  it('prioritizes clinics for younger care and requires hospitals for specialist care', () => {
+    const services = ['clinic', 'health_center', 'hospital'].map(
+      (subtype) =>
+        ({
+          id: subtype,
+          islandId: 'island',
+          serviceType: 'health',
+          subtype,
+          name: subtype,
+          latitude: null,
+          longitude: null
+        }) as Service
+    );
+
+    expect(bestHealthService(services, 'maternal_child')?.subtype).toBe('clinic');
+    expect(bestHealthService(services, 'primary')?.subtype).toBe('hospital');
+    expect(bestHealthService(services, 'chronic_elderly')?.subtype).toBe('hospital');
+    expect(
+      bestHealthService(
+        services.filter((service) => service.subtype !== 'hospital'),
+        'chronic_elderly'
+      )
+    ).toBeNull();
+  });
+
   it('deduplicates age cohorts while preserving detailed service demand', () => {
     const snapshot = {
       islands: [
@@ -452,13 +478,16 @@ describe('age-based service demand allocation', () => {
 
     expect(origin?.healthByNeed.hospital_emergency.local).toBe(30);
     expect(origin?.healthByNeed.hospital_emergency.outbound).toBe(30);
-    expect(origin?.health.local).toBe(30);
+    expect(origin?.healthByNeed.primary.outbound).toBe(90);
+    expect(origin?.healthByNeed.chronic_elderly.outbound).toBe(10);
+    expect(origin?.health.local).toBe(0);
+    expect(origin?.health.outbound).toBe(100);
     expect(origin?.education.local).toBe(90);
     expect(destination?.healthByNeed.hospital_emergency.inbound).toBe(150);
-    expect(destination?.health.inbound).toBe(150);
+    expect(destination?.health.inbound).toBe(300);
     expect(destination?.inboundSources.map((source) => [source.originIslandId, source.total])).toEqual([
-      ['origin-two', 120],
-      ['origin', 30]
+      ['origin-two', 200],
+      ['origin', 100]
     ]);
     expect(destination?.healthByNeed.hospital_emergency.demandPercent).toBeLessThanOrEqual(1);
     expect(hospitalRow?.demandSource).toBe('outbound');
@@ -491,13 +520,20 @@ describe('age-based service demand allocation', () => {
       ]
     };
     const childOnlyAllocations = buildDemandAllocation(childOnlyHealthSnapshot);
+    const primaryCare = childOnlyAllocations.byOriginNeed.get('origin:health:primary');
     const childCare = childOnlyAllocations.byOriginCohort.get('origin:health:maternal_child');
     const elderlyCare = childOnlyAllocations.byOriginCohort.get('origin:health:chronic_elderly');
     const childOnlyScore = calculateIslandScore('origin', childOnlyHealthSnapshot, childOnlyAllocations);
     const elderlyBreakdown = childOnlyScore.health.breakdown.find((row) => row.key === 'chronic_elderly');
 
+    expect(primaryCare).toMatchObject({
+      demand: 90,
+      destinationIslandId: 'origin',
+      routeType: 'local',
+      serviceSubtype: 'health_center'
+    });
     expect(childCare).toMatchObject({
-      demand: 20,
+      demand: 30,
       destinationIslandId: 'origin',
       routeType: 'local',
       serviceSubtype: 'health_center'

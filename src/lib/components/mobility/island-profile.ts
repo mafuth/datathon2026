@@ -77,6 +77,8 @@ export type IslandDemandProfile = {
     childPopulation: number | null;
     elderlyPopulation: number | null;
     demand: IslandDemandMetric;
+    allAgeDemand: IslandDemandMetric | null;
+    youngerCareDemand: IslandDemandMetric | null;
     childCareDemand: IslandDemandMetric | null;
     elderlyCareDemand: IslandDemandMetric | null;
     hospitalDemand: IslandDemandMetric | null;

@@ -16,6 +16,7 @@ import { scoringConfig } from './config';
 import { loadScoringSnapshot } from './database-input';
 import { buildDemandAllocation } from './demand-allocation';
 import { calculateIslandScore } from './factors';
+import { healthDemandLayer, healthServiceTargetSubtypes } from './health-demand';
 import { buildServiceDemandHexes } from './service-hex-grid';
 
 type Coordinate = [number, number];
@@ -24,6 +25,12 @@ type AllocationTotals = {
   local: number;
   inbound: number;
   byNeed: Record<string, number>;
+};
+
+type HealthAllocationTotals = {
+  baseline: AllocationTotals;
+  younger: AllocationTotals;
+  specialist: AllocationTotals;
 };
 
 export class IslandServicesNotFoundError extends Error {
@@ -75,6 +82,21 @@ function emptyDemand(source: IslandServiceDemand['source'] = 'unavailable'): Isl
   };
 }
 
+function emptyAllocationTotals(): AllocationTotals {
+  return { local: 0, inbound: 0, byNeed: {} };
+}
+
+function addAllocationToTotals(
+  target: AllocationTotals,
+  allocation: { originIslandId: string; demand: number },
+  islandId: string,
+  needKey: string
+): void {
+  const field = allocation.originIslandId === islandId ? 'local' : 'inbound';
+  target[field] += allocation.demand;
+  target.byNeed[needKey] = (target.byNeed[needKey] ?? 0) + allocation.demand;
+}
+
 function aggregatePopulationDemand(
   allocations: DemandAllocationResult,
   islandId: string
@@ -84,18 +106,33 @@ function aggregatePopulationDemand(
   for (const allocation of allocations.byOriginCohort.values()) {
     if (
       allocation.destinationIslandId !== islandId ||
-      (allocation.category !== 'health' && allocation.category !== 'education') ||
+      allocation.category !== 'education' ||
       !allocation.serviceSubtype
     ) {
       continue;
     }
 
     const key = `${allocation.category}:${allocation.serviceSubtype}`;
-    const current = totals.get(key) ?? { local: 0, inbound: 0, byNeed: {} };
-    const field = allocation.originIslandId === islandId ? 'local' : 'inbound';
-    current[field] += allocation.demand;
-    current.byNeed[allocation.needKey] = (current.byNeed[allocation.needKey] ?? 0) + allocation.demand;
+    const current = totals.get(key) ?? emptyAllocationTotals();
+    addAllocationToTotals(current, allocation, islandId, allocation.needKey);
     totals.set(key, current);
+  }
+
+  return totals;
+}
+
+function aggregateHealthDemand(allocations: DemandAllocationResult, islandId: string): HealthAllocationTotals {
+  const totals: HealthAllocationTotals = {
+    baseline: emptyAllocationTotals(),
+    younger: emptyAllocationTotals(),
+    specialist: emptyAllocationTotals()
+  };
+
+  for (const allocation of allocations.byOriginNeed.values()) {
+    if (allocation.category !== 'health' || allocation.destinationIslandId !== islandId) continue;
+    const layer = healthDemandLayer(allocation.needKey);
+    if (!layer) continue;
+    addAllocationToTotals(totals[layer], allocation, islandId, allocation.needKey);
   }
 
   return totals;
@@ -136,6 +173,66 @@ function populationDemandForService(
   };
 }
 
+function healthDemandForService(
+  service: { serviceType: 'health'; subtype: string },
+  servicesOnIsland: Array<{ serviceType: string; subtype: string }>,
+  population: number | null,
+  totals: HealthAllocationTotals
+): IslandServiceDemand {
+  if (population === null) return emptyDemand('population-allocation');
+
+  const healthServices = servicesOnIsland.filter((entry) => entry.serviceType === 'health');
+  const availableSubtypes = healthServices.map((entry) => entry.subtype);
+  const layers = [
+    {
+      name: 'baseline' as const,
+      targets: healthServiceTargetSubtypes('primary', availableSubtypes)
+    },
+    {
+      name: 'younger' as const,
+      targets: healthServiceTargetSubtypes('maternal_child', availableSubtypes)
+    },
+    {
+      name: 'specialist' as const,
+      targets: healthServiceTargetSubtypes('hospital_emergency', availableSubtypes)
+    }
+  ];
+  const byNeed: Record<string, number> = {};
+  let local = 0;
+  let inbound = 0;
+
+  for (const layer of layers) {
+    if (!layer.targets.includes(service.subtype as (typeof layer.targets)[number])) continue;
+    const targetCount = healthServices.filter((entry) =>
+      layer.targets.includes(entry.subtype as (typeof layer.targets)[number])
+    ).length;
+    if (targetCount === 0) continue;
+
+    const allocation = totals[layer.name];
+    const share = 1 / targetCount;
+    local += allocation.local * share;
+    inbound += allocation.inbound * share;
+    for (const [needKey, value] of Object.entries(allocation.byNeed)) {
+      byNeed[needKey] = (byNeed[needKey] ?? 0) + value * share;
+    }
+  }
+
+  const total = local + inbound;
+  return {
+    value: round(total),
+    local: round(local),
+    inbound: round(inbound),
+    connected: null,
+    transfer: null,
+    total: round(total),
+    loadRatio: null,
+    score: null,
+    status: 'partial',
+    source: 'population-allocation',
+    byNeed: Object.fromEntries(Object.entries(byNeed).map(([key, value]) => [key, round(value)]))
+  };
+}
+
 function transportDemandForService(
   serviceId: string,
   stops: Awaited<ReturnType<typeof calculateIslandScore>>['transport']['demand']['stops']
@@ -159,8 +256,21 @@ function transportDemandForService(
 }
 
 export function normalizeDemandWeights(values: readonly (number | null)[]): number[] {
-  const maximum = Math.max(0, ...values.filter((value): value is number => value !== null && value > 0));
-  return values.map((value) => (value === null || maximum === 0 ? 0 : round(value / maximum)));
+  const availableCount = values.filter(
+    (value): value is number => value !== null && Number.isFinite(value) && value > 0
+  ).length;
+  const share = availableCount > 0 ? round(1 / availableCount) : 0;
+  return values.map((value) => (value === null || !Number.isFinite(value) || value <= 0 ? 0 : share));
+}
+
+export function normalizeProportionalDemandWeights(values: readonly (number | null)[]): number[] {
+  const total = values.reduce(
+    (sum, value) => sum + (value !== null && Number.isFinite(value) && value > 0 ? value : 0),
+    0
+  );
+  return total === 0
+    ? values.map(() => 0)
+    : values.map((value) => (value === null || !Number.isFinite(value) || value <= 0 ? 0 : round(value / total)));
 }
 
 function buildPopulationDemand(
@@ -169,7 +279,8 @@ function buildPopulationDemand(
   population: number | null,
   totals: Map<string, AllocationTotals>
 ): IslandServiceDemand {
-  if (service.serviceType !== 'health' && service.serviceType !== 'education') return emptyDemand();
+  if (service.serviceType === 'health') return emptyDemand('population-allocation');
+  if (service.serviceType !== 'education') return emptyDemand();
   return populationDemandForService(service, servicesOnIsland, population, totals);
 }
 
@@ -220,6 +331,7 @@ export async function getIslandServices(
     );
   const population = allocations.byIsland.get(normalizedId)?.population ?? null;
   const populationTotals = aggregatePopulationDemand(allocations, normalizedId);
+  const healthTotals = aggregateHealthDemand(allocations, normalizedId);
   const transportStops = score.transport.demand.stops;
   const servicesForMatching = services.map((service) => ({
     serviceType: service.serviceType,
@@ -231,11 +343,11 @@ export async function getIslandServices(
     const demand = {
       health:
         service.serviceType === 'health'
-          ? buildPopulationDemand(
+          ? healthDemandForService(
               { serviceType: 'health', subtype: service.subtype },
               servicesForMatching,
               population,
-              populationTotals
+              healthTotals
             )
           : emptyDemand(),
       education:
@@ -263,7 +375,7 @@ export async function getIslandServices(
     };
   });
 
-  const healthWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.health.value));
+  const healthWeights = normalizeProportionalDemandWeights(mapServices.map((service) => service.demand.health.value));
   const educationWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.education.value));
   const transportWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.transport.value));
   const islandGeometry: unknown = (() => {
@@ -327,7 +439,7 @@ export async function getIslandServices(
     },
     limitations: [
       'Health and education demand is an age-based population proxy, not measured facility usage.',
-      'Population demand is divided equally between services with the same subtype because facility-level allocation is unavailable.',
+      'Health map demand uses a non-elderly baseline, a children/adolescents clinic preference, and hospital-only elderly/emergency overlays; duplicate facilities within a subtype share that subtype demand.',
       'Transport demand uses estimated stop capacity and load proxies.',
       'Heat-map intensity combines facility demand pressure with residential building distance as a planning proxy; it does not affect island or national scores.',
       ...(islandResidentialPoints.length > 0

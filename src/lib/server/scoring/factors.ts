@@ -195,6 +195,7 @@ function externalDemand(
     weightedDemandFactor(demand?.educationByNeed, population) ?? demandFactor(demand?.education, population);
   const limitations = [
     'Service demand is estimated from age-based population need; validated service capacity is not stored in the current database.',
+    'Health pressure uses one non-elderly baseline plus hospital-only chronic and emergency overlays; overlapping age indicators are not summed as separate residents.',
     'Aggregate demand percentages are capped at 100%; detailed service rows may represent multiple needs for the same resident.',
     ...(crowding.status === 'unavailable' ? ['Destination land area is unavailable for demand adjustment.'] : [])
   ];
@@ -382,7 +383,7 @@ export function calculateIslandScore(
   const educationBreakdown = serviceBreakdown(island, snapshot, 'education', crowding, external, allocations);
   const health = scoreFromBreakdown(healthBreakdown, population, crowding.healthFactor, [
     ...external.limitations,
-    'Health access includes the best local or directly connected service evidence.'
+    'Health access prioritizes clinics for children/adolescents, accepts all health subtypes for the non-elderly baseline, and requires hospitals for chronic elderly and emergency demand.'
   ]);
   const education = scoreFromBreakdown(educationBreakdown, population, crowding.educationFactor, [
     ...external.limitations,

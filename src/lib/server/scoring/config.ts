@@ -2,6 +2,11 @@ export const scoringConfig = {
   domainWeights: { health: 1 / 3, education: 1 / 3, transport: 1 / 3 },
   transportWeights: { land: 1 / 3, marine: 1 / 3, air: 1 / 3 },
   healthQuality: { hospital: 1, health_center: 0.65, clinic: 0.35 },
+  healthDemandPolicy: {
+    baselineSubtypes: ['hospital', 'health_center', 'clinic'],
+    youngerPriority: ['clinic', 'health_center', 'hospital'],
+    specialistSubtypes: ['hospital']
+  },
   educationQuality: { preschool: 1, school: 1, high_school: 1, tertiary: 1 },
   // Density at which the bounded crowdedness pressure reaches 0.5.
   densityReferencePersonsPerKm2: 5000,

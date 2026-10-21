@@ -10,6 +10,9 @@ import type {
 } from './types';
 
 import { scoringConfig } from './config';
+import { healthDemand as buildHealthDemand, healthPopulationProfile, healthServicePriority } from './health-demand';
+
+export { healthDemand } from './health-demand';
 
 export const HEALTH_TYPES = ['hospital', 'health_center', 'clinic'] as const;
 export const AIR_TRANSPORT_TYPES = ['airport', 'air_terminal', 'helipad'] as const;
@@ -54,22 +57,6 @@ function childPopulation(records: Population[]): number {
   return populationAmount(records, 'child_population_0_14') ?? populationAmount(records, 'child_population_0_17') ?? 0;
 }
 
-function elderlyPopulation(records: Population[]): number {
-  return populationAmount(records, 'elderly_population_65_plus') ?? 0;
-}
-
-export function healthDemand(records: Population[]): Record<string, number> {
-  const total = totalPopulation(records) ?? 0;
-  const children = childPopulation(records);
-  const elderly = elderlyPopulation(records);
-  return {
-    primary: total,
-    maternal_child: children,
-    hospital_emergency: children + elderly,
-    chronic_elderly: elderly
-  };
-}
-
 export function educationDemand(records: Population[]): Record<string, number> {
   const children = childPopulation(records);
   const adolescents = populationAmount(records, 'adolescent_population_10_19') ?? children;
@@ -85,15 +72,15 @@ export function educationDemand(records: Population[]): Record<string, number> {
 }
 
 function uniqueDemand(records: Population[]): UniqueDemand[] {
-  const children = childPopulation(records);
-  const elderly = elderlyPopulation(records);
+  const healthProfile = healthPopulationProfile(records);
+  const children = healthProfile.children;
   const adolescents = populationAmount(records, 'adolescent_population_10_19') ?? 0;
   const youth =
     populationAmount(records, 'youth_population_18_35') ?? populationAmount(records, 'youth_population_15_24') ?? 0;
 
   return [
-    { category: 'health', needKey: 'maternal_child', amount: children },
-    { category: 'health', needKey: 'chronic_elderly', amount: elderly },
+    { category: 'health', needKey: 'maternal_child', amount: healthProfile.younger },
+    { category: 'health', needKey: 'chronic_elderly', amount: healthProfile.elderly },
     { category: 'education', needKey: 'primary', amount: children },
     { category: 'education', needKey: 'secondary', amount: adolescents },
     { category: 'education', needKey: 'tertiary', amount: youth }
@@ -121,11 +108,15 @@ function educationQuality(service: Service): number {
 }
 
 export function bestHealthService(services: Service[], key: string): Service | null {
-  const candidates = services.filter((service) => {
-    if (key === 'hospital_emergency' || key === 'chronic_elderly') return service.subtype === 'hospital';
-    return HEALTH_TYPES.includes(service.subtype as (typeof HEALTH_TYPES)[number]);
-  });
-  return candidates.sort((left, right) => healthQuality(right) - healthQuality(left))[0] ?? null;
+  const priority = healthServicePriority(key);
+  const candidates = services.filter((service) => priority.includes(service.subtype as (typeof priority)[number]));
+  return (
+    candidates.sort((left, right) => {
+      const leftPriority = priority.indexOf(left.subtype as (typeof priority)[number]);
+      const rightPriority = priority.indexOf(right.subtype as (typeof priority)[number]);
+      return leftPriority - rightPriority || healthQuality(right) - healthQuality(left);
+    })[0] ?? null
+  );
 }
 
 export function bestEducationService(services: Service[], key: string): Service | null {
@@ -339,7 +330,7 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
     if (!originSummary) continue;
 
     const categories = [
-      { category: 'health' as const, demands: healthDemand(records) },
+      { category: 'health' as const, demands: buildHealthDemand(records) },
       { category: 'education' as const, demands: educationDemand(records) }
     ];
 
@@ -371,9 +362,34 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
       }
     }
 
-    // Aggregate pressure uses one allocation per age cohort; detailed need rows above remain separate.
+    // Aggregate health pressure uses the non-elderly baseline once plus the
+    // hospital-only chronic overlay. Detailed health need rows remain separate.
+    for (const needKey of ['primary', 'chronic_elderly'] as const) {
+      const allocation = byOriginNeed.get(allocationKey(origin.id, 'health', needKey));
+      if (!allocation) continue;
+
+      const amount = allocation.demand;
+      if (allocation.destinationIslandId === origin.id) {
+        addAggregateDemand(originSummary, 'health', 'local', amount);
+        continue;
+      }
+
+      addAggregateDemand(originSummary, 'health', 'outbound', amount);
+      if (allocation.destinationIslandId === null) {
+        addAggregateDemand(originSummary, 'health', 'unserved', amount);
+        continue;
+      }
+
+      const destinationSummary = byIsland.get(allocation.destinationIslandId);
+      if (destinationSummary) {
+        addAggregateDemand(destinationSummary, 'health', 'inbound', amount);
+        addInboundSource(destinationSummary, origin.id, 'health', amount);
+      }
+    }
+
+    // Aggregate education pressure uses one allocation per age cohort; the
+    // health cohort map remains available for transport care-transfer demand.
     for (const { category, needKey, amount } of uniqueDemand(records)) {
-      addAggregateDemand(originSummary, category, 'local', amount);
       const destination = selectUniqueDestination(snapshot, origin.id, category, needKey);
       const allocation: DemandAllocation = {
         originIslandId: origin.id,
@@ -383,6 +399,10 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
         ...destination
       };
       byOriginCohort.set(allocationKey(origin.id, category, needKey), allocation);
+
+      if (category === 'health') continue;
+
+      addAggregateDemand(originSummary, category, 'local', amount);
 
       if (destination.destinationIslandId === origin.id) continue;
 

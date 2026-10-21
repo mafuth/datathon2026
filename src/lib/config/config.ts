@@ -9,6 +9,9 @@ import { uploadConfig } from './upload';
 export const config = {
   app: appConfig,
   auth: authConfig,
+  mobility: {
+    apiDelayMs: 500
+  },
   theme: themeConfig,
   ui: uiConfig,
   upload: uploadConfig
@@ -20,6 +23,7 @@ export type {
   AuthSessionConfig,
   ChallengeConfig,
   ConfigSchema,
+  MobilityConfig,
   PublicConfig,
   RateLimitConfig,
   ThemeConfig,

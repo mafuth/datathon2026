@@ -2,26 +2,29 @@ import type { PresentationStep } from './presentation-story';
 
 import { PRESENTATION_STEPS } from './presentation-story';
 
+export type PresentationMode = 'presentation' | 'reader';
+
 export class PresentationController {
   readonly steps = PRESENTATION_STEPS;
   readonly totalSteps = PRESENTATION_STEPS.length;
-  active = $state(false);
+  mode = $state<PresentationMode | null>(null);
+  active = $derived(this.mode !== null);
   stepIndex = $state(0);
   currentStep = $derived(this.steps[this.stepIndex] ?? this.steps[0]!);
 
-  enter(): void {
-    this.stepIndex = 0;
-    this.active = true;
+  enter(mode: PresentationMode = 'presentation'): void {
+    if (this.mode === null) this.stepIndex = 0;
+    this.mode = mode;
   }
 
   exit(): void {
-    this.active = false;
+    this.mode = null;
     this.stepIndex = 0;
   }
 
-  toggle(): void {
-    if (this.active) this.exit();
-    else this.enter();
+  toggle(mode: PresentationMode): void {
+    if (this.mode === mode) this.exit();
+    else this.enter(mode);
   }
 
   next(): void {
@@ -42,24 +45,32 @@ export class PresentationController {
   handleKeydown(event: KeyboardEvent): void {
     const target = event.target;
     const isEditable =
-      target instanceof HTMLInputElement ||
-      target instanceof HTMLTextAreaElement ||
-      target instanceof HTMLSelectElement ||
-      (target instanceof HTMLElement && target.isContentEditable);
+      (typeof HTMLInputElement !== 'undefined' && target instanceof HTMLInputElement) ||
+      (typeof HTMLTextAreaElement !== 'undefined' && target instanceof HTMLTextAreaElement) ||
+      (typeof HTMLSelectElement !== 'undefined' && target instanceof HTMLSelectElement) ||
+      (typeof HTMLElement !== 'undefined' && target instanceof HTMLElement && target.isContentEditable);
+    const isReaderScrollTarget =
+      typeof HTMLElement !== 'undefined' &&
+      target instanceof HTMLElement &&
+      target.closest('[data-presentation-reader]') !== null;
 
-    if (
-      (event.key.toLowerCase() === 'p' || event.key.toLowerCase() === 'l') &&
-      event.shiftKey &&
-      !event.altKey &&
-      !event.ctrlKey &&
-      !event.metaKey
-    ) {
+    if (isEditable) return;
+
+    if (isReaderScrollTarget && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) return;
+
+    if (event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'p') {
       event.preventDefault();
-      this.toggle();
+      this.toggle('presentation');
       return;
     }
 
-    if (!this.active || isEditable) return;
+    if (event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'l') {
+      event.preventDefault();
+      this.toggle('reader');
+      return;
+    }
+
+    if (!this.active) return;
 
     if (event.key === 'Escape') {
       event.preventDefault();

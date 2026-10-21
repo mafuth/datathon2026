@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 
 import { Atoll, Island } from '$lib/db/models';
 import db from '$lib/server/database';
+import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { getIslandScore } from '$lib/server/scoring/island-score';
 
@@ -85,6 +86,8 @@ async function buildMapPayload(): Promise<MapPayload> {
 }
 
 export const GET: RequestHandler = async ({ url }) => {
+  await waitForMobilityApiDelay();
+
   const detail = url.searchParams.get('detail') === 'true';
 
   const request = detail ? (detailRequest ?? buildMapPayload()) : (overviewRequest ?? buildMapPayload());

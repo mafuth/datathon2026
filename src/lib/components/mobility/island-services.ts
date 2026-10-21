@@ -61,6 +61,7 @@ export type IslandServiceHexes = {
       educationStatus: ServiceDemandStatus;
       transportStatus: ServiceDemandStatus;
       allStatus: ServiceDemandStatus;
+      revealPhase?: number;
     };
   }>;
 };

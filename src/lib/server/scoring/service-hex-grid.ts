@@ -23,7 +23,7 @@ type ParsedGeometry = {
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
 };
 
-const HEX_RADIUS_METERS = 24;
+const HEX_RADIUS_METERS = 18;
 const METERS_PER_DEGREE_LATITUDE = 110_574;
 const METERS_PER_DEGREE_LONGITUDE = 111_320;
 const HEX_X_SPACING = Math.sqrt(3) * HEX_RADIUS_METERS;
@@ -146,6 +146,10 @@ function normalize(values: number[]): number[] {
   return maximum === 0 ? values.map(() => 0) : values.map((value) => Number((value / maximum).toFixed(3)));
 }
 
+function boundFacilityPressure(values: number[]): number[] {
+  return values.map((value) => Number(Math.min(1, Math.max(0, value)).toFixed(3)));
+}
+
 function influence(distance: number, sigma: number): number {
   return Math.exp(-(distance * distance) / (2 * sigma * sigma));
 }
@@ -223,9 +227,8 @@ export function buildServiceDemandHexes(
     ) {
       const center = hexCenter(column, row);
       const centerCoordinate = fromLocal(center, origin);
+      // Keep boundary cells; the map mask trims their polygons to the coastline.
       if (!pointInGeometry(centerCoordinate, parsedGeometry.polygons)) continue;
-      const vertices = hexVertices(center).map((vertex) => fromLocal(vertex, origin));
-      if (!vertices.every((vertex) => pointInGeometry(vertex, parsedGeometry.polygons))) continue;
 
       const facilityPressure: Record<ServiceDemandCategory, number> = { health: 0, education: 0, transport: 0 };
       const residentialAccessGap: Record<ServiceDemandCategory, number> = {
@@ -270,9 +273,9 @@ export function buildServiceDemandHexes(
   const hasResidentialData = localResidentialPoints.length > 0;
   const normalizedValues = {
     facilityPressure: {
-      health: normalize(rawFeatures.map((feature) => feature.facilityPressure.health)),
-      education: normalize(rawFeatures.map((feature) => feature.facilityPressure.education)),
-      transport: normalize(rawFeatures.map((feature) => feature.facilityPressure.transport))
+      health: boundFacilityPressure(rawFeatures.map((feature) => feature.facilityPressure.health)),
+      education: boundFacilityPressure(rawFeatures.map((feature) => feature.facilityPressure.education)),
+      transport: boundFacilityPressure(rawFeatures.map((feature) => feature.facilityPressure.transport))
     },
     residentialAccessGap: {
       health: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.health)),

@@ -34,6 +34,10 @@ export type UiConfig = {
   mobileBreakpoint: number;
 };
 
+export type MobilityConfig = {
+  apiDelayMs: number;
+};
+
 export type UploadPolicyId = 'file' | 'image' | 'userImage';
 
 export type UploadPolicyDefinition = {
@@ -56,6 +60,7 @@ export type UploadSigningConfig = {
 export type PublicConfig = {
   app: AppConfig;
   auth: AuthConfig;
+  mobility: MobilityConfig;
   theme: ThemeConfig;
   ui: UiConfig;
   upload: UploadConfig;

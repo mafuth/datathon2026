@@ -56,12 +56,12 @@
     background: transparent;
     color-scheme: light;
     z-index: 4;
-    animation: service-marker-enter 260ms ease both;
+    animation: service-marker-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
     opacity: 1;
     transform: translateY(0) scale(1);
     transition:
-      opacity 240ms ease,
-      transform 240ms ease;
+      opacity 420ms ease,
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: auto;
     cursor: pointer;
   }
@@ -87,6 +87,8 @@
     background: var(--marker-color);
     color: #ffffff;
     box-shadow: 0 0.18rem 0.55rem rgb(16 24 32 / 18%);
+    transform: scale(var(--marker-scale, 1));
+    transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   :global(.service-marker-icon svg) {
@@ -110,6 +112,10 @@
   @media (prefers-reduced-motion: reduce) {
     .service-marker {
       animation: none;
+      transition: none;
+    }
+
+    .service-marker-icon {
       transition: none;
     }
   }

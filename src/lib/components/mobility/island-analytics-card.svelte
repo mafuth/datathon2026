@@ -44,6 +44,16 @@
     { key: 'crowdedness', label: 'Crowdedness', note: 'Population density pressure' },
     { key: 'demand', label: 'Service demand', note: 'Combined local and inbound demand pressure' }
   ] as const;
+  const populationSkeletons = Array.from({ length: 7 }, (_, index) => index);
+  const serviceGroupSkeletons = Array.from({ length: 3 }, (_, index) => index);
+  const transportStatSkeletons = Array.from({ length: 3 }, (_, index) => index);
+  const connectionModeSkeletons = Array.from({ length: 3 }, (_, index) => index);
+  const connectionRowSkeletons = Array.from({ length: 3 }, (_, index) => index);
+  const healthDemandSkeletons = Array.from({ length: 8 }, (_, index) => index);
+  const educationDemandSkeletons = Array.from({ length: 6 }, (_, index) => index);
+  const transportDemandSkeletons = Array.from({ length: 12 }, (_, index) => index);
+  const transportStopSkeletons = Array.from({ length: 2 }, (_, index) => index);
+  const inboundSourceSkeletons = Array.from({ length: 3 }, (_, index) => index);
 
   function percentage(value: number | null | undefined): string {
     return value === null || value === undefined ? 'N/A' : `${Math.round(value)}%`;
@@ -106,13 +116,197 @@
         </div>
 
         {#if loading}
-          <Card.Root class="insight-card" size="sm"
-            ><Skeleton class="loading-heading" /><Skeleton
-              class="loading-copy"
-            />{#each drivers as driver (driver.key)}<div class="loading-row">
-                <Skeleton class="loading-label" /><Skeleton class="loading-progress" />
-              </div>{/each}</Card.Root
-          >
+          <div class="island-loading-content" role="status" aria-label="Loading island analytics">
+            <Card.Root class="insight-card island-loading-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="island-loading-panel-heading" />
+              </div>
+              <div class="driver-list">
+                {#each drivers as driver (driver.key)}
+                  <div class="driver-row">
+                    <div class="driver-topline">
+                      <Skeleton class="island-loading-driver-label" />
+                      <Skeleton class="island-loading-driver-score" />
+                    </div>
+                    <Skeleton class="island-loading-progress" />
+                    <Skeleton class="island-loading-driver-note" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <Card.Root class="insight-card population-panel island-loading-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="island-loading-panel-heading" />
+                <Skeleton class="island-loading-people-total" />
+              </div>
+              <div class="population-list">
+                {#each populationSkeletons as row (row)}
+                  <div class="population-row">
+                    <div class="population-topline">
+                      <Skeleton class="island-loading-population-label" />
+                      <Skeleton class="island-loading-population-value" />
+                    </div>
+                    <Skeleton class="island-loading-population-progress" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <div class="detail-grid">
+              <Card.Root class="insight-card island-loading-card" size="sm">
+                <div class="card-heading">
+                  <Skeleton class="island-loading-panel-heading" />
+                </div>
+                <div class="service-groups">
+                  {#each serviceGroupSkeletons as group (group)}
+                    <div class="service-group">
+                      <div class="service-group-title">
+                        <Skeleton class="island-loading-service-label" />
+                        <Skeleton class="island-loading-service-total" />
+                      </div>
+                      <div class="service-items">
+                        <Skeleton class="service-item island-loading-service-item" />
+                        <Skeleton class="service-item island-loading-service-item island-loading-service-item-short" />
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              </Card.Root>
+
+              <Card.Root class="insight-card island-loading-card" size="sm">
+                <div class="card-heading">
+                  <Skeleton class="island-loading-panel-heading" />
+                </div>
+                <div class="island-loading-stat-list">
+                  {#each transportStatSkeletons as row (row)}
+                    <div class="island-loading-stat-row">
+                      <Skeleton class="island-loading-stat-label" />
+                      <Skeleton class="island-loading-stat-value" />
+                    </div>
+                  {/each}
+                </div>
+              </Card.Root>
+            </div>
+
+            <Card.Root class="insight-card connections-panel island-loading-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
+                <Skeleton class="island-loading-badge" />
+              </div>
+              <div class="connection-modes">
+                {#each connectionModeSkeletons as mode (mode)}
+                  <div class="connection-mode">
+                    <Skeleton class="connection-mode-icon island-loading-connection-mode-icon" />
+                    <Skeleton class="island-loading-connection-count" />
+                    <Skeleton class="island-loading-connection-type" />
+                  </div>
+                {/each}
+              </div>
+              <div class="connection-list">
+                {#each connectionRowSkeletons as row (row)}
+                  <div class="connection-row">
+                    <Skeleton class="connection-row-icon island-loading-connection-row-icon" />
+                    <div class="connection-copy">
+                      <Skeleton class="island-loading-connection-name" />
+                      <Skeleton class="island-loading-connection-caption" />
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+
+            <div class="demand-grid">
+              <Card.Root class="insight-card demand-card island-loading-card" size="sm">
+                <div class="card-heading demand-heading">
+                  <Skeleton class="island-loading-panel-heading" />
+                  <Skeleton class="island-loading-demand-percentage" />
+                </div>
+                <div class="island-loading-demand-metrics">
+                  {#each healthDemandSkeletons as row (row)}
+                    <div>
+                      <Skeleton class="island-loading-demand-label" />
+                      <Skeleton class="island-loading-demand-value" />
+                    </div>
+                  {/each}
+                </div>
+                <Skeleton class="island-loading-demand-progress" />
+              </Card.Root>
+
+              <Card.Root class="insight-card demand-card island-loading-card" size="sm">
+                <div class="card-heading demand-heading">
+                  <Skeleton class="island-loading-panel-heading" />
+                  <Skeleton class="island-loading-demand-percentage" />
+                </div>
+                <div class="island-loading-demand-metrics">
+                  {#each educationDemandSkeletons as row (row)}
+                    <div>
+                      <Skeleton class="island-loading-demand-label" />
+                      <Skeleton class="island-loading-demand-value" />
+                    </div>
+                  {/each}
+                </div>
+                <Skeleton class="island-loading-demand-progress" />
+              </Card.Root>
+
+              <Card.Root class="insight-card demand-card transport-demand-card island-loading-card" size="sm">
+                <div class="card-heading">
+                  <Skeleton class="island-loading-panel-heading" />
+                </div>
+                <div class="island-loading-demand-metrics">
+                  {#each transportDemandSkeletons as row (row)}
+                    <div>
+                      <Skeleton class="island-loading-demand-label" />
+                      <Skeleton class="island-loading-demand-value" />
+                    </div>
+                  {/each}
+                </div>
+                <div class="hub-list">
+                  {#each transportStopSkeletons as stop (stop)}
+                    <div class="hub-row">
+                      <div class="hub-row-main">
+                        <div class="hub-row-heading">
+                          <Skeleton class="hub-mode-icon island-loading-hub-icon" />
+                          <div class="hub-row-copy">
+                            <Skeleton class="island-loading-hub-name" />
+                            <Skeleton class="island-loading-hub-caption" />
+                          </div>
+                        </div>
+                        <Skeleton class="hub-load-bar island-loading-hub-bar" />
+                        <div class="hub-load-legend">
+                          <Skeleton class="island-loading-hub-legend-item" />
+                          <Skeleton class="island-loading-hub-legend-item" />
+                          <Skeleton class="island-loading-hub-legend-item" />
+                        </div>
+                      </div>
+                      <div class="hub-row-values">
+                        <Skeleton class="island-loading-hub-value" />
+                        <Skeleton class="island-loading-hub-value-caption" />
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              </Card.Root>
+            </div>
+
+            <Card.Root class="insight-card inbound-sources-card island-loading-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
+                <Skeleton class="island-loading-badge" />
+              </div>
+              <div class="inbound-source-list">
+                {#each inboundSourceSkeletons as source (source)}
+                  <div class="inbound-source-row">
+                    <div class="island-loading-source-copy">
+                      <Skeleton class="island-loading-source-name" />
+                      <Skeleton class="island-loading-source-caption" />
+                    </div>
+                    <Skeleton class="island-loading-source-total" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+          </div>
         {:else if error}
           <p class="analytics-state" role="alert">{error}</p>
         {:else if island}
@@ -261,11 +455,14 @@
                   <span>Local demand <b>{number(profile.demand.health.demand.local)}</b></span><span
                     >Inbound demand <b>{number(profile.demand.health.demand.inbound)}</b></span
                   ><span>Outbound demand <b>{number(profile.demand.health.demand.outbound)}</b></span><span
+                    >Non-elderly baseline <b>{number(profile.demand.health.allAgeDemand?.combined)}</b></span
+                  ><span
                     >Hospital demand <b>{percentage(profile.demand.health.hospitalDemand?.demandPercent ?? null)}</b
                     ></span
-                  ><span>Child care demand <b>{number(profile.demand.health.childCareDemand?.combined)}</b></span><span
+                  ><span
+                    >Children/adolescent demand <b>{number(profile.demand.health.youngerCareDemand?.combined)}</b></span
+                  ><span
                     >Elderly hospital outbound <b>{number(profile.demand.health.elderlyCareDemand?.outbound)}</b></span
-                  ><span>Elderly care unserved <b>{number(profile.demand.health.elderlyCareDemand?.unserved)}</b></span
                   ><span>Population basis <b>{number(profile.demand.health.populationBasis)}</b></span>
                 </div>
                 <Progress
@@ -425,7 +622,9 @@
     display: flex;
     flex-direction: column;
     width: min(31rem, calc(100vw - 2rem));
-    height: min(47rem, calc(100dvh - 2rem));
+    height: auto;
+    max-height: calc(100dvh - 2rem);
+    align-self: flex-start;
     margin: 1rem;
     overflow: hidden;
     border: 1px solid rgb(16 24 32 / 14%);
@@ -899,27 +1098,208 @@
     color: #71717a;
     font-size: 0.65rem;
   }
-  :global(.loading-heading) {
-    width: 8rem;
-    height: 0.8rem;
+  :global(.island-loading-panel-heading) {
+    width: 6.2rem;
+    height: 0.68rem;
+    border-radius: 999px;
   }
-  :global(.loading-copy) {
-    width: 12rem;
-    height: 0.5rem;
-    margin-top: 0.4rem;
+  :global(.island-loading-panel-heading-wide) {
+    width: 8.8rem;
   }
-  .loading-row {
-    display: grid;
-    gap: 0.3rem;
-    margin-top: 0.8rem;
-  }
-  :global(.loading-label) {
-    width: 6rem;
+  :global(.island-loading-driver-label) {
+    width: 5.8rem;
     height: 0.55rem;
+    border-radius: 999px;
   }
-  :global(.loading-progress) {
+  :global(.island-loading-driver-score) {
+    width: 2.35rem;
+    height: 0.95rem;
+    border-radius: 0.2rem;
+  }
+  :global(.island-loading-progress) {
     width: 100%;
     height: 0.38rem;
+  }
+  :global(.island-loading-driver-note) {
+    width: 11rem;
+    height: 0.45rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-people-total) {
+    width: 4.5rem;
+    height: 1.25rem;
+    border-radius: 0.3rem;
+  }
+  :global(.island-loading-population-label) {
+    width: 5.2rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-population-value) {
+    width: 2.1rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-population-progress) {
+    width: 100%;
+    height: 0.34rem;
+  }
+  :global(.island-loading-service-label) {
+    width: 4rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-service-total) {
+    width: 1.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-service-item) {
+    width: 3.5rem;
+    height: 1.25rem;
+  }
+  :global(.island-loading-service-item-short) {
+    width: 2.7rem;
+  }
+  .island-loading-stat-list {
+    display: grid;
+    gap: 0.48rem;
+    margin-top: 0.7rem;
+  }
+  .island-loading-stat-row,
+  .island-loading-demand-metrics > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+  :global(.island-loading-stat-label) {
+    width: 5rem;
+    height: 0.48rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-stat-value) {
+    width: 2.2rem;
+    height: 0.48rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-badge) {
+    width: 1.35rem;
+    height: 1.1rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-connection-mode-icon) {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+  :global(.island-loading-connection-count) {
+    width: 1.5rem;
+    height: 0.65rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-connection-type) {
+    width: 2.6rem;
+    height: 0.45rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-connection-row-icon) {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+  .island-loading-connection-name,
+  .island-loading-connection-caption {
+    display: block;
+  }
+  :global(.island-loading-connection-name) {
+    width: 7rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-connection-caption) {
+    width: 4rem;
+    height: 0.42rem;
+    margin-top: 0.12rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-demand-percentage) {
+    width: 2.9rem;
+    height: 1.15rem;
+    border-radius: 0.2rem;
+  }
+  .island-loading-demand-metrics {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+  }
+  :global(.island-loading-demand-label) {
+    width: 6.7rem;
+    height: 0.46rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-demand-value) {
+    width: 2.5rem;
+    height: 0.46rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-demand-progress) {
+    width: 100%;
+    height: 0.34rem;
+    margin-top: 0.7rem;
+  }
+  :global(.island-loading-hub-icon) {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+  :global(.island-loading-hub-name) {
+    width: 6rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-hub-caption) {
+    width: 4.2rem;
+    height: 0.42rem;
+    margin-top: 0.08rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-hub-bar) {
+    width: 100%;
+    height: 0.32rem;
+  }
+  :global(.island-loading-hub-legend-item) {
+    width: 3rem;
+    height: 0.4rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-hub-value) {
+    width: 2.4rem;
+    height: 0.75rem;
+    border-radius: 0.2rem;
+  }
+  :global(.island-loading-hub-value-caption) {
+    width: 3.2rem;
+    height: 0.4rem;
+    margin-top: 0.05rem;
+    border-radius: 999px;
+  }
+  .island-loading-source-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.12rem;
+  }
+  :global(.island-loading-source-name) {
+    width: 7.4rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-source-caption) {
+    width: 5.2rem;
+    height: 0.42rem;
+    border-radius: 999px;
+  }
+  :global(.island-loading-source-total) {
+    width: 2.2rem;
+    height: 0.58rem;
+    border-radius: 999px;
   }
   :global(.island-analytics-card [data-slot='skeleton']) {
     background-color: #f4f4f5;
@@ -932,7 +1312,9 @@
     }
     :global(.island-analytics-card) {
       width: calc(100vw - 1rem);
-      height: min(42rem, calc(100dvh - 1rem));
+      height: auto;
+      max-height: calc(100dvh - 1rem);
+      align-self: flex-end;
       margin: 0.5rem;
     }
     .detail-grid {

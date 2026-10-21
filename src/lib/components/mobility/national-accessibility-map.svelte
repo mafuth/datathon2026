@@ -1,5 +1,6 @@
 <script lang="ts">
   import type {
+    GeoJSONSource,
     Map as MapLibreMap,
     Marker as MapLibreMarker,
     Popup as MapLibrePopup,
@@ -14,6 +15,7 @@
   import { mount, onMount, tick, unmount } from 'svelte';
   import { cubicOut } from 'svelte/easing';
   import { prefersReducedMotion } from 'svelte/motion';
+  import { SvelteMap } from 'svelte/reactivity';
 
   import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -28,6 +30,7 @@
   import type { IslandSearchOption } from './national-score-card.svelte';
   import type { PresentationStep } from './presentation-story';
   import type { ProposalServiceFilter } from './proposal-builder.svelte';
+  import type { ClusterMarkerData } from './service-marker-clustering';
   import type { ScenarioOperation, ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
   import type { AddServiceSelection } from '$lib/mobility/service-catalog';
 
@@ -39,6 +42,7 @@
   import { config } from '$config';
 
   import IslandAnalyticsCard from './island-analytics-card.svelte';
+  import { pointWithinGeometryGrace } from './island-geometry';
   import IslandScoreCard from './island-score-card.svelte';
   import { ISLAND_DEMAND_CATEGORIES } from './island-services';
   import {
@@ -52,17 +56,29 @@
   import NationalScoreCard from './national-score-card.svelte';
   import ProposalBuilder from './proposal-builder.svelte';
   import ProposalLauncher from './proposal-launcher.svelte';
+  import ServiceClusterMarker from './service-cluster-marker.svelte';
   import ServiceDetailsPopup from './service-details-popup.svelte';
   import ServiceMapMarker from './service-map-marker.svelte';
+  import {
+    clusterMarkerLabel,
+    EMPTY_SERVICE_MARKERS,
+    SERVICE_MARKER_ANCHOR_LAYER_ID,
+    SERVICE_MARKER_CLUSTER_MAX_ZOOM,
+    SERVICE_MARKER_CLUSTER_RADIUS,
+    SERVICE_MARKER_COLORS,
+    SERVICE_MARKER_SOURCE_ID,
+    serviceMarkerCollection
+  } from './service-marker-clustering';
 
   type Coordinate = [number, number];
 
   type Props = {
     presentationActive?: boolean;
     presentationStep?: PresentationStep | null;
+    readerMode?: boolean;
   };
 
-  let { presentationActive = false, presentationStep = null }: Props = $props();
+  let { presentationActive = false, presentationStep = null, readerMode = false }: Props = $props();
 
   type MapStyleDocument = {
     [key: string]: unknown;
@@ -89,6 +105,16 @@
     features: IslandFeature[];
   };
 
+  type IslandMaskCollection = {
+    type: 'FeatureCollection';
+    features: Array<{
+      type: 'Feature';
+      id: 'selected-island-mask';
+      geometry: { type: 'Polygon'; coordinates: Coordinate[][] };
+      properties: Record<string, never>;
+    }>;
+  };
+
   type ScoreFieldCollection = {
     type: 'FeatureCollection';
     features: Array<{
@@ -100,14 +126,39 @@
   };
 
   type MountedServiceMarker = {
+    key: string;
+    signature: string;
+    kind: 'service' | 'cluster';
     marker: MapLibreMarker;
     component: ReturnType<typeof mount>;
   };
 
   type MountedServicePopup = {
+    serviceId: string;
     popup: MapLibrePopup;
     component: ReturnType<typeof mount>;
   };
+
+  type ServiceMarkerQueryFeature = {
+    id?: string | number;
+    geometry?: { type?: string; coordinates?: unknown };
+    properties?: Record<string, unknown> | null;
+  };
+
+  type DesiredServiceMarker =
+    | {
+        key: string;
+        signature: string;
+        kind: 'service';
+        coordinates: Coordinate;
+        service: IslandMapService;
+      }
+    | {
+        key: string;
+        signature: string;
+        kind: 'cluster';
+        cluster: ClusterMarkerData;
+      };
 
   type PresentationRestoreState = {
     center: Coordinate;
@@ -118,18 +169,37 @@
     islandAnalyticsOpen: boolean;
   };
 
+  type PresentationPhase = 'idle' | 'entering' | 'travelling' | 'arriving' | 'settled';
+
   const EMPTY_ISLAND_COLLECTION: IslandCollection = { type: 'FeatureCollection', features: [] };
   const EMPTY_SCORE_FIELD_COLLECTION: ScoreFieldCollection = { type: 'FeatureCollection', features: [] };
   const EMPTY_SERVICE_HEXES: IslandServiceHexes = { type: 'FeatureCollection', features: [] };
+  const EMPTY_SELECTED_ISLAND_MASK: IslandMaskCollection = { type: 'FeatureCollection', features: [] };
   const EMPTY_PRESENTATION_MAP: PresentationStep['mapData'] = { type: 'FeatureCollection', features: [] };
   const STORY_CAMERA_DURATION = 1100;
-  const STORY_UI_LEAD = 150;
+  const STORY_UI_LEAD = 320;
   const STORY_SCROLL_DURATION = 760;
   const STORY_JOURNEY_DEFAULT_DURATION = 2200;
   const STORY_JOURNEY_DEFAULT_START_DURATION = 700;
   const STORY_JOURNEY_DEFAULT_OVERVIEW_DURATION = 900;
   const STORY_JOURNEY_SCROLL_PAUSE = 180;
-  const SELECTED_DEMAND_HEX_OPACITY = 0.9;
+  const PRESENTATION_ISLAND_CLEAR_PAUSE = 280;
+  const SELECTED_DEMAND_HEX_OPACITY = 1;
+  const SELECTED_SERVICE_MARKER_GRACE_METERS = 150;
+  const SELECTED_ISLAND_FILL_COLOR = '#e5f5e0';
+  const SELECTED_ISLAND_FILL_OPACITY = 0.92;
+  const SELECTED_ISLAND_MASK_COLOR = '#c2c8ca';
+  const SELECTED_ISLAND_LOADING_START_COLOR = '#18181b';
+  const SELECTED_ISLAND_LOADING_MID_COLOR = '#71717a';
+  const SELECTED_ISLAND_LOADING_END_COLOR = '#ffffff';
+  const SELECTED_ISLAND_LOADING_MIN_OPACITY = 0.22;
+  const SELECTED_ISLAND_LOADING_MAX_OPACITY = 0.46;
+  const SELECTED_ISLAND_LOADING_INTERVAL = 72;
+  const SELECTED_ISLAND_LOADING_CYCLE = 1200;
+  const SELECTED_DEMAND_REVEAL_DURATION = 1500;
+  const SELECTED_DEMAND_REVEAL_INTERVAL = 96;
+  const SELECTED_DEMAND_REVEAL_WAVE_WIDTH = 0.22;
+  const SERVICE_MARKER_EXIT_DURATION = 460;
   const OSM_ROAD_CLASSES = [
     'motorway',
     'trunk',
@@ -147,9 +217,9 @@
   ] as const;
   const MALDIVES_CENTER: Coordinate = [73.2, 3.4];
   const SERVICE_MARKER_LEGEND = [
-    { label: 'Health', color: '#bf4f55', icon: Hospital },
-    { label: 'Education', color: '#4b6fa8', icon: School },
-    { label: 'Transport', color: '#b47a3c', icon: Route }
+    { label: 'Health', color: SERVICE_MARKER_COLORS.health, icon: Hospital },
+    { label: 'Education', color: SERVICE_MARKER_COLORS.education, icon: School },
+    { label: 'Transport', color: SERVICE_MARKER_COLORS.transport, icon: Route }
   ] as const;
   const ANIMATED_EMOJI_BASE_URL =
     'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/';
@@ -200,6 +270,7 @@
   let mapInstance: MapLibreMap | null = null;
   let maplibreMarkerConstructor: typeof import('maplibre-gl').Marker | null = null;
   let maplibrePopupConstructor: typeof import('maplibre-gl').Popup | null = null;
+  let baseRoadLayerIds: string[] = [];
   let mapReady = $state(false);
   let heatmapLoading = $state(true);
   let heatmapError = $state(false);
@@ -232,22 +303,39 @@
   let proposalLastMessage = $state<string | null>(null);
   let addServiceDraft = $state<AddServiceSelection | null>(null);
   let suppressMapClickUntil = 0;
-  let mountedServiceMarkers: MountedServiceMarker[] = [];
+  let mountedServiceMarkers = new SvelteMap<string, MountedServiceMarker>();
+  let serviceMarkerServices = new SvelteMap<string, IslandMapService>();
+  let serviceMarkerSyncFrame: number | null = null;
+  let selectedIslandLoadingTimer: number | null = null;
+  let demandRevealTimer: number | null = null;
+  let demandRevealToken = 0;
+  let demandRevealProgress = 1;
+  let serviceFocusToken = 0;
   let activeServicePopup: MountedServicePopup | null = null;
   let presentationRestoreState: PresentationRestoreState | null = null;
   let appliedPresentationStepId: string | null = null;
   let storyFocusStepId = $state<string | null>(null);
+  let presentationReadyStepId = $state<string | null>(null);
   let storyAnimationToken = 0;
   let storyScrollFrame: number | null = null;
+  let storyScrollResolve: ((completed: boolean) => void) | null = null;
+  let storyDelayTimeout: number | null = null;
+  let storyDelayResolve: ((completed: boolean) => void) | null = null;
+  let presentationTransitionToken = 0;
   let presentationJourneyToken = 0;
   let presentationJourneyFrame: number | null = null;
   let presentationJourneyResolve: ((completed: boolean) => void) | null = null;
+  let presentationCameraCleanup: (() => void) | null = null;
+  let presentationPhase = $state<PresentationPhase>('idle');
   let nationalMetrics = $derived([
     { key: 'health', label: 'Health', value: analyticsData?.national.categories.health?.score },
     { key: 'education', label: 'Schools', value: analyticsData?.national.categories.education?.score },
     { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score }
   ]);
   let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
+  let selectedIslandLoading = $derived(
+    selectedIslandId !== null && (analyticsLoading || islandProfileLoading || islandServicesLoading)
+  );
 
   function premiumLoadingExit(_node: Element, { duration = 820 }: { duration?: number } = {}) {
     const transitionDuration = prefersReducedMotion.current ? 0 : duration;
@@ -291,7 +379,7 @@
     void loadIslandServices(id);
 
     const island = islandCollection.features.find((feature) => feature.properties.id === id);
-    focusIsland({
+    void focusIsland({
       id,
       name: island?.properties.name ?? selectedIsland?.name ?? 'Island',
       atollName: island?.properties.atollName ?? selectedIsland?.atollName ?? '',
@@ -465,8 +553,8 @@
     };
   }
 
-  function applyPresentationCamera(step: PresentationStep): void {
-    if (!mapInstance) return;
+  function applyPresentationCamera(step: PresentationStep, isCurrent: () => boolean): Promise<boolean> {
+    if (!mapInstance) return Promise.resolve(false);
 
     const reducedMotion = prefersReducedMotion.current;
     const duration = reducedMotion ? 0 : STORY_CAMERA_DURATION;
@@ -475,23 +563,32 @@
       : null;
 
     if (bounds) {
-      mapInstance.fitBounds(bounds, {
-        padding: presentationCameraPadding(),
-        maxZoom: step.camera.maxZoom ?? step.camera.zoom,
+      return runPresentationCamera(
+        () =>
+          mapInstance?.fitBounds(bounds, {
+            padding: presentationCameraPadding(),
+            maxZoom: step.camera.maxZoom ?? step.camera.zoom,
+            duration,
+            easing: storyEase,
+            essential: !reducedMotion
+          }),
         duration,
-        easing: storyEase,
-        essential: !reducedMotion
-      });
-      return;
+        isCurrent
+      );
     }
 
-    mapInstance.easeTo({
-      center: step.camera.center,
-      zoom: step.camera.zoom,
+    return runPresentationCamera(
+      () =>
+        mapInstance?.easeTo({
+          center: step.camera.center,
+          zoom: step.camera.zoom,
+          duration,
+          easing: storyEase,
+          essential: !reducedMotion
+        }),
       duration,
-      easing: storyEase,
-      essential: !reducedMotion
-    });
+      isCurrent
+    );
   }
 
   function storyEase(progress: number): number {
@@ -504,14 +601,63 @@
       window.cancelAnimationFrame(presentationJourneyFrame);
       presentationJourneyFrame = null;
     }
+    presentationCameraCleanup?.();
+    presentationCameraCleanup = null;
     presentationJourneyResolve?.(false);
     presentationJourneyResolve = null;
+    presentationPhase = 'idle';
   }
 
-  function waitForPresentationJourney(duration: number, token: number): Promise<boolean> {
-    if (duration <= 0) return Promise.resolve(token === presentationJourneyToken);
+  function cancelPresentationTransition(): void {
+    presentationTransitionToken += 1;
+    presentationReadyStepId = null;
+    cancelPresentationJourney();
+    cancelStoryAnimations();
+  }
+
+  function waitForPresentationCamera(duration: number, isCurrent: () => boolean): Promise<boolean> {
+    if (duration <= 0 || !mapInstance) {
+      presentationCameraCleanup?.();
+      presentationCameraCleanup = null;
+      return Promise.resolve(isCurrent());
+    }
+
+    const map = mapInstance;
     return new Promise((resolve) => {
-      window.setTimeout(() => resolve(token === presentationJourneyToken), duration);
+      let settled = false;
+      let timeout: number | null = null;
+      let cleanup: () => void;
+      let handleMoveEnd: () => void;
+
+      const finish = (completed: boolean) => {
+        if (settled) return;
+        settled = true;
+        map.off('moveend', handleMoveEnd);
+        if (timeout !== null) window.clearTimeout(timeout);
+        if (presentationCameraCleanup === cleanup) presentationCameraCleanup = null;
+        resolve(completed && isCurrent());
+      };
+      handleMoveEnd = () => finish(true);
+      cleanup = () => finish(false);
+
+      presentationCameraCleanup?.();
+      presentationCameraCleanup = cleanup;
+      map.on('moveend', handleMoveEnd);
+      timeout = window.setTimeout(() => finish(true), duration + 250);
+    });
+  }
+
+  function runPresentationCamera(action: () => void, duration: number, isCurrent: () => boolean): Promise<boolean> {
+    if (!mapInstance || !isCurrent()) return Promise.resolve(false);
+    const completion = waitForPresentationCamera(duration, isCurrent);
+    action();
+    return completion;
+  }
+
+  function waitForPresentationPause(duration: number, isCurrent: () => boolean): Promise<boolean> {
+    if (duration <= 0) return Promise.resolve(isCurrent());
+    return new Promise((resolve) => {
+      window.setTimeout(() => resolve(isCurrent()), duration);
     });
   }
 
@@ -526,11 +672,17 @@
     return travelZoom + (journey.end.zoom - travelZoom) * storyEase(localProgress);
   }
 
-  async function animatePresentationJourney(step: PresentationStep): Promise<void> {
+  async function animatePresentationJourney(step: PresentationStep, transitionToken: number): Promise<boolean> {
     const journey = step.journey;
-    if (!mapInstance || !journey) return;
+    if (!mapInstance || !journey) return false;
 
-    const token = ++presentationJourneyToken;
+    const journeyToken = ++presentationJourneyToken;
+    const isCurrent = () =>
+      transitionToken === presentationTransitionToken &&
+      journeyToken === presentationJourneyToken &&
+      presentationActive &&
+      presentationStep?.id === step.id &&
+      mapInstance !== null;
     const reducedMotion = prefersReducedMotion.current;
     const startDuration = reducedMotion ? 0 : (journey.startDuration ?? STORY_JOURNEY_DEFAULT_START_DURATION);
     const duration = reducedMotion ? 0 : (journey.duration ?? STORY_JOURNEY_DEFAULT_DURATION);
@@ -538,29 +690,33 @@
     const route = step.mapData.features.find(
       (feature) => feature.id === journey.featureId && feature.geometry.type === 'LineString'
     );
-    if (!route || route.geometry.type !== 'LineString') return;
+    if (!route || route.geometry.type !== 'LineString') return false;
 
+    presentationPhase = 'entering';
     setSourceData('presentation-map', presentationMapDataForStep(step, 0));
-    const startedAtSelectedIsland = step.selectedIslandId
-      ? focusPresentationIsland(step.selectedIslandId, startDuration)
-      : false;
-    if (!startedAtSelectedIsland) {
-      mapInstance.easeTo({
-        center: journey.start.center,
-        zoom: journey.start.zoom,
-        duration: startDuration,
-        easing: storyEase,
-        essential: !reducedMotion
-      });
-    }
-    if (!(await waitForPresentationJourney(startDuration, token))) return;
+    if (
+      !(await runPresentationCamera(
+        () =>
+          mapInstance?.easeTo({
+            center: journey.start.center,
+            zoom: journey.start.zoom,
+            duration: startDuration,
+            easing: storyEase,
+            essential: !reducedMotion
+          }),
+        startDuration,
+        isCurrent
+      ))
+    )
+      return false;
+    presentationPhase = 'travelling';
     const journeyZoomLevel = mapInstance.getZoom();
 
     const completed = await new Promise<boolean>((resolve) => {
       presentationJourneyResolve = resolve;
       const startTime = performance.now();
       const frame = (now: number) => {
-        if (token !== presentationJourneyToken) {
+        if (!isCurrent()) {
           presentationJourneyFrame = null;
           presentationJourneyResolve = null;
           resolve(false);
@@ -586,18 +742,50 @@
 
       presentationJourneyFrame = window.requestAnimationFrame(frame);
     });
-    if (!completed || token !== presentationJourneyToken || !mapInstance) return;
+    if (!completed || !isCurrent() || !mapInstance) return false;
 
-    if (journey.arrivalIslandId) activatePresentationIsland(journey.arrivalIslandId);
-    setSourceData('presentation-map', presentationMapDataForStep(step));
-    if (journey.arrivalIslandId && focusPresentationIsland(journey.arrivalIslandId, overviewDuration)) return;
-    mapInstance.easeTo({
-      center: journey.overview.center,
-      zoom: journey.overview.zoom,
-      duration: overviewDuration,
-      easing: storyEase,
-      essential: !reducedMotion
-    });
+    presentationPhase = 'arriving';
+    setSourceData('presentation-map', EMPTY_PRESENTATION_MAP);
+    if (!(await waitForPresentationPause(PRESENTATION_ISLAND_CLEAR_PAUSE, isCurrent))) return false;
+    if (journey.arrivalIslandId) {
+      const arrivalIsland = islandCollection.features.find(
+        (feature) => feature.properties.id === journey.arrivalIslandId
+      );
+      const cameraCompleted = arrivalIsland
+        ? await focusPresentationIsland(journey.arrivalIslandId, overviewDuration, isCurrent)
+        : await runPresentationCamera(
+            () =>
+              mapInstance?.easeTo({
+                center: journey.overview.center,
+                zoom: journey.overview.zoom,
+                duration: overviewDuration,
+                easing: storyEase,
+                essential: !reducedMotion
+              }),
+            overviewDuration,
+            isCurrent
+          );
+      if (!cameraCompleted || !isCurrent()) return false;
+      activatePresentationIsland(journey.arrivalIslandId);
+    } else if (
+      !(await runPresentationCamera(
+        () =>
+          mapInstance?.easeTo({
+            center: journey.overview.center,
+            zoom: journey.overview.zoom,
+            duration: overviewDuration,
+            easing: storyEase,
+            essential: !reducedMotion
+          }),
+        overviewDuration,
+        isCurrent
+      ))
+    ) {
+      return false;
+    }
+
+    presentationPhase = 'settled';
+    return true;
   }
 
   function cancelStoryAnimations(): void {
@@ -606,20 +794,32 @@
       window.cancelAnimationFrame(storyScrollFrame);
       storyScrollFrame = null;
     }
+    storyScrollResolve?.(false);
+    storyScrollResolve = null;
+    if (storyDelayTimeout !== null) {
+      window.clearTimeout(storyDelayTimeout);
+      storyDelayTimeout = null;
+    }
+    storyDelayResolve?.(false);
+    storyDelayResolve = null;
   }
 
   function startStoryAnimation(): number {
-    storyAnimationToken += 1;
-    if (storyScrollFrame !== null) {
-      window.cancelAnimationFrame(storyScrollFrame);
-      storyScrollFrame = null;
-    }
+    cancelStoryAnimations();
     return storyAnimationToken;
   }
 
   function storyDelay(duration: number, token: number): Promise<boolean> {
+    if (duration <= 0) return Promise.resolve(token === storyAnimationToken);
     return new Promise((resolve) => {
-      window.setTimeout(() => resolve(token === storyAnimationToken), duration);
+      if (storyDelayTimeout !== null) window.clearTimeout(storyDelayTimeout);
+      storyDelayResolve?.(false);
+      storyDelayResolve = resolve;
+      storyDelayTimeout = window.setTimeout(() => {
+        storyDelayTimeout = null;
+        storyDelayResolve = null;
+        resolve(token === storyAnimationToken);
+      }, duration);
     });
   }
 
@@ -651,9 +851,12 @@
     }
 
     return new Promise((resolve) => {
+      storyScrollResolve = resolve;
       const startTime = performance.now();
       const frame = (now: number) => {
         if (token !== storyAnimationToken) {
+          storyScrollFrame = null;
+          storyScrollResolve = null;
           resolve(false);
           return;
         }
@@ -666,6 +869,7 @@
         }
 
         storyScrollFrame = null;
+        storyScrollResolve = null;
         resolve(true);
       };
 
@@ -726,12 +930,51 @@
     };
   }
 
+  async function runPresentationStep(step: PresentationStep, transitionToken: number): Promise<void> {
+    const isCurrent = () =>
+      transitionToken === presentationTransitionToken &&
+      presentationActive &&
+      presentationStep?.id === step.id &&
+      mapInstance !== null;
+
+    let cameraCompleted: boolean;
+    if (step.journey) {
+      cameraCompleted = await animatePresentationJourney(step, transitionToken);
+    } else if (step.selectedIslandId) {
+      cameraCompleted = await focusPresentationIsland(step.selectedIslandId, STORY_CAMERA_DURATION, isCurrent);
+      if (!cameraCompleted && isCurrent()) cameraCompleted = await applyPresentationCamera(step, isCurrent);
+    } else {
+      cameraCompleted = await applyPresentationCamera(step, isCurrent);
+    }
+
+    if (!cameraCompleted || !isCurrent()) return;
+
+    if (step.selectedIslandId && !step.journey) {
+      presentationPhase = 'arriving';
+      setSourceData('presentation-map', EMPTY_PRESENTATION_MAP);
+      if (!(await waitForPresentationPause(PRESENTATION_ISLAND_CLEAR_PAUSE, isCurrent))) return;
+      activatePresentationIsland(step.selectedIslandId);
+    }
+
+    const panel = step.panel ?? (step.journey?.arrivalIslandId ? 'island-analytics' : null);
+    if (panel === 'national-analytics') {
+      analyticsOpen = true;
+      void loadAnalytics();
+    } else if (panel === 'island-analytics') {
+      islandAnalyticsOpen = true;
+    }
+
+    if (!isCurrent()) return;
+    presentationPhase = 'settled';
+    await tick();
+    if (isCurrent()) presentationReadyStepId = step.id;
+  }
+
   function applyPresentationStep(step: PresentationStep): void {
     if (!mapInstance) return;
 
+    cancelPresentationTransition();
     mapInstance.stop();
-    cancelPresentationJourney();
-    cancelStoryAnimations();
     clearStoryUiHighlights();
     closeServicePopup();
     stopMoveMode();
@@ -741,35 +984,21 @@
     proposalError = null;
     proposalLastMessage = null;
     draftOperations = [];
-    analyticsOpen = step.panel === 'national-analytics';
-    if (analyticsOpen) void loadAnalytics();
-    islandAnalyticsOpen = step.panel === 'island-analytics';
+    presentationPhase = 'entering';
+    analyticsOpen = false;
+    islandAnalyticsOpen = false;
     storyFocusStepId = null;
-    islandProfile = null;
-    islandServices = null;
-    islandProfileRequest += 1;
-    islandServicesRequest += 1;
-
-    if (step.selectedIslandId) {
-      selectedIslandId = step.selectedIslandId;
-      selectedDemandCategory = 'all';
-      prepareSelectedIslandOverlay(step.selectedIslandId);
-      void loadIslandProfile(step.selectedIslandId);
-      void loadIslandServices(step.selectedIslandId);
-    } else {
-      returnToNational();
-    }
+    returnToNational();
 
     setSourceData('presentation-map', presentationMapDataForStep(step, step.journey ? 0 : 1));
-    if (step.journey) void animatePresentationJourney(step);
-    else if (!step.selectedIslandId || !focusPresentationIsland(step.selectedIslandId)) applyPresentationCamera(step);
+    void runPresentationStep(step, presentationTransitionToken);
   }
 
   function restoreAfterPresentation(): void {
+    cancelPresentationTransition();
     if (!mapInstance) return;
     mapInstance.stop();
-    cancelPresentationJourney();
-    cancelStoryAnimations();
+    presentationPhase = 'idle';
     const restore = presentationRestoreState;
     presentationRestoreState = null;
     appliedPresentationStepId = null;
@@ -802,8 +1031,13 @@
     });
   }
 
-  function focusIsland(island: IslandSearchOption, duration = 850): void {
-    if (!mapInstance || !island.centroid) return;
+  function focusIsland(
+    island: IslandSearchOption,
+    duration = 850,
+    isCurrent: () => boolean = () => true
+  ): Promise<boolean> {
+    if (!mapInstance || !island.centroid) return Promise.resolve(false);
+    const map = mapInstance;
     const reducedMotion = prefersReducedMotion.current;
     const feature = islandCollection.features.find((candidate) => candidate.properties.id === island.id);
     const bounds = feature ? islandBounds(feature) : null;
@@ -819,29 +1053,43 @@
       if (camera?.center) {
         const fittedZoom = camera.zoom ?? currentZoom;
         const keepCurrentZoom = fittedZoom < currentZoom && boundsFitAtCurrentZoom(bounds, padding);
-        mapInstance.easeTo({
-          center: camera.center,
-          zoom: keepCurrentZoom ? currentZoom : fittedZoom,
-          duration: reducedMotion ? 0 : duration,
-          essential: !reducedMotion
-        });
-        return;
+        return runPresentationCamera(
+          () =>
+            map.easeTo({
+              center: camera.center,
+              zoom: keepCurrentZoom ? currentZoom : fittedZoom,
+              duration: reducedMotion ? 0 : duration,
+              essential: !reducedMotion
+            }),
+          reducedMotion ? 0 : duration,
+          isCurrent
+        );
       }
     }
 
-    mapInstance.flyTo({
-      center: island.centroid,
-      zoom: Math.max(mapInstance.getZoom(), 10),
-      duration: reducedMotion ? 0 : duration,
-      essential: !reducedMotion
-    });
+    return runPresentationCamera(
+      () =>
+        map.flyTo({
+          center: island.centroid!,
+          zoom: Math.max(map.getZoom(), 10),
+          duration: reducedMotion ? 0 : duration,
+          essential: !reducedMotion
+        }),
+      reducedMotion ? 0 : duration,
+      isCurrent
+    );
   }
 
-  function focusPresentationIsland(id: string, duration = 850): boolean {
+  function focusPresentationIsland(
+    id: string,
+    duration = 850,
+    isCurrent: () => boolean = () => true
+  ): Promise<boolean> {
     const island = islandCollection.features.find((feature) => feature.properties.id === id);
-    if (!island) return false;
+    if (!island) return Promise.resolve(false);
+    if (!island.properties.centroid) return Promise.resolve(isCurrent());
 
-    focusIsland(
+    return focusIsland(
       {
         id,
         name: island.properties.name,
@@ -849,15 +1097,17 @@
         centroid: island.properties.centroid,
         score: island.properties.score
       },
-      duration
+      duration,
+      isCurrent
     );
-    return true;
   }
 
   function focusService(service: IslandMapService): void {
     const coordinates = service.coordinates;
     if (!mapInstance || !coordinates) return;
 
+    closeServicePopup();
+    const focusToken = serviceFocusToken;
     const reducedMotion = prefersReducedMotion.current;
     mapInstance.easeTo({
       center: coordinates,
@@ -865,7 +1115,13 @@
       duration: reducedMotion ? 0 : 650,
       essential: !reducedMotion
     });
-    openServicePopup(service);
+
+    const openFocusedService = () => {
+      if (focusToken !== serviceFocusToken || !mapInstance) return;
+      if (serviceMarkerServices.has(service.id)) openServicePopup(service);
+    };
+    if (mapInstance.getZoom() > SERVICE_MARKER_CLUSTER_MAX_ZOOM) openFocusedService();
+    else mapInstance.once('idle', openFocusedService);
   }
 
   function selectSearchIsland(island: IslandSearchOption): void {
@@ -880,7 +1136,7 @@
     selectedIslandId = id;
     selectedDemandCategory = 'all';
     analyticsOpen = false;
-    islandAnalyticsOpen = true;
+    islandAnalyticsOpen = false;
     islandProfile = null;
     islandProfileError = null;
     islandServices = null;
@@ -890,6 +1146,7 @@
     prepareSelectedIslandOverlay(id);
     void loadIslandProfile(id);
     void loadIslandServices(id);
+    if (!analyticsData) void loadAnalytics();
   }
 
   async function loadAnalytics(): Promise<void> {
@@ -930,7 +1187,170 @@
     return service.name ?? `${service.subtype.replaceAll('_', ' ')} ${service.serviceType}`;
   }
 
+  function isCoordinate(value: unknown): value is Coordinate {
+    return (
+      Array.isArray(value) &&
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number' &&
+      Number.isFinite(value[0]) &&
+      Number.isFinite(value[1])
+    );
+  }
+
+  function signedRingArea(ring: readonly Coordinate[]): number {
+    let area = 0;
+    for (let index = 0; index < ring.length - 1; index += 1) {
+      const current = ring[index];
+      const next = ring[index + 1];
+      if (!current || !next) continue;
+      area += current[0] * next[1] - next[0] * current[1];
+    }
+    return area / 2;
+  }
+
+  function maskRing(value: unknown, clockwise: boolean): Coordinate[] | null {
+    if (!Array.isArray(value)) return null;
+    const ring = value.filter(isCoordinate);
+    if (ring.length < 3) return null;
+
+    const first = ring[0];
+    const last = ring[ring.length - 1];
+    if (!first || !last) return null;
+    const closed = first[0] === last[0] && first[1] === last[1] ? ring : [...ring, first];
+    const area = signedRingArea(closed);
+    const shouldReverse = clockwise ? area > 0 : area < 0;
+    return shouldReverse ? [...closed].reverse() : closed;
+  }
+
+  function selectedIslandMask(id: string): IslandMaskCollection {
+    const feature = islandCollection.features.find((candidate) => candidate.properties.id === id);
+    if (!feature) return EMPTY_SELECTED_ISLAND_MASK;
+
+    const coordinates = Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
+    const rawOuterRings =
+      feature.geometry.type === 'Polygon'
+        ? [coordinates[0]]
+        : feature.geometry.type === 'MultiPolygon'
+          ? coordinates.flatMap((polygon) => (Array.isArray(polygon) ? [polygon[0]] : []))
+          : [];
+    const islandRings = rawOuterRings
+      .map((ring) => maskRing(ring, true))
+      .filter((ring): ring is Coordinate[] => ring !== null);
+    const worldRing = maskRing(
+      [
+        [-180, -90],
+        [180, -90],
+        [180, 90],
+        [-180, 90],
+        [-180, -90]
+      ],
+      false
+    );
+    if (!worldRing || islandRings.length === 0) return EMPTY_SELECTED_ISLAND_MASK;
+
+    return {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          id: 'selected-island-mask',
+          geometry: { type: 'Polygon', coordinates: [worldRing, ...islandRings] },
+          properties: {}
+        }
+      ]
+    };
+  }
+
+  function finiteMarkerNumber(value: unknown): number | null {
+    const number = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function markerFeatureCoordinates(feature: ServiceMarkerQueryFeature): Coordinate | null {
+    if (feature.geometry?.type !== 'Point' || !Array.isArray(feature.geometry.coordinates)) return null;
+    const [longitude, latitude] = feature.geometry.coordinates;
+    if (
+      typeof longitude !== 'number' ||
+      typeof latitude !== 'number' ||
+      !Number.isFinite(longitude) ||
+      !Number.isFinite(latitude)
+    ) {
+      return null;
+    }
+    return [longitude, latitude];
+  }
+
+  function clusterMarkerData(feature: ServiceMarkerQueryFeature): ClusterMarkerData | null {
+    const properties = feature.properties ?? {};
+    const clusterId = finiteMarkerNumber(properties.cluster_id);
+    const total = finiteMarkerNumber(properties.point_count);
+    const coordinates = markerFeatureCoordinates(feature);
+    if (clusterId === null || total === null || !coordinates) return null;
+
+    return {
+      clusterId,
+      coordinates,
+      total: Math.max(2, Math.round(total)),
+      healthCount: Math.max(0, Math.round(finiteMarkerNumber(properties.healthCount) ?? 0)),
+      educationCount: Math.max(0, Math.round(finiteMarkerNumber(properties.educationCount) ?? 0)),
+      transportCount: Math.max(0, Math.round(finiteMarkerNumber(properties.transportCount) ?? 0))
+    };
+  }
+
+  function scheduleServiceMarkerSync(): void {
+    if (serviceMarkerSyncFrame !== null) return;
+    serviceMarkerSyncFrame = window.requestAnimationFrame(() => {
+      serviceMarkerSyncFrame = null;
+      syncServiceMarkers();
+    });
+  }
+
+  function removeMountedServiceMarker(mounted: MountedServiceMarker, animate = false): void {
+    const element = mounted.marker
+      .getElement()
+      .querySelector<HTMLElement>('[data-service-marker], [data-service-cluster-marker]');
+    const reducedMotion = prefersReducedMotion.current;
+    if (animate && element && !reducedMotion) {
+      element.classList.add(mounted.kind === 'service' ? 'service-marker-exiting' : 'service-cluster-marker-exiting');
+      window.setTimeout(() => {
+        mounted.marker.remove();
+        void unmount(mounted.component);
+      }, SERVICE_MARKER_EXIT_DURATION);
+      return;
+    }
+    mounted.marker.remove();
+    void unmount(mounted.component);
+  }
+
+  function serviceMarkerScale(kind: MountedServiceMarker['kind']): number {
+    if (!mapInstance) return 1;
+    const zoom = Math.min(16, Math.max(8, mapInstance.getZoom()));
+    const progress = (zoom - 8) / 8;
+    const minimum = kind === 'cluster' ? 0.78 : 0.82;
+    const range = kind === 'cluster' ? 0.34 : 0.42;
+    return Number((minimum + progress * range).toFixed(3));
+  }
+
+  function updateMountedServiceMarkerScale(mounted: MountedServiceMarker): void {
+    const element = mounted.marker
+      .getElement()
+      .querySelector<HTMLElement>('[data-service-marker], [data-service-cluster-marker]');
+    element?.style.setProperty('--marker-scale', String(serviceMarkerScale(mounted.kind)));
+  }
+
+  function disposeMountedServiceMarkers(animate = false): void {
+    const markers = [...mountedServiceMarkers.values()];
+    mountedServiceMarkers.clear();
+    for (const mounted of markers) removeMountedServiceMarker(mounted, animate);
+  }
+
+  function cancelPendingServiceFocus(): void {
+    serviceFocusToken += 1;
+  }
+
   function closeServicePopup(): void {
+    cancelPendingServiceFocus();
     const mountedPopup = activeServicePopup;
     if (!mountedPopup) return;
     activeServicePopup = null;
@@ -1002,10 +1422,9 @@
       draftOperations = nextOperations;
       islandServices = preview;
       proposalLastMessage = preview.operations.at(-1)?.message ?? null;
-      setSourceData('selected-service-hexes', preview.hexes);
       applySelectedIslandMask(selectedIslandId);
+      startDemandHeatmapReveal(preview.hexes, preview.services, selectedIslandId);
       renderServiceMarkers(preview, filterProposalServices(preview.services));
-      fadeDemandHexesTo(SELECTED_DEMAND_HEX_OPACITY, selectedIslandId);
       if (operation.kind === 'move_service') stopMoveMode();
       if (operation.kind === 'add_service') {
         stopAddServiceMode();
@@ -1128,29 +1547,16 @@
       activeServicePopup = null;
       void unmount(component);
     });
-    activeServicePopup = { popup, component };
+    activeServicePopup = { serviceId: service.id, popup, component };
     popup.setLngLat(service.coordinates).setDOMContent(popupElement).addTo(mapInstance);
   }
 
   function removeServiceMarkers(animate = false): void {
     closeServicePopup();
-    const markers = mountedServiceMarkers;
-    mountedServiceMarkers = [];
-    const reducedMotion = prefersReducedMotion.current;
-
-    for (const { marker, component } of markers) {
-      const element = marker.getElement().querySelector<HTMLElement>('[data-service-marker]');
-      if (animate && element && !reducedMotion) {
-        element.classList.add('service-marker-exiting');
-        window.setTimeout(() => {
-          marker.remove();
-          void unmount(component);
-        }, 240);
-      } else {
-        marker.remove();
-        void unmount(component);
-      }
-    }
+    disposeMountedServiceMarkers(animate);
+    serviceMarkerServices = new SvelteMap();
+    setSourceData(SERVICE_MARKER_SOURCE_ID, EMPTY_SERVICE_MARKERS);
+    scheduleServiceMarkerSync();
   }
 
   function renderServiceMarkers(
@@ -1158,22 +1564,156 @@
     services: readonly IslandMapService[] = data.services
   ): void {
     if (!mapInstance || !maplibreMarkerConstructor) return;
-    removeServiceMarkers();
+    closeServicePopup();
+    disposeMountedServiceMarkers();
+    const visibleServices = filterServicesToSelectedIsland(services);
+    serviceMarkerServices = new SvelteMap<string, IslandMapService>(
+      visibleServices.flatMap((service) => (service.coordinates ? [[service.id, service] as const] : []))
+    );
+    setSourceData(SERVICE_MARKER_SOURCE_ID, serviceMarkerCollection(visibleServices));
+    scheduleServiceMarkerSync();
+  }
 
-    for (const service of services) {
-      if (!service.coordinates) continue;
-      const host = document.createElement('div');
-      const component = mount(ServiceMapMarker, {
-        target: host,
-        props: {
-          serviceType: service.serviceType,
-          label: serviceMarkerLabel(service),
-          onSelect: () => openServicePopup(service)
-        }
+  function filterServicesToSelectedIsland(services: readonly IslandMapService[]): IslandMapService[] {
+    if (!selectedIslandId) return [...services];
+
+    const island = islandCollection.features.find((feature) => feature.properties.id === selectedIslandId);
+    if (!island) return [...services];
+
+    return services.filter(
+      (service) =>
+        !service.coordinates ||
+        pointWithinGeometryGrace(service.coordinates, island.geometry, SELECTED_SERVICE_MARKER_GRACE_METERS)
+    );
+  }
+
+  function mountIndividualServiceMarker(service: IslandMapService): MountedServiceMarker | null {
+    if (!mapInstance || !maplibreMarkerConstructor || !service.coordinates) return null;
+    const host = document.createElement('div');
+    const component = mount(ServiceMapMarker, {
+      target: host,
+      props: {
+        serviceType: service.serviceType,
+        label: serviceMarkerLabel(service),
+        onSelect: () => openServicePopup(service)
+      }
+    });
+    const marker = new maplibreMarkerConstructor({ element: host, anchor: 'center' });
+    marker.getElement().style.zIndex = '10';
+    marker.setLngLat(service.coordinates).addTo(mapInstance);
+    const mounted: MountedServiceMarker = {
+      key: `service:${service.id}`,
+      signature: `service:${service.id}:${service.serviceType}:${serviceMarkerLabel(service)}`,
+      kind: 'service',
+      marker,
+      component
+    };
+    updateMountedServiceMarkerScale(mounted);
+    return mounted;
+  }
+
+  function mountClusterMarker(cluster: ClusterMarkerData): MountedServiceMarker | null {
+    if (!mapInstance || !maplibreMarkerConstructor) return null;
+    const host = document.createElement('div');
+    const component = mount(ServiceClusterMarker, {
+      target: host,
+      props: {
+        total: cluster.total,
+        healthCount: cluster.healthCount,
+        educationCount: cluster.educationCount,
+        transportCount: cluster.transportCount,
+        label: clusterMarkerLabel(cluster),
+        onSelect: () => void expandServiceCluster(cluster)
+      }
+    });
+    const marker = new maplibreMarkerConstructor({ element: host, anchor: 'center' });
+    marker.getElement().style.zIndex = '11';
+    marker.setLngLat(cluster.coordinates).addTo(mapInstance);
+    const mounted: MountedServiceMarker = {
+      key: `cluster:${cluster.clusterId}`,
+      signature: `cluster:${cluster.clusterId}:${cluster.total}:${cluster.healthCount}:${cluster.educationCount}:${cluster.transportCount}`,
+      kind: 'cluster',
+      marker,
+      component
+    };
+    updateMountedServiceMarkerScale(mounted);
+    return mounted;
+  }
+
+  function syncServiceMarkers(): void {
+    if (!mapInstance || !maplibreMarkerConstructor || !mapInstance.getSource(SERVICE_MARKER_SOURCE_ID)) return;
+
+    const desired = new SvelteMap<string, DesiredServiceMarker>();
+    const features = mapInstance.querySourceFeatures(SERVICE_MARKER_SOURCE_ID) as ServiceMarkerQueryFeature[];
+    for (const feature of features) {
+      const properties = feature.properties ?? {};
+      const isCluster = properties.cluster === true || properties.cluster === 'true';
+      if (isCluster) {
+        const cluster = clusterMarkerData(feature);
+        if (!cluster) continue;
+        desired.set(`cluster:${cluster.clusterId}`, {
+          key: `cluster:${cluster.clusterId}`,
+          signature: `cluster:${cluster.clusterId}:${cluster.total}:${cluster.healthCount}:${cluster.educationCount}:${cluster.transportCount}`,
+          kind: 'cluster',
+          cluster
+        });
+        continue;
+      }
+
+      const serviceId = typeof properties.serviceId === 'string' ? properties.serviceId : null;
+      const service = serviceId ? serviceMarkerServices.get(serviceId) : undefined;
+      const coordinates = markerFeatureCoordinates(feature);
+      if (!service || !coordinates) continue;
+      desired.set(`service:${service.id}`, {
+        key: `service:${service.id}`,
+        signature: `service:${service.id}:${service.serviceType}:${serviceMarkerLabel(service)}`,
+        kind: 'service',
+        coordinates,
+        service
       });
-      const marker = new maplibreMarkerConstructor({ element: host, anchor: 'center' });
-      marker.setLngLat(service.coordinates).addTo(mapInstance);
-      mountedServiceMarkers.push({ marker, component });
+    }
+
+    if (activeServicePopup && !desired.has(`service:${activeServicePopup.serviceId}`)) closeServicePopup();
+
+    for (const [key, mounted] of mountedServiceMarkers) {
+      const next = desired.get(key);
+      if (!next || next.signature !== mounted.signature || next.kind !== mounted.kind) {
+        removeMountedServiceMarker(mounted);
+        mountedServiceMarkers.delete(key);
+      }
+    }
+
+    for (const [key, next] of desired) {
+      const current = mountedServiceMarkers.get(key);
+      if (current) {
+        current.marker.setLngLat(next.kind === 'service' ? next.coordinates : next.cluster.coordinates);
+        updateMountedServiceMarkerScale(current);
+        continue;
+      }
+
+      const mounted =
+        next.kind === 'service' ? mountIndividualServiceMarker(next.service) : mountClusterMarker(next.cluster);
+      if (mounted) mountedServiceMarkers.set(key, mounted);
+    }
+  }
+
+  async function expandServiceCluster(cluster: ClusterMarkerData): Promise<void> {
+    if (!mapInstance) return;
+    const source = mapInstance.getSource(SERVICE_MARKER_SOURCE_ID) as GeoJSONSource | undefined;
+    if (!source) return;
+    closeServicePopup();
+    try {
+      const expansionZoom = await source.getClusterExpansionZoom(cluster.clusterId);
+      if (!mapInstance) return;
+      const reducedMotion = prefersReducedMotion.current;
+      mapInstance.easeTo({
+        center: cluster.coordinates,
+        zoom: Math.min(expansionZoom, mapInstance.getMaxZoom()),
+        duration: reducedMotion ? 0 : 420,
+        essential: !reducedMotion
+      });
+    } catch {
+      scheduleServiceMarkerSync();
     }
   }
 
@@ -1185,12 +1725,112 @@
     if (mapInstance?.getLayer(layerId)) mapInstance.setPaintProperty(layerId, property, value as never);
   }
 
+  function setLayerColor(layerId: string, property: 'fill-color' | 'fill-outline-color', value: string): void {
+    if (mapInstance?.getLayer(layerId)) mapInstance.setPaintProperty(layerId, property, value as never);
+  }
+
+  function mixHexColors(start: string, end: string, progress: number): string {
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    const startRgb = [0, 2, 4].map((index) => Number.parseInt(start.slice(index + 1, index + 3), 16));
+    const endRgb = [0, 2, 4].map((index) => Number.parseInt(end.slice(index + 1, index + 3), 16));
+    const channels = startRgb.map((channel, index) =>
+      Math.round(channel + ((endRgb[index] ?? channel) - channel) * clampedProgress)
+    );
+    return `#${channels.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  function selectedIslandLoadingColor(progress: number): string {
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    if (clampedProgress <= 0.5) {
+      return mixHexColors(SELECTED_ISLAND_LOADING_START_COLOR, SELECTED_ISLAND_LOADING_MID_COLOR, clampedProgress * 2);
+    }
+    return mixHexColors(
+      SELECTED_ISLAND_LOADING_MID_COLOR,
+      SELECTED_ISLAND_LOADING_END_COLOR,
+      (clampedProgress - 0.5) * 2
+    );
+  }
+
   function setLayerVisibility(layerId: string, visibility: 'visible' | 'none'): void {
     if (mapInstance?.getLayer(layerId)) mapInstance.setLayoutProperty(layerId, 'visibility', visibility);
   }
 
   function setLayerFilter(layerId: string, filter: unknown): void {
     if (mapInstance?.getLayer(layerId)) mapInstance.setFilter(layerId, filter as never);
+  }
+
+  function setBaseRoadVisibility(visibility: 'visible' | 'none'): void {
+    for (const layerId of baseRoadLayerIds) setLayerVisibility(layerId, visibility);
+  }
+
+  function hideSelectedIslandFill(): void {
+    setLayerVisibility('selected-island-fill', 'none');
+    setLayerOpacity('selected-island-fill', 'fill-opacity', 0);
+  }
+
+  function showSelectedIslandFill(): void {
+    setLayerVisibility('selected-island-fill', 'visible');
+    setLayerOpacity('selected-island-fill', 'fill-opacity', SELECTED_ISLAND_FILL_OPACITY);
+  }
+
+  function stopSelectedIslandLoadingPulse(): void {
+    if (selectedIslandLoadingTimer !== null) {
+      window.clearTimeout(selectedIslandLoadingTimer);
+      selectedIslandLoadingTimer = null;
+    }
+    setLayerColor('selected-island-loading', 'fill-color', SELECTED_ISLAND_LOADING_START_COLOR);
+    setLayerColor('selected-island-loading', 'fill-outline-color', SELECTED_ISLAND_LOADING_START_COLOR);
+    setLayerVisibility('selected-island-loading', 'none');
+    setLayerOpacity('selected-island-loading', 'fill-opacity', 0);
+  }
+
+  function startSelectedIslandLoadingPulse(): void {
+    if (!mapInstance?.getLayer('selected-island-loading')) return;
+    hideSelectedIslandFill();
+    setLayerVisibility('selected-island-loading', 'visible');
+    setLayerColor('selected-island-loading', 'fill-color', SELECTED_ISLAND_LOADING_START_COLOR);
+    setLayerColor('selected-island-loading', 'fill-outline-color', SELECTED_ISLAND_LOADING_START_COLOR);
+    setLayerOpacity('selected-island-loading', 'fill-opacity', SELECTED_ISLAND_LOADING_MIN_OPACITY);
+
+    if (prefersReducedMotion.current) {
+      if (selectedIslandLoadingTimer !== null) {
+        window.clearTimeout(selectedIslandLoadingTimer);
+        selectedIslandLoadingTimer = null;
+      }
+      setLayerOpacity(
+        'selected-island-loading',
+        'fill-opacity',
+        (SELECTED_ISLAND_LOADING_MIN_OPACITY + SELECTED_ISLAND_LOADING_MAX_OPACITY) / 2
+      );
+      const reducedMotionColor = selectedIslandLoadingColor(0.5);
+      setLayerColor('selected-island-loading', 'fill-color', reducedMotionColor);
+      setLayerColor('selected-island-loading', 'fill-outline-color', reducedMotionColor);
+      return;
+    }
+
+    if (!selectedIslandLoading || selectedIslandLoadingTimer !== null) return;
+    const startedAt = performance.now();
+    const pulse = () => {
+      if (!selectedIslandLoading || !mapInstance?.getLayer('selected-island-loading')) {
+        selectedIslandLoadingTimer = null;
+        return;
+      }
+
+      const now = performance.now();
+      const progress = (1 - Math.cos(((now - startedAt) / SELECTED_ISLAND_LOADING_CYCLE) * Math.PI * 2)) / 2;
+      const loadingColor = selectedIslandLoadingColor(progress);
+      setLayerColor('selected-island-loading', 'fill-color', loadingColor);
+      setLayerColor('selected-island-loading', 'fill-outline-color', loadingColor);
+      setLayerOpacity(
+        'selected-island-loading',
+        'fill-opacity',
+        SELECTED_ISLAND_LOADING_MIN_OPACITY +
+          progress * (SELECTED_ISLAND_LOADING_MAX_OPACITY - SELECTED_ISLAND_LOADING_MIN_OPACITY)
+      );
+      selectedIslandLoadingTimer = window.setTimeout(pulse, SELECTED_ISLAND_LOADING_INTERVAL);
+    };
+
+    pulse();
   }
 
   function osmRoadFilter(): unknown[] {
@@ -1204,13 +1844,11 @@
 
   function selectedIslandRoadFilter(id: string): unknown[] {
     const feature = islandCollection.features.find((candidate) => candidate.properties.id === id);
-    const baseFilter = osmRoadFilter();
-
-    if (feature && ['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
-      return [...baseFilter.slice(0, 1), ...baseFilter.slice(1), ['within', feature.geometry]];
+    if (!feature || !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
+      return ['==', ['get', 'class'], ''];
     }
 
-    return baseFilter;
+    return [...osmRoadFilter(), ['within', feature.geometry]];
   }
 
   function demandStatusProperty(category: IslandDemandCategory): string {
@@ -1233,25 +1871,32 @@
         ['coalesce', ['get', weightProperty], 0],
         0,
         '#e5f5e0',
-        0.1,
+        0.01,
         '#a1d99b',
-        0.22,
+        0.03,
         '#fee08b',
-        0.34,
+        0.06,
         '#fdae61',
-        0.46,
+        0.1,
         '#f46d43',
-        0.6,
+        0.16,
         '#d73027',
-        0.78,
+        0.22,
         '#b2182b',
-        1,
+        0.3,
         '#67000d'
       ]
     ];
   }
 
-  function demandFillOpacityExpression(category: IslandDemandCategory, multiplier = 1): unknown[] {
+  function demandRevealOpacityExpression(progress: number): unknown[] {
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    const waveHead = Math.min(1.001, clampedProgress + 0.001);
+    const waveTail = Math.max(0, clampedProgress - SELECTED_DEMAND_REVEAL_WAVE_WIDTH);
+    return ['interpolate', ['linear'], ['coalesce', ['get', 'revealPhase'], 0], waveTail, 1, waveHead, 0];
+  }
+
+  function demandFillOpacityExpression(category: IslandDemandCategory, multiplier = 1, revealProgress = 1): unknown[] {
     const weightProperty = demandWeightProperty(category);
     const statusProperty = demandStatusProperty(category);
     const opacity = [
@@ -1263,22 +1908,27 @@
         ['linear'],
         ['coalesce', ['get', weightProperty], 0],
         0,
-        0.08,
-        0.08,
         0.18,
-        0.2,
-        0.34,
-        0.35,
-        0.52,
-        0.5,
-        0.72,
+        0.01,
+        0.28,
+        0.03,
+        0.4,
+        0.06,
+        0.55,
+        0.1,
         0.7,
-        0.86,
-        1,
-        0.98
+        0.16,
+        0.88,
+        0.22,
+        0.96,
+        0.3,
+        1
       ]
     ];
-    return multiplier === 1 ? opacity : ['*', opacity, multiplier];
+    const weightedOpacity = multiplier === 1 ? opacity : ['*', opacity, multiplier];
+    return revealProgress >= 1
+      ? weightedOpacity
+      : ['*', weightedOpacity, demandRevealOpacityExpression(revealProgress)];
   }
 
   function demandAvailabilityFilter(category: IslandDemandCategory): unknown[] {
@@ -1302,65 +1952,171 @@
     });
   }
 
-  function setDemandHexOpacity(multiplier: number): void {
+  function setDemandHexOpacity(multiplier: number, revealProgress = demandRevealProgress): void {
     if (!mapInstance?.getLayer('selected-service-demand-hexes')) return;
     mapInstance.setPaintProperty(
       'selected-service-demand-hexes',
       'fill-opacity',
-      demandFillOpacityExpression(selectedDemandCategory, multiplier) as never
+      demandFillOpacityExpression(selectedDemandCategory, multiplier, revealProgress) as never
     );
   }
 
-  function fadeDemandHexesTo(target: number, islandId?: string): void {
-    setDemandHexOpacity(0);
-    if (prefersReducedMotion.current) {
-      setDemandHexOpacity(target);
+  function stopDemandHeatmapReveal(): void {
+    demandRevealToken += 1;
+    if (demandRevealTimer !== null) {
+      window.clearTimeout(demandRevealTimer);
+      demandRevealTimer = null;
+    }
+    demandRevealProgress = 1;
+  }
+
+  function hexFeatureCenter(feature: IslandServiceHexes['features'][number]): Coordinate | null {
+    const ring = feature.geometry.coordinates[0];
+    if (!ring || ring.length === 0) return null;
+    const totals = ring.reduce(
+      (result, [longitude, latitude]) => {
+        result[0] += longitude;
+        result[1] += latitude;
+        return result;
+      },
+      [0, 0]
+    );
+    return [totals[0] / ring.length, totals[1] / ring.length];
+  }
+
+  function coordinateDistanceMeters(first: Coordinate, second: Coordinate): number {
+    const latitude = ((first[1] + second[1]) / 2) * (Math.PI / 180);
+    const longitudeMeters = (first[0] - second[0]) * 111_320 * Math.cos(latitude);
+    const latitudeMeters = (first[1] - second[1]) * 110_574;
+    return Math.hypot(longitudeMeters, latitudeMeters);
+  }
+
+  function demandHexesWithRevealPhases(
+    hexes: IslandServiceHexes,
+    services: readonly IslandMapService[]
+  ): IslandServiceHexes {
+    const serviceCoordinates = services.flatMap((service) => (service.coordinates ? [service.coordinates] : []));
+    if (serviceCoordinates.length === 0) {
+      return {
+        ...hexes,
+        features: hexes.features.map((feature) => ({
+          ...feature,
+          properties: { ...feature.properties, revealPhase: 0 }
+        }))
+      };
+    }
+
+    const distances = hexes.features.map((feature) => {
+      const center = hexFeatureCenter(feature);
+      return center
+        ? Math.min(...serviceCoordinates.map((service) => coordinateDistanceMeters(center, service)))
+        : null;
+    });
+    const validDistances = distances.filter((distance): distance is number => distance !== null);
+    const maximumDistance = Math.max(1, ...validDistances);
+
+    return {
+      ...hexes,
+      features: hexes.features.map((feature, index) => ({
+        ...feature,
+        properties: {
+          ...feature.properties,
+          revealPhase: Number(((distances[index] ?? maximumDistance) / maximumDistance).toFixed(3))
+        }
+      }))
+    };
+  }
+
+  function startDemandHeatmapReveal(
+    hexes: IslandServiceHexes,
+    services: readonly IslandMapService[],
+    islandId: string
+  ): void {
+    stopDemandHeatmapReveal();
+    setSourceData('selected-service-hexes', demandHexesWithRevealPhases(hexes, services));
+
+    if (prefersReducedMotion.current || hexes.features.length === 0) {
+      demandRevealProgress = 1;
+      setDemandHexOpacity(SELECTED_DEMAND_HEX_OPACITY, 1);
       return;
     }
-    window.requestAnimationFrame(() => {
-      if (islandId && selectedIslandId !== islandId) return;
-      setDemandHexOpacity(target);
-    });
+
+    demandRevealProgress = 0;
+    setDemandHexOpacity(SELECTED_DEMAND_HEX_OPACITY, demandRevealProgress);
+    const token = demandRevealToken;
+    const startedAt = performance.now();
+    const reveal = () => {
+      if (token !== demandRevealToken || selectedIslandId !== islandId || !mapInstance) {
+        demandRevealTimer = null;
+        return;
+      }
+
+      const progress = Math.min(1, (performance.now() - startedAt) / SELECTED_DEMAND_REVEAL_DURATION);
+      demandRevealProgress = progress;
+      setDemandHexOpacity(SELECTED_DEMAND_HEX_OPACITY, progress);
+      if (progress >= 1) {
+        demandRevealProgress = 1;
+        demandRevealTimer = null;
+        setDemandHexOpacity(SELECTED_DEMAND_HEX_OPACITY, 1);
+        return;
+      }
+      demandRevealTimer = window.setTimeout(reveal, SELECTED_DEMAND_REVEAL_INTERVAL);
+    };
+
+    reveal();
   }
 
   function applySelectedIslandMask(id: string): void {
     if (!mapInstance) return;
-    mapInstance.setFilter('island-fill', ['!=', ['get', 'id'], id]);
-    mapInstance.setFilter('national-score-fields', ['!=', ['get', 'islandId'], id]);
-    mapInstance.setFilter('island-outline', ['!=', ['get', 'id'], id]);
-    mapInstance.setFilter('island-labels', ['!=', ['get', 'id'], id]);
+    setBaseRoadVisibility('none');
+    mapInstance.setFilter('island-fill', ['==', ['get', 'id'], '']);
+    mapInstance.setFilter('national-score-fields', ['==', ['get', 'islandId'], '']);
+    mapInstance.setFilter('island-outline', ['==', ['get', 'id'], '']);
+    mapInstance.setFilter('island-labels', ['==', ['get', 'id'], '']);
     mapInstance.setFilter('selected-island-fill', ['==', ['get', 'id'], id]);
+    mapInstance.setFilter('selected-island-loading', ['==', ['get', 'id'], id]);
     mapInstance.setFilter('selected-island-outline', ['==', ['get', 'id'], id]);
     mapInstance.setFilter('selected-service-demand-hexes', demandAvailabilityFilter(selectedDemandCategory));
-    setLayerFilter('selected-island-road-casing', selectedIslandRoadFilter(id));
-    setLayerFilter('selected-island-road-inner', selectedIslandRoadFilter(id));
+    setSourceData('selected-island-mask', selectedIslandMask(id));
+    const roadFilter = selectedIslandRoadFilter(id);
+    setLayerFilter('selected-island-road-casing', roadFilter);
+    setLayerFilter('selected-island-road-inner', roadFilter);
     setLayerVisibility('selected-island-road-casing', 'visible');
     setLayerVisibility('selected-island-road-inner', 'visible');
   }
 
   function prepareSelectedIslandOverlay(id: string): void {
+    stopDemandHeatmapReveal();
     setSourceData('selected-service-hexes', EMPTY_SERVICE_HEXES);
     removeServiceMarkers(true);
     applySelectedIslandMask(id);
-    fadeLayerTo('selected-island-fill', 'fill-opacity', 0.45, id);
+    hideSelectedIslandFill();
+    startSelectedIslandLoadingPulse();
+    fadeLayerTo('selected-island-fill', 'fill-opacity', SELECTED_ISLAND_FILL_OPACITY, id);
     fadeLayerTo('selected-island-outline', 'line-opacity', 1, id);
     setDemandHexOpacity(0);
   }
 
   function resetSelectedIslandOverlay(): void {
+    stopDemandHeatmapReveal();
     removeServiceMarkers(true);
+    stopSelectedIslandLoadingPulse();
+    hideSelectedIslandFill();
     if (!mapInstance) return;
     mapInstance.setFilter('island-fill', null);
     mapInstance.setFilter('national-score-fields', null);
     mapInstance.setFilter('island-outline', null);
     mapInstance.setFilter('island-labels', null);
     mapInstance.setFilter('selected-island-fill', ['==', ['get', 'id'], '']);
+    mapInstance.setFilter('selected-island-loading', ['==', ['get', 'id'], '']);
     mapInstance.setFilter('selected-island-outline', ['==', ['get', 'id'], '']);
     mapInstance.setFilter('selected-service-demand-hexes', ['==', ['get', 'allStatus'], '']);
     setLayerFilter('selected-island-road-casing', ['==', ['get', 'class'], '']);
     setLayerFilter('selected-island-road-inner', ['==', ['get', 'class'], '']);
     setLayerVisibility('selected-island-road-casing', 'none');
     setLayerVisibility('selected-island-road-inner', 'none');
+    setBaseRoadVisibility('visible');
+    setSourceData('selected-island-mask', EMPTY_SELECTED_ISLAND_MASK);
     setSourceData('selected-service-hexes', EMPTY_SERVICE_HEXES);
     setLayerOpacity('selected-island-fill', 'fill-opacity', 0);
     setLayerOpacity('selected-island-outline', 'line-opacity', 0);
@@ -1378,10 +2134,9 @@
       const data = (await response.json()) as IslandServicesResponse;
       if (requestId !== islandServicesRequest) return;
       islandServices = data;
-      setSourceData('selected-service-hexes', data.hexes);
       applySelectedIslandMask(id);
+      startDemandHeatmapReveal(data.hexes, data.services, id);
       renderServiceMarkers(data);
-      fadeDemandHexesTo(SELECTED_DEMAND_HEX_OPACITY, id);
     } catch (error) {
       if (requestId === islandServicesRequest) {
         islandServicesError = error instanceof Error ? error.message : 'Island services could not be loaded.';
@@ -1415,9 +2170,21 @@
     mapInstance.setPaintProperty(
       'selected-service-demand-hexes',
       'fill-opacity',
-      demandFillOpacityExpression(selectedDemandCategory, SELECTED_DEMAND_HEX_OPACITY) as never
+      demandFillOpacityExpression(selectedDemandCategory, SELECTED_DEMAND_HEX_OPACITY, demandRevealProgress) as never
     );
     mapInstance.setFilter('selected-service-demand-hexes', demandAvailabilityFilter(selectedDemandCategory) as never);
+  });
+
+  $effect(() => {
+    if (!mapReady || !mapInstance) return;
+    if (selectedIslandLoading) {
+      startSelectedIslandLoadingPulse();
+      return;
+    }
+
+    stopSelectedIslandLoadingPulse();
+    if (selectedIslandId) showSelectedIslandFill();
+    else hideSelectedIslandFill();
   });
 
   $effect(() => {
@@ -1441,6 +2208,7 @@
   $effect(() => {
     if (!presentationActive || !presentationStep || !mapReady || !mapInstance) return;
     if (storyFocusStepId === presentationStep.id) return;
+    if (presentationPhase !== 'settled' || presentationReadyStepId !== presentationStep.id) return;
     if (presentationStep.scrollTargets?.length && (islandProfileLoading || analyticsLoading)) return;
     void focusStoryUi(presentationStep);
   });
@@ -1473,6 +2241,11 @@
     );
     const layersBeforeRoads = firstRoadLayerIndex === -1 ? baseLayers : baseLayers.slice(0, firstRoadLayerIndex);
     const roadLayers = firstRoadLayerIndex === -1 ? [] : baseLayers.slice(firstRoadLayerIndex);
+    baseRoadLayerIds = roadLayers.flatMap((layer) =>
+      layer.type === 'line' && layer['source-layer'] === 'transportation' && typeof layer.id === 'string'
+        ? [layer.id]
+        : []
+    );
     const selectedRoadLayers = baseStyle.sources?.openmaptiles
       ? [
           {
@@ -1541,6 +2314,20 @@
         islands: { type: 'geojson', data: EMPTY_ISLAND_COLLECTION },
         'score-fields': { type: 'geojson', data: EMPTY_SCORE_FIELD_COLLECTION },
         'selected-service-hexes': { type: 'geojson', data: EMPTY_SERVICE_HEXES },
+        'selected-island-mask': { type: 'geojson', data: EMPTY_SELECTED_ISLAND_MASK },
+        [SERVICE_MARKER_SOURCE_ID]: {
+          type: 'geojson',
+          data: EMPTY_SERVICE_MARKERS,
+          cluster: true,
+          clusterMinPoints: 2,
+          clusterMaxZoom: SERVICE_MARKER_CLUSTER_MAX_ZOOM,
+          clusterRadius: SERVICE_MARKER_CLUSTER_RADIUS,
+          clusterProperties: {
+            healthCount: ['+', ['case', ['==', ['get', 'serviceType'], 'health'], 1, 0]],
+            educationCount: ['+', ['case', ['==', ['get', 'serviceType'], 'education'], 1, 0]],
+            transportCount: ['+', ['case', ['==', ['get', 'serviceType'], 'transport'], 1, 0]]
+          }
+        },
         'presentation-map': { type: 'geojson', data: EMPTY_PRESENTATION_MAP }
       },
       layers: [
@@ -1574,7 +2361,7 @@
           source: 'islands',
           filter: ['==', ['get', 'id'], ''],
           paint: {
-            'fill-color': '#a1a1aa',
+            'fill-color': SELECTED_ISLAND_FILL_COLOR,
             'fill-opacity': 0,
             'fill-opacity-transition': { duration: 240, delay: 0 }
           }
@@ -1587,11 +2374,44 @@
           paint: {
             'fill-color': demandColorExpression('all'),
             'fill-opacity': demandFillOpacityExpression('all', SELECTED_DEMAND_HEX_OPACITY),
-            'fill-opacity-transition': { duration: 700, delay: 0 },
+            'fill-opacity-transition': { duration: 260, delay: 0 },
             'fill-outline-color': 'rgba(255, 255, 255, 0.22)'
           }
         },
+        {
+          id: SERVICE_MARKER_ANCHOR_LAYER_ID,
+          type: 'circle',
+          source: SERVICE_MARKER_SOURCE_ID,
+          paint: {
+            'circle-radius': 1,
+            'circle-opacity': 0
+          }
+        },
         ...roadLayers,
+        {
+          id: 'selected-island-mask',
+          type: 'fill',
+          source: 'selected-island-mask',
+          paint: {
+            'fill-color': SELECTED_ISLAND_MASK_COLOR,
+            'fill-opacity': 1
+          }
+        },
+        {
+          id: 'selected-island-loading',
+          type: 'fill',
+          source: 'islands',
+          filter: ['==', ['get', 'id'], ''],
+          layout: { visibility: 'none' },
+          paint: {
+            'fill-color': SELECTED_ISLAND_LOADING_START_COLOR,
+            'fill-opacity': 0,
+            'fill-color-transition': { duration: 72, delay: 0 },
+            'fill-opacity-transition': { duration: 140, delay: 0 },
+            'fill-outline-color': SELECTED_ISLAND_LOADING_START_COLOR,
+            'fill-outline-color-transition': { duration: 72, delay: 0 }
+          }
+        },
         ...selectedRoadLayers,
         {
           id: 'island-outline',
@@ -1808,6 +2628,13 @@
         mapInstance.on('zoomend', () => {
           if (mapInstance && mapInstance.getZoom() >= 6.2) void loadIslandGeometry(true);
         });
+        mapInstance.on('zoom', scheduleServiceMarkerSync);
+        mapInstance.on('move', scheduleServiceMarkerSync);
+        mapInstance.on('moveend', scheduleServiceMarkerSync);
+        mapInstance.on('resize', scheduleServiceMarkerSync);
+        mapInstance.on('sourcedata', (event) => {
+          if (event.sourceId === SERVICE_MARKER_SOURCE_ID) scheduleServiceMarkerSync();
+        });
         mapInstance.on('click', 'island-fill', (event) => {
           if (proposalPending || moveServiceId || addServiceDraft) return;
           const feature = event.features?.[0];
@@ -1842,9 +2669,8 @@
         if (selectedIslandId) {
           prepareSelectedIslandOverlay(selectedIslandId);
           if (islandServices) {
-            setSourceData('selected-service-hexes', islandServices.hexes);
+            startDemandHeatmapReveal(islandServices.hexes, islandServices.services, selectedIslandId);
             renderServiceMarkers(islandServices);
-            fadeDemandHexesTo(SELECTED_DEMAND_HEX_OPACITY, selectedIslandId);
           }
         }
         void loadAnalytics();
@@ -1854,7 +2680,15 @@
     return () => {
       disposed = true;
       stopMoveMode();
+      cancelPresentationTransition();
+      stopDemandHeatmapReveal();
+      stopSelectedIslandLoadingPulse();
+      hideSelectedIslandFill();
       removeServiceMarkers();
+      if (serviceMarkerSyncFrame !== null) {
+        window.cancelAnimationFrame(serviceMarkerSyncFrame);
+        serviceMarkerSyncFrame = null;
+      }
       mapInstance?.remove();
       mapInstance = null;
       maplibreMarkerConstructor = null;
@@ -1881,8 +2715,11 @@
         islands
       );
       if (selectedIslandId) {
-        setLayerFilter('selected-island-road-casing', selectedIslandRoadFilter(selectedIslandId));
-        setLayerFilter('selected-island-road-inner', selectedIslandRoadFilter(selectedIslandId));
+        setSourceData('selected-island-mask', selectedIslandMask(selectedIslandId));
+        const roadFilter = selectedIslandRoadFilter(selectedIslandId);
+        setLayerFilter('selected-island-road-casing', roadFilter);
+        setLayerFilter('selected-island-road-inner', roadFilter);
+        if (islandServices) renderServiceMarkers(islandServices);
       }
       const scoreFields: ScoreFieldCollection = {
         type: 'FeatureCollection',
@@ -1952,7 +2789,7 @@
   }}
 />
 
-<div class="map-shell">
+<div class="map-shell" data-presentation-phase={presentationActive ? presentationPhase : 'idle'}>
   <div
     bind:this={mapElement}
     class="map-canvas"
@@ -1960,7 +2797,7 @@
     aria-label={selectedIslandId
       ? 'Selected island demand and residential access map'
       : 'National Maldives accessibility score map'}
-    aria-busy={mapReady && !islandServicesLoading ? 'false' : 'true'}
+    aria-busy={mapReady && !selectedIslandLoading ? 'false' : 'true'}
     ondragover={handleMapDragOver}
     ondrop={handleMapDrop}
   ></div>
@@ -2095,41 +2932,43 @@
     {proposalMode}
   />
 
-  <section
-    class={`map-legend${proposalMode ? ' proposal-mode-left' : ''}`}
-    aria-hidden={proposalMode}
-    aria-label={selectedIslandId ? 'Demand and residential access gap legend' : 'Accessibility score legend'}
-  >
-    {#if selectedIslandId}
-      <p class="legend-title">
-        {selectedDemandCategory === 'all'
-          ? 'Demand + residential access gap'
-          : `${demandCategoryLabel(selectedDemandCategory)} pressure + access gap`}
-      </p>
-      <div class="demand-scale" aria-hidden="true"></div>
-      <div class="score-labels"><span>Low</span><span>High</span></div>
-      <div class="score-unavailable"><span></span>No mapped demand</div>
-      <div class="marker-legend-section">
-        <p class="legend-section-title">Map markers</p>
-        <ul class="marker-legend" aria-label="Map service markers">
-          {#each SERVICE_MARKER_LEGEND as marker (marker.label)}
-            {@const Icon = marker.icon}
-            <li class="marker-legend-item">
-              <span class="marker-legend-icon" style={`--marker-color: ${marker.color}`} aria-hidden="true">
-                <Icon size={13} strokeWidth={2.5} />
-              </span>
-              <span>{marker.label}</span>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {:else}
-      <p class="legend-title">Accessibility score</p>
-      <div class="score-scale" aria-hidden="true"></div>
-      <div class="score-labels"><span>Low</span><span>High</span></div>
-      <div class="score-unavailable"><span></span>No access / no data</div>
-    {/if}
-  </section>
+  {#if !readerMode}
+    <section
+      class={`map-legend${proposalMode ? ' proposal-mode-left' : ''}`}
+      aria-hidden={proposalMode}
+      aria-label={selectedIslandId ? 'Demand and residential access gap legend' : 'Accessibility score legend'}
+    >
+      {#if selectedIslandId}
+        <p class="legend-title">
+          {selectedDemandCategory === 'all'
+            ? 'Demand + residential access gap'
+            : `${demandCategoryLabel(selectedDemandCategory)} pressure + access gap`}
+        </p>
+        <div class="demand-scale" aria-hidden="true"></div>
+        <div class="score-labels"><span>Low</span><span>High</span></div>
+        <div class="score-unavailable"><span></span>No mapped demand</div>
+        <div class="marker-legend-section">
+          <p class="legend-section-title">Map markers</p>
+          <ul class="marker-legend" aria-label="Map service markers">
+            {#each SERVICE_MARKER_LEGEND as marker (marker.label)}
+              {@const Icon = marker.icon}
+              <li class="marker-legend-item">
+                <span class="marker-legend-icon" style={`--marker-color: ${marker.color}`} aria-hidden="true">
+                  <Icon size={13} strokeWidth={2.5} />
+                </span>
+                <span>{marker.label}</span>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {:else}
+        <p class="legend-title">Accessibility score</p>
+        <div class="score-scale" aria-hidden="true"></div>
+        <div class="score-labels"><span>Low</span><span>High</span></div>
+        <div class="score-unavailable"><span></span>No access / no data</div>
+      {/if}
+    </section>
+  {/if}
 
   {#if selectedIslandId && islandAnalyticsOpen && !proposalMode}
     <ProposalLauncher onCreate={createProposal} />
@@ -2572,12 +3411,12 @@
     background: linear-gradient(
       90deg,
       #e5f5e0 0%,
-      #a1d99b 10%,
-      #fee08b 22%,
-      #fdae61 34%,
-      #f46d43 46%,
-      #d73027 60%,
-      #b2182b 78%,
+      #a1d99b 16%,
+      #fee08b 32%,
+      #fdae61 48%,
+      #f46d43 64%,
+      #d73027 80%,
+      #b2182b 90%,
       #67000d 100%
     );
   }

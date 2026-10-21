@@ -192,8 +192,8 @@ const FERRY_BAARAH_VASHAFARU: PresentationMapData = {
 const FERRY_TO_DHIHDDHOO: PresentationMapData = {
   type: 'FeatureCollection',
   features: [
-    ...FERRY_BAARAH_VASHAFARU.features,
     line('vashafaru-dhihdhoo', VASHAFARU_TO_DHIHDDHOO, 'verified', 'RTL ferry · S1C5 · plotted sea path'),
+    point('vashafaru', VASHAFARU, 'verified', 'Vashafaru · 07:55'),
     point('dhihdhoo', DHIHDDHOO, 'verified', 'Dhihdhoo · 08:10')
   ]
 };
@@ -201,8 +201,8 @@ const FERRY_TO_DHIHDDHOO: PresentationMapData = {
 const FERRY_TO_HANIMAADHOO: PresentationMapData = {
   type: 'FeatureCollection',
   features: [
-    ...FERRY_TO_DHIHDDHOO.features,
     line('dhihdhoo-hanimaadhoo', DHIHDDHOO_TO_HANIMAADHOO, 'verified', 'RTL ferry · S1C6 · plotted sea path'),
+    point('dhihdhoo', DHIHDDHOO, 'verified', 'Dhihdhoo · 08:10'),
     point('hanimaadhoo', HANIMAADHOO, 'verified', 'Hanimaadhoo · 11:25')
   ]
 };
@@ -210,7 +210,6 @@ const FERRY_TO_HANIMAADHOO: PresentationMapData = {
 const AIRPORT_LEG: PresentationMapData = {
   type: 'FeatureCollection',
   features: [
-    ...FERRY_TO_HANIMAADHOO.features,
     line('hanimaadhoo-hulhule', HANIMAADHOO_TO_HULHULE, 'narrative', 'Modeled air link · schedule unavailable'),
     point('hanimaadhoo-airport', HANIMAADHOO_AIRPORT, 'verified', 'Hanimaadhoo Airport · VRMH', 'airport'),
     point('hulhule-airport', HULHULE_AIRPORT, 'verified', 'Hulhule / Velana · VRMM', 'airport')
@@ -220,7 +219,7 @@ const AIRPORT_LEG: PresentationMapData = {
 const CARE_LAST_MILE: PresentationMapData = {
   type: 'FeatureCollection',
   features: [
-    ...AIRPORT_LEG.features,
+    point('hulhule-airport', HULHULE_AIRPORT, 'verified', 'Hulhule / Velana · VRMM', 'airport'),
     point('hulhumale-terminal', HULHUMALE_TERMINAL, 'verified', 'Hulhumale · ferry terminal', 'terminal'),
     line('hulhule-tree-top-road', HULHULE_TO_TREE_TOP, 'verified', 'OpenStreetMap road graph · generated route'),
     point('tree-top-hospital', TREE_TOP_HOSPITAL, 'verified', 'Tree Top Hospital', 'hospital')
@@ -255,11 +254,12 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
       direction('[SCREEN: Select Baarah. Show the health-demand figures.]'),
       speech('Baarah has a health centre.'),
       speech('But that health centre cannot provide all the care my mother needs.'),
-      speech('The model shows 414 people needing hospital care outside Baarah.'),
+      speech('We estimate that 414 out of 1,141 people need health care outside Baarah.'),
       speech('61 of them are elderly people.'),
       speech('That number is easy to read on a screen.'),
       speech('I put a face to it.'),
-      speech('I see my mother.'),
+      direction('[PAUSE]'),
+      speech('My mother.'),
       direction('[PAUSE]')
     ],
     note: 'Baarashu Health Centre is local care, but it cannot provide all the care represented in the model for Baarah.',
@@ -312,7 +312,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
       startDuration: 650,
       overviewDuration: 850
     },
-    selectedIslandId: 'island:640',
+    selectedIslandId: null,
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
     mapHighlightIds: ['baarah-vashafaru', 'baarah', 'vashafaru'],
@@ -349,7 +349,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
       startDuration: 700,
       overviewDuration: 850
     },
-    selectedIslandId: 'island:611',
+    selectedIslandId: null,
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
     mapHighlightIds: ['vashafaru-dhihdhoo', 'vashafaru', 'dhihdhoo'],
@@ -386,7 +386,7 @@ export const PRESENTATION_STEPS: readonly PresentationStep[] = [
       startDuration: 700,
       overviewDuration: 950
     },
-    selectedIslandId: 'island:625',
+    selectedIslandId: null,
     panel: 'island-analytics',
     uiTargets: ['island-score', 'island-demand', 'island-analytics'],
     mapHighlightIds: ['dhihdhoo-hanimaadhoo', 'dhihdhoo', 'hanimaadhoo'],

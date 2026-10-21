@@ -2,7 +2,9 @@
 
 ## How To Use This Script
 
-This is a 2 to 3 minute read at a natural pace. Start the walkthrough with `Shift+L` (or `Shift+P`). The bottom presenter rail shows the practice text and delivery directions. Advance with the right arrow or space bar. Exit with `Escape`.
+This is a 2 to 3 minute read at a natural pace. Start the clean animated walkthrough with `Shift+P`. Use `Shift+L` when you want the reader panel with the practice text, delivery directions, facts, and sources. Both modes share the same story step and advance with the right arrow or space bar. Exit with `Escape`.
+
+`Shift+P` is presentation mode: it keeps the map and story animations visible without presenter notes. `Shift+L` is reader mode: it keeps the same animated story while showing the scrollable script panel. Switching between them preserves the current slide.
 
 ## Slide 1: Opening
 
@@ -18,6 +20,8 @@ Look at the full national map and the national score card in the upper-left.
 >
 > Last year, my mom had a stroke in Haa Alifu Baarah.
 >
+> I put a face to it.
+
 > [PAUSE]
 
 ## Slide 2: Baarah
@@ -34,15 +38,15 @@ Look at the close view of Baarah and the `Baarashu Health Centre` marker. Point 
 >
 > But that health centre cannot provide all the care my mother needs.
 >
-> The model shows 414 people needing hospital care outside Baarah.
+> We estimate that 414 out of 1,141 people need health care outside Baarah.
 >
 > 61 of them are elderly people.
 >
 > That number is easy to read on a screen.
 >
-> I put a face to it.
+> [PAUSE]
 >
-> I see my mother.
+> My mother.
 >
 > [PAUSE]
 
@@ -179,7 +183,7 @@ Watch the map clear the route and open national analytics.
 - The recorded `65+` population is `61`.
 - Baarashu Health Centre is linked to Baarah at `6.8176671, 73.2126251`.
 - Baarashu Health Centre cannot provide all the care represented in the model for Baarah.
-- The model shows `414` people needing hospital care outside Baarah.
+- We estimate that `414` out of `1,141` people need health care outside Baarah.
 - `61` of those people are elderly.
 - RTL route `S1C5`: Baarah `07:35`, Vashafaru `07:55`, Dhihdhoo `08:10`.
 - RTL route `S1C6`: Dhihdhoo `11:00` to Hanimaadhoo `11:25`.

@@ -2,9 +2,12 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 import { json } from '@sveltejs/kit';
 
+import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
 import { getIslandProfile, IslandProfileNotFoundError } from '$lib/server/scoring/island-profile';
 
 export const GET: RequestHandler = async ({ params }) => {
+  await waitForMobilityApiDelay();
+
   try {
     return json(await getIslandProfile(params.id ?? ''));
   } catch (error) {

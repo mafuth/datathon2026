@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 
 import { Atoll, Island } from '$lib/db/models';
 import db from '$lib/server/database';
+import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
 import { buildAnalyticsRankings } from '$lib/server/scoring/analytics-rankings';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { populationForIsland, totalPopulation } from '$lib/server/scoring/demand-allocation';
@@ -77,7 +78,10 @@ function demandDto(
     health: demandMetricDto(demand.health),
     education: demandMetricDto(demand.education),
     healthCareDemand: {
+      allAge: optionalDemandMetricDto(demand.healthByNeed.primary),
+      younger: optionalDemandMetricDto(demand.healthByNeed.maternal_child),
       children: optionalDemandMetricDto(demand.healthByNeed.maternal_child),
+      emergency: optionalDemandMetricDto(demand.healthByNeed.hospital_emergency),
       elderly: optionalDemandMetricDto(demand.healthByNeed.chronic_elderly)
     },
     healthByNeed: Object.fromEntries(
@@ -157,6 +161,8 @@ function aggregateTransportDemand(results: TransportDemandResult[]) {
 }
 
 export const GET: RequestHandler = async () => {
+  await waitForMobilityApiDelay();
+
   const [national, snapshot, islandRows] = await Promise.all([
     getNationalScore(),
     loadScoringSnapshot(),

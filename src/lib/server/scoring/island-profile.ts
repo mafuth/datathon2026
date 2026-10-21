@@ -209,6 +209,10 @@ function demandProfile(
   const islandById = new Map(islands.map((island) => [island.id, island]));
   const healthDemandSummary = demandMetric(score.demand.health);
   const educationDemandSummary = demandMetric(score.demand.education);
+  const allAgeDemand = score.demand.healthByNeed.primary ? demandMetric(score.demand.healthByNeed.primary) : null;
+  const youngerCareDemand = score.demand.healthByNeed.maternal_child
+    ? demandMetric(score.demand.healthByNeed.maternal_child)
+    : null;
   const childCareDemand = score.demand.healthByNeed.maternal_child
     ? demandMetric(score.demand.healthByNeed.maternal_child)
     : null;
@@ -225,6 +229,8 @@ function demandProfile(
       childPopulation,
       elderlyPopulation: populationAmount(records, 'elderly_population_65_plus'),
       demand: healthDemandSummary,
+      allAgeDemand,
+      youngerCareDemand,
       childCareDemand,
       elderlyCareDemand,
       hospitalDemand,

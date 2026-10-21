@@ -37,7 +37,10 @@
   };
 
   type HealthCareDemand = {
+    allAge: DemandMetric | null;
+    younger: DemandMetric | null;
     children: DemandMetric | null;
+    emergency: DemandMetric | null;
     elderly: DemandMetric | null;
   };
 
@@ -533,13 +536,23 @@
                 <span>Inbound age-cohort demand <strong>{number(data.national.demand.inboundTotal)}</strong></span>
                 <span>Outbound age-cohort demand <strong>{number(data.national.demand.outboundTotal)}</strong></span>
                 <span
-                  >Elderly hospital outbound <strong
-                    >{number(data.national.demand.healthCareDemand.elderly?.outbound ?? 0)}</strong
+                  >Non-elderly health demand <strong
+                    >{number(data.national.demand.healthCareDemand.allAge?.combined ?? 0)}</strong
                   ></span
                 >
                 <span
-                  >Elderly care unserved <strong
-                    >{number(data.national.demand.healthCareDemand.elderly?.unserved ?? 0)}</strong
+                  >Children/adolescent demand <strong
+                    >{number(data.national.demand.healthCareDemand.younger?.combined ?? 0)}</strong
+                  ></span
+                >
+                <span
+                  >Hospital emergency demand <strong
+                    >{number(data.national.demand.healthCareDemand.emergency?.combined ?? 0)}</strong
+                  ></span
+                >
+                <span
+                  >Elderly hospital outbound <strong
+                    >{number(data.national.demand.healthCareDemand.elderly?.outbound ?? 0)}</strong
                   ></span
                 >
                 <span
@@ -709,7 +722,9 @@
     display: flex;
     flex-direction: column;
     width: min(31rem, calc(100vw - 2rem));
-    height: min(47rem, calc(100dvh - 2rem));
+    height: auto;
+    max-height: calc(100dvh - 2rem);
+    align-self: flex-start;
     margin: 1rem;
     overflow: hidden;
     border: 1px solid rgb(16 24 32 / 14%);
@@ -1101,7 +1116,9 @@
     }
     :global(.analytics-card) {
       width: calc(100vw - 1rem);
-      height: min(42rem, calc(100dvh - 1rem));
+      height: auto;
+      max-height: calc(100dvh - 1rem);
+      align-self: flex-end;
       margin: 0.5rem;
       border-radius: 0.55rem;
     }

@@ -1,9 +1,12 @@
 import type { RequestHandler } from '@sveltejs/kit';
 
+import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
 import { mobilityFacade } from '$lib/server/mobility/mobility-facade';
 import { IslandServicesNotFoundError } from '$lib/server/scoring/island-services';
 
 export const GET: RequestHandler = async ({ params }) => {
+  await waitForMobilityApiDelay();
+
   try {
     return new Response(JSON.stringify(await mobilityFacade.getIslandServices(params.id ?? '')), {
       headers: { 'content-type': 'application/json' }
