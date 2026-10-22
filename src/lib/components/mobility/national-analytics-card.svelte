@@ -18,6 +18,7 @@
   import { Progress } from '$components/ui/progress';
   import { Skeleton } from '$components/ui/skeleton';
 
+  import AccessLandscapeChart from './access-landscape-chart.svelte';
   import { averagePercentage, scoreColor } from './score-presentation';
   import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
@@ -571,6 +572,8 @@
           {/if}
         </Card.Root>
 
+        <AccessLandscapeChart islands={data?.islands ?? []} {loading} {onIslandSelect} />
+
         {#if loading}
           <div class="detail-grid" aria-hidden="true">
             <Card.Root class="insight-card loading-insight-card" size="sm">
@@ -861,10 +864,7 @@
                 <div>
                   <h3>Vehicle mix</h3>
                 </div>
-                <Car size={17} strokeWidth={2.2} />
-              </div>
-              <div class="vehicle-summary">
-                <strong>{number(data.national.sustainability.vehicleTotal)}</strong>
+                <strong class="card-heading-score">{number(data.national.sustainability.vehicleTotal)}</strong>
               </div>
               <div class="vehicle-category-list">
                 {#each data.national.sustainability.vehicleCategoryBreakdown.slice(0, 8) as category (category.category)}
@@ -1330,20 +1330,6 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
-  }
-  .vehicle-summary {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-top: 0.72rem;
-  }
-  .vehicle-summary strong {
-    color: var(--mobility-text, #09090b);
-    font-size: 1.45rem;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: 1;
   }
   .card-heading-score {
     align-self: center;
