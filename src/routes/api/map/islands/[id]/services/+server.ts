@@ -2,15 +2,16 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
 import { mobilityFacade } from '$lib/server/mobility/mobility-facade';
+import { publicMapResponse } from '$lib/server/mobility/public-map-response';
 import { IslandServicesNotFoundError } from '$lib/server/scoring/island-services';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, request }) => {
   await waitForMobilityApiDelay();
 
   try {
-    return new Response(JSON.stringify(await mobilityFacade.getIslandServices(params.id ?? '')), {
-      headers: { 'content-type': 'application/json' }
-    });
+    return await publicMapResponse(request, `map/islands/${params.id}/services`, () =>
+      mobilityFacade.getIslandServices(params.id ?? '')
+    );
   } catch (error) {
     if (error instanceof IslandServicesNotFoundError) {
       return new Response(JSON.stringify({ error: error.message }), {

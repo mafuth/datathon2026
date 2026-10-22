@@ -18,6 +18,8 @@ import {
   resolveEducationRouting,
   resolveElderlyHospitalRouting
 } from './hospital-routing';
+import { calculationSnapshot } from './scoring-snapshot';
+import { indexedPopulation, indexedServices } from './snapshot-index';
 
 export { healthDemand } from './health-demand';
 
@@ -54,7 +56,7 @@ function cappedPercent(value: number, population: number | null): number | null 
 }
 
 export function populationForIsland(snapshot: ScoringSnapshot, islandId: string): Population[] {
-  return snapshot.population.filter((record) => record.islandId === islandId);
+  return indexedPopulation(snapshot).get(islandId) ?? [];
 }
 
 export function populationAmount(records: Population[], category: string): number | null {
@@ -338,7 +340,7 @@ function selectDestination(
       : unavailableDestination();
   }
 
-  const originServices = snapshot.services.filter((service) => service.islandId === originIslandId);
+  const originServices = indexedServices(snapshot).get(originIslandId) ?? [];
   const local = bestHealthService(healthServices(originServices), needKey);
   if (local) {
     return {
@@ -351,7 +353,7 @@ function selectDestination(
 
   const candidate = directConnections(snapshot, originIslandId)
     .map((entry) => {
-      const services = snapshot.services.filter((service) => service.islandId === entry.islandId);
+      const services = indexedServices(snapshot).get(entry.islandId) ?? [];
       const service = bestHealthService(healthServices(services), needKey);
       return { ...entry, service };
     })
@@ -404,6 +406,7 @@ function selectUniqueEducationRouting(
 }
 
 export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocationResult {
+  snapshot = calculationSnapshot(snapshot);
   const cached = demandAllocationCache.get(snapshot);
   if (cached) return cached;
 

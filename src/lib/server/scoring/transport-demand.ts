@@ -11,6 +11,8 @@ import type {
 } from './types';
 
 import { scoringConfig } from './config';
+import { calculationSnapshot } from './scoring-snapshot';
+import { indexedIslands, indexedPopulation } from './snapshot-index';
 
 type CohortDemand = {
   working: number;
@@ -63,7 +65,9 @@ function average(values: number[]): number | null {
 
 function populationAmount(snapshot: ScoringSnapshot, islandId: string, category: string): number {
   return (
-    snapshot.population.find((record) => record.islandId === islandId && record.ageCategory === category)?.amount ?? 0
+    indexedPopulation(snapshot)
+      .get(islandId)
+      ?.find((record) => record.ageCategory === category)?.amount ?? 0
   );
 }
 
@@ -243,14 +247,14 @@ function preferredDestinationStops(
   mode: TransportStopMode,
   destinationIslandId: string
 ): TransportStop[] {
-  const destination = snapshot.islands.find((island) => island.id === destinationIslandId);
+  const destination = indexedIslands(snapshot).get(destinationIslandId);
   const destinationName = destination ? normalizeLabel(destination.name) : '';
   const hubRouting = scoringConfig.transportDemandPolicy.hospitalHubRouting;
 
   if (mode === 'air' && destinationName === 'hulhule') {
     const preferred = candidates.filter(
       (stop) =>
-        hubRouting.hulhuleAirportStopIds.includes(stop.id) ||
+        hubRouting.hulhuleAirportStopIds.some((id) => id === stop.id) ||
         (stop.subtype === 'airport' &&
           hubRouting.hulhuleAirportNameTokens.some((token) =>
             normalizeLabel(stop.name ?? '').includes(normalizeLabel(token))
@@ -378,7 +382,7 @@ function transferLegs(snapshot: ScoringSnapshot, allocation: DemandAllocation, i
   const pathConnectionIds = allocation.pathConnectionIds ?? [];
   if (pathConnectionIds.length > 0 && pathIslandIds.length === pathConnectionIds.length + 1) {
     const connectionById = connectionsById(snapshot);
-    const result = pathConnectionIds.flatMap((connectionId, index) => {
+    const result: TransferLeg[] = pathConnectionIds.flatMap((connectionId, index) => {
       const connection = connectionById.get(connectionId);
       const mode = connection ? connectionMode(connection, includeLand) : null;
       const originIslandId = pathIslandIds[index];
@@ -394,7 +398,7 @@ function transferLegs(snapshot: ScoringSnapshot, allocation: DemandAllocation, i
     allocation.destinationIslandId !== allocation.originIslandId &&
     (allocation.routeType === 'marine' || allocation.routeType === 'airport')
   ) {
-    const result = [
+    const result: TransferLeg[] = [
       {
         mode: allocation.routeType === 'airport' ? 'air' : 'marine',
         originIslandId: allocation.originIslandId,
@@ -493,6 +497,7 @@ export function calculateTransportDemand(
   snapshot: ScoringSnapshot,
   demandAllocations: DemandAllocationResult
 ): TransportDemandResult {
+  snapshot = calculationSnapshot(snapshot);
   let byAllocation = transportDemandCache.get(snapshot);
   if (!byAllocation) {
     byAllocation = new WeakMap<DemandAllocationResult, Map<string, TransportDemandResult>>();

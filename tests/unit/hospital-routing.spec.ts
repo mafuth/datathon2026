@@ -373,10 +373,12 @@ describe('elderly hospital routing', () => {
 
     const transport = calculateTransportDemand('origin', scoringSnapshot, allocations);
 
-    expect(transport.stops.find((stop) => stop.stopId === 'prost-jetty')?.careTransferDemand).toBe(30);
+    // A transfer is allocated once, split across its boarding and arrival endpoints.
+    expect(transport.stops.find((stop) => stop.stopId === 'prost-jetty')?.careTransferDemand).toBe(15);
     expect(transport.stops.find((stop) => stop.stopId === 'other-male-port')?.careTransferDemand).toBe(0);
-    expect(transport.stops.find((stop) => stop.stopId === 'airport:vrmm')?.careTransferDemand).toBe(30);
+    expect(transport.stops.find((stop) => stop.stopId === 'airport:vrmm')?.careTransferDemand).toBe(15);
     expect(transport.stops.find((stop) => stop.stopId === 'hulhule-terminal')?.careTransferDemand).toBe(0);
+    expect(transport.stops.reduce((sum, stop) => sum + stop.careTransferDemand, 0)).toBe(60);
   });
 
   it('routes every education level through eligible paths and central overlays', () => {

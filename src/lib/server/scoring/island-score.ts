@@ -3,6 +3,7 @@ import type { DemandAllocationResult, IslandScoreResult, ScoringSnapshot } from 
 import { loadScoringSnapshot } from './database-input';
 import { buildDemandAllocation } from './demand-allocation';
 import { calculateIslandScore } from './factors';
+import { calculationSnapshot } from './scoring-snapshot';
 
 const islandScoreCache = new WeakMap<
   ScoringSnapshot,
@@ -16,7 +17,7 @@ export async function getIslandScore(
 ): Promise<IslandScoreResult> {
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new Error('Island ID is required');
-  const scoringSnapshot = snapshot ?? (await loadScoringSnapshot());
+  const scoringSnapshot = calculationSnapshot(snapshot ?? (await loadScoringSnapshot()));
   const scoringDemandAllocations = demandAllocations ?? buildDemandAllocation(scoringSnapshot);
   let byAllocation = islandScoreCache.get(scoringSnapshot);
   if (!byAllocation) {

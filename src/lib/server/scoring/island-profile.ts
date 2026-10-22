@@ -13,6 +13,7 @@ import type { Island, Service, TransportConnection } from '$models';
 
 import { loadIslandContext, loadScoringSnapshot } from './database-input';
 import { getIslandScore } from './island-score';
+import { indexedIslands, indexedPopulation, indexedServices } from './snapshot-index';
 import { sustainabilityDto } from './sustainability-score';
 
 export type IslandProfileWithSustainability = IslandProfile & {
@@ -198,7 +199,7 @@ function demandProfile(
   total: number | null,
   score: Awaited<ReturnType<typeof getIslandScore>>,
   services: Service[],
-  islands: Island[]
+  islandById: Map<string, Island>
 ): IslandDemandProfile {
   const childPopulation =
     populationAmount(records, 'child_population_0_14') ?? populationAmount(records, 'child_population_0_17');
@@ -206,7 +207,6 @@ function demandProfile(
   const youthPopulation =
     populationAmount(records, 'youth_population_18_35') ?? populationAmount(records, 'youth_population_15_24');
   const serviceById = new Map(services.map((service) => [service.id, service]));
-  const islandById = new Map(islands.map((island) => [island.id, island]));
   const healthDemandSummary = demandMetric(score.demand.health);
   const educationDemandSummary = demandMetric(score.demand.education);
   const allAgeDemand = score.demand.healthByNeed.primary ? demandMetric(score.demand.healthByNeed.primary) : null;
@@ -323,11 +323,11 @@ function buildIslandProfile(
   snapshot: ScoringSnapshot,
   score: Awaited<ReturnType<typeof getIslandScore>>
 ): IslandProfileWithSustainability {
-  const populationRecords = snapshot.population.filter((record) => record.islandId === island.id);
+  const populationRecords = indexedPopulation(snapshot).get(island.id) ?? [];
   const totalRecord = populationRecords.find((record) => record.ageCategory === 'total');
   const total = totalRecord?.amount ?? score.overall.denominatorPopulation;
-  const islandServices = snapshot.services.filter((service) => service.islandId === island.id);
-  const islandsById = new Map(snapshot.islands.map((entry) => [entry.id, entry]));
+  const islandServices = indexedServices(snapshot).get(island.id) ?? [];
+  const islandsById = indexedIslands(snapshot);
   const routesById = new Map(
     snapshot.routes.map((route) => [route.id, { name: route.name, routeType: route.routeType }])
   );
@@ -375,6 +375,6 @@ function buildIslandProfile(
       limitations: score.employment.limitations
     },
     sustainability: sustainabilityDto(score.sustainability),
-    demand: demandProfile(populationRecords, total, score, islandServices, snapshot.islands)
+    demand: demandProfile(populationRecords, total, score, islandServices, islandsById)
   };
 }

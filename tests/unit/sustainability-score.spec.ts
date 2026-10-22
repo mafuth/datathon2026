@@ -143,11 +143,18 @@ describe('sustainability scoring', () => {
       transportDemand: { land: null, marine: 100_000, air: null },
       airLinkExists: false
     });
+    const capped = calculateSustainabilityScore({
+      totalPopulation: 1_000,
+      vehicleCounts: [vehicle('island:one', 'total', 100), vehicle('island:one', 'motor_cycle', 100)],
+      transportDemand: { land: null, marine: 1_000, air: null },
+      airLinkExists: false
+    });
 
     expect(air.pollutionPressure).toBeGreaterThan(ferry.pollutionPressure ?? -Infinity);
     expect(air.score).toBeLessThan(ferry.score ?? Infinity);
-    expect(oversized.pollutionPressure).toBe(ferry.pollutionPressure);
-    expect(oversized.score).toBe(ferry.score);
+    expect(oversized.pollutionPressure).toBe(capped.pollutionPressure);
+    expect(oversized.score).toBe(capped.score);
+    expect(oversized.publicTransportShiftedDemand).toBe(capped.publicTransportShiftedDemand);
   });
 
   it('reports factor contributions as shares of modeled pollution pressure', () => {

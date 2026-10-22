@@ -23,24 +23,31 @@
 
 <section class="space-y-6">
   <header class="space-y-1.5">
-    <h1 class="font-secondary text-[26px] leading-tight font-semibold tracking-tight">Create your account</h1>
+    <h1 class="font-secondary text-[length:var(--app-text-title)] leading-tight font-semibold tracking-tight">
+      Create your account
+    </h1>
     <p class="text-sm text-muted-foreground">Enter your details below to create your account.</p>
   </header>
 
   <form {...createUserForm} {...useFormValidation(createUserForm)} class="space-y-4!">
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Name</Field.Label>
+      <Field.Label for={`${formKey}-name`} class="text-xs font-medium tracking-tight text-muted-foreground"
+        >Name</Field.Label
+      >
       <Input
         autocomplete="name"
         placeholder="Ada Lovelace"
         class="h-10 bg-background text-sm dark:bg-background"
         {...createUserForm.fields.name.as('text')}
+        id={`${formKey}-name`}
       />
       <Field.Error errors={createUserForm.fields.name.issues()} />
     </Field.Field>
 
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Email</Field.Label>
+      <Field.Label for={`${formKey}-email`} class="text-xs font-medium tracking-tight text-muted-foreground"
+        >Email</Field.Label
+      >
       <Input
         autocapitalize="none"
         autocorrect="off"
@@ -48,26 +55,34 @@
         placeholder="you@example.com"
         class="h-10 bg-background text-sm dark:bg-background"
         {...createUserForm.fields.email.as('email')}
+        id={`${formKey}-email`}
       />
       <Field.Error errors={createUserForm.fields.email.issues()} />
     </Field.Field>
 
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Password</Field.Label>
+      <Field.Label for={`${formKey}-password`} class="text-xs font-medium tracking-tight text-muted-foreground"
+        >Password</Field.Label
+      >
       <PasswordInput
         autocomplete="new-password"
         class="h-10 bg-background text-sm dark:bg-background"
         {...createUserForm.fields._password.as('password')}
+        id={`${formKey}-password`}
       />
       <Field.Error errors={createUserForm.fields._password.issues()} />
     </Field.Field>
 
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Confirm password</Field.Label>
+      <Field.Label
+        for={`${formKey}-password-confirmation`}
+        class="text-xs font-medium tracking-tight text-muted-foreground">Confirm password</Field.Label
+      >
       <PasswordInput
         autocomplete="new-password"
         class="h-10 bg-background text-sm dark:bg-background"
         {...createUserForm.fields._passwordConfirmation.as('password')}
+        id={`${formKey}-password-confirmation`}
       />
       <Field.Error errors={createUserForm.fields._passwordConfirmation.issues()} />
     </Field.Field>
@@ -87,7 +102,9 @@
     </button>
   </form>
 
-  <div class="flex items-center gap-3 text-[11px] tracking-tight text-muted-foreground uppercase">
+  <div
+    class="flex items-center gap-3 text-[length:var(--app-text-caption)] tracking-tight text-muted-foreground uppercase"
+  >
     <span class="h-px flex-1 bg-border"></span>
     <span>or</span>
     <span class="h-px flex-1 bg-border"></span>

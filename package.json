@@ -29,6 +29,8 @@
     "db:clear": "vite-node --options.transformMode.ssr='/.*/' src/lib/db/clear",
     "db:import:vehicle-counts": "vite-node --options.transformMode.ssr='/.*/' scripts/import-vehicle-counts.ts",
     "mobility:export-baseline": "vite-node --options.transformMode.ssr='/.*/' scripts/export-mobility-baseline.ts",
+    "mobility:precompute": "node scripts/precompute-mobility.mjs",
+    "mobility:measure": "node scripts/measure-mobility-performance.mjs",
     "mobility:fetch-osm": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-mobility.ts",
     "mobility:fetch-osm-sample": "vite-node --options.transformMode.ssr='/.*/' scripts/fetch-osm-sample.ts",
     "mobility:audit-osm-gaps": "vite-node --options.transformMode.ssr='/.*/' scripts/audit-osm-marine-gaps.ts",
@@ -95,6 +97,7 @@
     "better-auth": "^1.6.26",
     "drizzle-orm": "^0.45.2",
     "maplibre-gl": "^6.14.0",
+    "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "resend": "^6.18.1",
     "uuid": "^14.0.1"

@@ -28,7 +28,9 @@
 
 <section class="space-y-6">
   <header class="space-y-1.5">
-    <h1 class="font-secondary text-[26px] leading-tight font-semibold tracking-tight">Welcome back</h1>
+    <h1 class="font-secondary text-[length:var(--app-text-title)] leading-tight font-semibold tracking-tight">
+      Welcome back
+    </h1>
     <p class="text-sm text-muted-foreground">Enter your email and password below to log in.</p>
   </header>
 
@@ -36,7 +38,9 @@
     <input {...loginForm.fields.next.as('hidden', data.next)} />
 
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Email</Field.Label>
+      <Field.Label for={`${formKey}-email`} class="text-xs font-medium tracking-tight text-muted-foreground"
+        >Email</Field.Label
+      >
       <Input
         autocapitalize="none"
         autocorrect="off"
@@ -44,13 +48,16 @@
         placeholder="you@example.com"
         class="h-10 bg-background text-sm dark:bg-background"
         {...loginForm.fields.email.as('email')}
+        id={`${formKey}-email`}
       />
       <Field.Error errors={emailErrors()} />
     </Field.Field>
 
     <Field.Field class="gap-1.5">
       <div class="flex items-baseline justify-between">
-        <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Password</Field.Label>
+        <Field.Label for={`${formKey}-password`} class="text-xs font-medium tracking-tight text-muted-foreground"
+          >Password</Field.Label
+        >
         <a
           href={resolve('/password')}
           class="text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
@@ -62,6 +69,7 @@
         autocomplete="current-password"
         class="h-10 bg-background text-sm dark:bg-background"
         {...loginForm.fields._password.as('password')}
+        id={`${formKey}-password`}
       />
       <Field.Error errors={loginForm.fields._password.issues()} />
     </Field.Field>
@@ -81,7 +89,9 @@
     </button>
   </form>
 
-  <div class="flex items-center gap-3 text-[11px] tracking-tight text-muted-foreground uppercase">
+  <div
+    class="flex items-center gap-3 text-[length:var(--app-text-caption)] tracking-tight text-muted-foreground uppercase"
+  >
     <span class="h-px flex-1 bg-border"></span>
     <span>or</span>
     <span class="h-px flex-1 bg-border"></span>

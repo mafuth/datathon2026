@@ -30,6 +30,7 @@ import {
   transportServices
 } from './demand-allocation';
 import { calculateEmploymentScore } from './employment-score';
+import { indexedIslands, indexedServices } from './snapshot-index';
 import { calculateSustainabilityScore } from './sustainability-score';
 import { calculateTransportDemand } from './transport-demand';
 
@@ -236,7 +237,7 @@ function serviceBreakdown(
     const destinationIslandId = allocation?.destinationIslandId ?? null;
     const routeType = allocation?.routeType ?? 'unavailable';
     const destinationServices = destinationIslandId
-      ? snapshot.services.filter((service) => service.islandId === destinationIslandId && service.serviceType === kind)
+      ? (indexedServices(snapshot).get(destinationIslandId) ?? []).filter((service) => service.serviceType === kind)
       : [];
     const destinationService =
       kind === 'health' ? bestHealthService(destinationServices, key) : bestEducationService(destinationServices, key);
@@ -245,9 +246,7 @@ function serviceBreakdown(
         (allocation?.routeFactor ?? 0) *
         100
       : null;
-    const destination = destinationIslandId
-      ? snapshot.islands.find((record) => record.id === destinationIslandId)
-      : null;
+    const destination = destinationIslandId ? indexedIslands(snapshot).get(destinationIslandId) : null;
     const destinationPopulation = destination ? totalPopulation(populationForIsland(snapshot, destination.id)) : null;
     const destinationCrowding = destination ? calculateCrowdedness(destination, destinationPopulation) : crowding;
     const destinationExternal = destination
@@ -315,7 +314,7 @@ function transportScores(
   airport: AirportAccess,
   transportDemand: IslandScoreResult['transport']['demand']
 ): IslandScoreResult['transport'] {
-  const services = transportServices(snapshot.services).filter((service) => service.islandId === island.id);
+  const services = transportServices(indexedServices(snapshot).get(island.id) ?? []);
   const connections = directConnections(snapshot, island.id);
   const landEvidence =
     services.filter((service) => ['bus_station', 'bus_stop', 'public_transport'].includes(service.subtype)).length +
@@ -396,7 +395,7 @@ export function calculateIslandScore(
   snapshot: ScoringSnapshot,
   demandAllocations: DemandAllocationResult | undefined = undefined
 ): IslandScoreResult {
-  const island = snapshot.islands.find((record) => record.id === islandId);
+  const island = indexedIslands(snapshot).get(islandId);
   if (!island) throw new Error(`Island ${islandId} was not found`);
 
   const populationRecords = populationForIsland(snapshot, island.id);
@@ -457,11 +456,9 @@ export function calculateIslandScore(
     ],
     evidence: {
       populationRows: populationRecords.length,
-      healthServices: healthServices(snapshot.services.filter((service) => service.islandId === island.id)).length,
-      educationServices: educationServices(snapshot.services.filter((service) => service.islandId === island.id))
-        .length,
-      transportServices: transportServices(snapshot.services.filter((service) => service.islandId === island.id))
-        .length,
+      healthServices: healthServices(indexedServices(snapshot).get(island.id) ?? []).length,
+      educationServices: educationServices(indexedServices(snapshot).get(island.id) ?? []).length,
+      transportServices: transportServices(indexedServices(snapshot).get(island.id) ?? []).length,
       transportConnections: connectionsForIsland(snapshot, island.id).length
     }
   };

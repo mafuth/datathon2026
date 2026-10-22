@@ -2,6 +2,7 @@ import type { Island, Service, TransportConnection } from '../../db/models';
 import type { ScoringSnapshot, ServiceScore } from './types';
 
 import { scoringConfig } from './config';
+import { indexedIslands } from './snapshot-index';
 
 const LAND_CONNECTIONS = new Set(['bridge', 'bus', 'causeway', 'land_link']);
 const EARTH_RADIUS_METERS = 6_371_000;
@@ -65,6 +66,12 @@ type ServiceCandidate = {
   distanceM: number | null;
 };
 
+const graphCache = new WeakMap<ScoringSnapshot['connections'], Map<string, GraphEdge[]>>();
+const pathCache = new WeakMap<ScoringSnapshot['connections'], Map<string, Map<string, PathState>>>();
+const serviceGroupsCache = new WeakMap<ScoringSnapshot['services'], Map<string, Map<string, Service[]>>>();
+const routingCache = new WeakMap<ScoringSnapshot, Map<string, ServiceRouting>>();
+const centralIslandsCache = new WeakMap<Map<string, Island>, WeakMap<readonly string[], Island[]>>();
+
 function round(value: number): number {
   return Number(value.toFixed(4));
 }
@@ -122,12 +129,26 @@ export function connectionRoute(connection: TransportConnection): {
 }
 
 function outgoingEdges(snapshot: ScoringSnapshot, islandId: string): GraphEdge[] {
-  return snapshot.connections.flatMap((connection) => {
-    const targetIslandId = connectionFromIsland(connection, islandId);
-    const route = connectionRoute(connection);
-    if (!targetIslandId || !route) return [];
-    return [{ islandId: targetIslandId, connection, ...route }];
-  });
+  let graph = graphCache.get(snapshot.connections);
+  if (!graph) {
+    graph = new Map();
+    for (const connection of snapshot.connections) {
+      const route = connectionRoute(connection);
+      if (!route) continue;
+      const add = (origin: string, target: string) => {
+        const edge = { islandId: target, connection, ...route };
+        const edges = graph!.get(origin);
+        if (edges) edges.push(edge);
+        else graph!.set(origin, [edge]);
+      };
+      add(connection.fromIslandId, connection.toIslandId);
+      if (connection.directionality === 'bidirectional' && connection.toIslandId !== connection.fromIslandId) {
+        add(connection.toIslandId, connection.fromIslandId);
+      }
+    }
+    graphCache.set(snapshot.connections, graph);
+  }
+  return graph.get(islandId) ?? [];
 }
 
 function comparePath(left: PathState, right: PathState): number {
@@ -143,6 +164,10 @@ function comparePath(left: PathState, right: PathState): number {
 }
 
 function shortestPaths(snapshot: ScoringSnapshot, originIslandId: string): Map<string, PathState> {
+  let byOrigin = pathCache.get(snapshot.connections);
+  if (!byOrigin) pathCache.set(snapshot.connections, (byOrigin = new Map()));
+  const cached = byOrigin.get(originIslandId);
+  if (cached) return cached;
   const paths = new Map<string, PathState>();
   const pending: PathState[] = [
     {
@@ -193,6 +218,7 @@ function shortestPaths(snapshot: ScoringSnapshot, originIslandId: string): Map<s
     }
   }
 
+  byOrigin.set(originIslandId, paths);
   return paths;
 }
 
@@ -292,10 +318,16 @@ function centralServiceCandidates(
   paths: Map<string, PathState>,
   options: ServiceRoutingOptions
 ): ServiceCandidate[] {
-  const centralIslands = new Set(options.centralIslandNames.map(normalizeIslandName));
+  let byNames = centralIslandsCache.get(islandsById);
+  if (!byNames) centralIslandsCache.set(islandsById, (byNames = new WeakMap()));
+  let centralIslands = byNames.get(options.centralIslandNames);
+  if (!centralIslands) {
+    const names = new Set(options.centralIslandNames.map(normalizeIslandName));
+    centralIslands = [...islandsById.values()].filter((island) => names.has(normalizeIslandName(island.name)));
+    byNames.set(options.centralIslandNames, centralIslands);
+  }
   const byIsland = new Map<string, ServiceCandidate>();
-  for (const island of islandsById.values()) {
-    if (!centralIslands.has(normalizeIslandName(island.name))) continue;
+  for (const island of centralIslands) {
     const islandServices = services.filter((service) => service.islandId === island.id);
     const service = options.selectService(islandServices);
     if (!service || byIsland.has(island.id)) continue;
@@ -327,23 +359,27 @@ export function resolveServiceRouting(
   originIslandId: string,
   options: ServiceRoutingOptions
 ): ServiceRouting {
-  const origin = snapshot.islands.find((island) => island.id === originIslandId);
+  const islandsById = indexedIslands(snapshot);
+  const origin = islandsById.get(originIslandId);
   if (!origin) return { canonical: null, overlays: [] };
 
-  const candidateServices = snapshot.services.filter(
-    (service) => service.serviceType === options.serviceType && service.islandId !== null
-  );
-  const servicesByIsland = new Map<string, Service[]>();
-  for (const service of candidateServices) {
-    const islandServices = servicesByIsland.get(service.islandId as string) ?? [];
-    islandServices.push(service);
-    servicesByIsland.set(service.islandId as string, islandServices);
+  let byType = serviceGroupsCache.get(snapshot.services);
+  if (!byType) serviceGroupsCache.set(snapshot.services, (byType = new Map()));
+  let servicesByIsland = byType.get(options.serviceType);
+  if (!servicesByIsland) {
+    servicesByIsland = new Map();
+    for (const service of snapshot.services) {
+      if (service.serviceType !== options.serviceType || service.islandId === null) continue;
+      const islandServices = servicesByIsland.get(service.islandId) ?? [];
+      islandServices.push(service);
+      servicesByIsland.set(service.islandId, islandServices);
+    }
+    byType.set(options.serviceType, servicesByIsland);
   }
   const services = [...servicesByIsland.values()].flatMap((islandServices) => {
     const service = options.selectService(islandServices);
     return service ? [service] : [];
   });
-  const islandsById = new Map(snapshot.islands.map((island) => [island.id, island]));
   const localService = services.find((service) => service.islandId === origin.id) ?? null;
   if (localService) {
     return {
@@ -379,14 +415,16 @@ export function resolveElderlyHospitalRouting(
   snapshot: ScoringSnapshot,
   originIslandId: string
 ): ElderlyHospitalRouting {
-  return resolveServiceRouting(snapshot, originIslandId, {
-    serviceType: 'health',
-    centralIslandNames: scoringConfig.healthDemandPolicy.centralHospitalIslandNames,
-    selectService: (services) =>
-      [...services]
-        .filter((service) => service.subtype === 'hospital')
-        .sort((left, right) => left.id.localeCompare(right.id))[0] ?? null
-  });
+  return cachedServiceRouting(snapshot, `${originIslandId}:health:hospital`, () =>
+    resolveServiceRouting(snapshot, originIslandId, {
+      serviceType: 'health',
+      centralIslandNames: scoringConfig.healthDemandPolicy.centralHospitalIslandNames,
+      selectService: (services) =>
+        [...services]
+          .filter((service) => service.subtype === 'hospital')
+          .sort((left, right) => left.id.localeCompare(right.id))[0] ?? null
+    })
+  );
 }
 
 export function resolveEducationRouting(
@@ -394,12 +432,22 @@ export function resolveEducationRouting(
   originIslandId: string,
   requiredSubtype: string
 ): EducationRouting {
-  return resolveServiceRouting(snapshot, originIslandId, {
-    serviceType: 'education',
-    centralIslandNames: scoringConfig.educationDemandPolicy.centralEducationIslandNames,
-    selectService: (services) =>
-      [...services]
-        .filter((service) => service.subtype === requiredSubtype)
-        .sort((left, right) => left.id.localeCompare(right.id))[0] ?? null
-  });
+  return cachedServiceRouting(snapshot, `${originIslandId}:education:${requiredSubtype}`, () =>
+    resolveServiceRouting(snapshot, originIslandId, {
+      serviceType: 'education',
+      centralIslandNames: scoringConfig.educationDemandPolicy.centralEducationIslandNames,
+      selectService: (services) =>
+        [...services]
+          .filter((service) => service.subtype === requiredSubtype)
+          .sort((left, right) => left.id.localeCompare(right.id))[0] ?? null
+    })
+  );
+}
+
+function cachedServiceRouting(snapshot: ScoringSnapshot, key: string, calculate: () => ServiceRouting): ServiceRouting {
+  let routes = routingCache.get(snapshot);
+  if (!routes) routingCache.set(snapshot, (routes = new Map()));
+  let routing = routes.get(key);
+  if (!routing) routes.set(key, (routing = calculate()));
+  return routing;
 }

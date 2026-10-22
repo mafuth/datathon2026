@@ -1,7 +1,10 @@
+import { themeColor } from '$lib/config/theme/theme-tokens';
+
 export type ScoreMood = {
   min: number;
   label: string;
   src: string;
+  stillSrc: string;
   color: string;
 };
 
@@ -9,6 +12,7 @@ export type ScorePresentation = {
   percent: string;
   color: string;
   emojiSrc: string;
+  emojiStillSrc: string;
   emojiLabel: string;
 };
 
@@ -57,32 +61,44 @@ export const SCORE_MOODS = [
   {
     min: 0,
     label: 'Loudly crying face',
-    src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Loudly%20Crying%20Face.png`,
-    color: '#d73027'
+    src: '/images/score-emojis/crying.webp',
+    stillSrc: '/images/score-emojis/crying.png',
+    color: themeColor('--mobility-map-score-0')
+  },
+  {
+    min: 30,
+    label: 'Worried face',
+    src: '/images/score-emojis/worried.webp',
+    stillSrc: '/images/score-emojis/worried.png',
+    color: themeColor('--mobility-map-score-0')
   },
   {
     min: 50,
-    label: 'Worried face',
-    src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Worried%20Face.png`,
-    color: '#fc8d59'
+    label: 'Neutral face',
+    src: '/images/score-emojis/neutral.webp',
+    stillSrc: '/images/score-emojis/neutral.png',
+    color: themeColor('--mobility-map-score-1')
   },
   {
     min: 65,
     label: 'Slightly smiling face',
-    src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Slightly%20Smiling%20Face.png`,
-    color: '#d6b83f'
+    src: '/images/score-emojis/slight-smile.webp',
+    stillSrc: '/images/score-emojis/slight-smile.png',
+    color: themeColor('--mobility-map-score-2')
   },
   {
     min: 80,
     label: 'Smiling face',
-    src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Smiling%20Face.png`,
-    color: '#77a85d'
+    src: '/images/score-emojis/smiling.webp',
+    stillSrc: '/images/score-emojis/smiling.png',
+    color: themeColor('--mobility-map-score-3')
   },
   {
     min: 90,
     label: 'Beaming face with smiling eyes',
-    src: `${ANIMATED_FLUENT_EMOJI_BASE_URL}Beaming%20Face%20with%20Smiling%20Eyes.png`,
-    color: '#1a9850'
+    src: '/images/score-emojis/beaming.webp',
+    stillSrc: '/images/score-emojis/beaming.png',
+    color: themeColor('--mobility-map-score-4')
   }
 ] as const satisfies readonly ScoreMood[];
 
@@ -101,7 +117,7 @@ export function averagePercentage(values: readonly (number | null | undefined)[]
 }
 
 export function scoreColor(value: number | null | undefined, options: ScoreColorOptions = {}): string {
-  if (isUnavailableScore(value)) return '#a1a1aa';
+  if (isUnavailableScore(value)) return themeColor('--mobility-chart-reference');
 
   const score = Math.max(0, Math.min(100, value ?? 0));
   const moodScore = options.higherIsWorse ? 100 - score : score;
@@ -110,10 +126,22 @@ export function scoreColor(value: number | null | undefined, options: ScoreColor
 
 export function scorePresentation(value: number | null | undefined, unavailableLabel: string): ScorePresentation {
   if (isUnavailableScore(value)) {
-    return { percent: 'N/A', color: '#09090b', emojiSrc: '', emojiLabel: unavailableLabel };
+    return {
+      percent: 'N/A',
+      color: themeColor('--mobility-ink'),
+      emojiSrc: '',
+      emojiStillSrc: '',
+      emojiLabel: unavailableLabel
+    };
   }
 
   const score = Math.max(0, Math.min(100, value ?? 0));
   const mood = [...SCORE_MOODS].reverse().find((candidate) => score >= candidate.min) ?? SCORE_MOODS[0];
-  return { percent: `${Math.round(score)}%`, color: mood.color, emojiSrc: mood.src, emojiLabel: mood.label };
+  return {
+    percent: `${Math.round(score)}%`,
+    color: mood.color,
+    emojiSrc: mood.src,
+    emojiStillSrc: mood.stillSrc,
+    emojiLabel: mood.label
+  };
 }

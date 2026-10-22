@@ -55,25 +55,25 @@ export const SUSTAINABILITY_FACTORS = [
     key: 'privateVehicles',
     label: 'Private vehicles',
     note: 'Vehicle counts weighted by category',
-    color: '#b45309'
+    color: 'var(--mobility-chart-transport)'
   },
   {
     key: 'busLand',
     label: 'Bus / land',
     note: 'Net bus benefit versus private travel',
-    color: '#2563eb'
+    color: 'var(--mobility-chart-education)'
   },
   {
     key: 'jettyMarine',
     label: 'Jetty / marine',
     note: 'Net ferry benefit versus private travel',
-    color: '#0f766e'
+    color: 'var(--mobility-accent)'
   },
   {
     key: 'airportAir',
     label: 'Airport / air',
     note: 'High-impact air demand or population proxy',
-    color: '#7c3aed'
+    color: 'var(--mobility-chart-transfer)'
   }
 ] as const satisfies ReadonlyArray<{
   key: SustainabilityFactorKey;

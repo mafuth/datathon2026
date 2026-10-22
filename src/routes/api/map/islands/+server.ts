@@ -1,11 +1,12 @@
 import type { RequestHandler } from '@sveltejs/kit';
 
-import { json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 import { Atoll, Island } from '$lib/db/models';
 import db from '$lib/server/database';
 import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
+import { detailGeometry, overviewGeometry } from '$lib/server/mobility/overview-geometry';
+import { publicMapResponse } from '$lib/server/mobility/public-map-response';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { buildDemandAllocation } from '$lib/server/scoring/demand-allocation';
 import { getIslandScore } from '$lib/server/scoring/island-score';
@@ -35,10 +36,7 @@ type MapPayload = {
   }>;
 };
 
-let overviewRequest: Promise<MapPayload> | null = null;
-let detailRequest: Promise<MapPayload> | null = null;
-
-async function buildMapPayload(): Promise<MapPayload> {
+async function buildMapPayload(detail: boolean): Promise<MapPayload> {
   const [islandRows, snapshot] = await Promise.all([
     db
       .select({ island: Island, atollName: Atoll.name })
@@ -87,7 +85,7 @@ async function buildMapPayload(): Promise<MapPayload> {
           {
             type: 'Feature',
             id: island.id,
-            geometry,
+            geometry: detail ? detailGeometry(geometry) : overviewGeometry(geometry),
             properties: {
               id: island.id,
               name: island.name,
@@ -108,20 +106,10 @@ async function buildMapPayload(): Promise<MapPayload> {
   };
 }
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, request }) => {
   await waitForMobilityApiDelay();
 
   const detail = url.searchParams.get('detail') === 'true';
 
-  const request = detail ? (detailRequest ?? buildMapPayload()) : (overviewRequest ?? buildMapPayload());
-  if (detail) detailRequest = request;
-  else overviewRequest = request;
-
-  try {
-    const payload = await request;
-    return json(payload);
-  } finally {
-    if (detail) detailRequest = null;
-    else overviewRequest = null;
-  }
+  return publicMapResponse(request, `map/islands/${detail ? 'detail' : 'overview'}`, () => buildMapPayload(detail));
 };

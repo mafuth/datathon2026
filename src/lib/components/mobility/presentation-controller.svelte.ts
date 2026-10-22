@@ -77,6 +77,15 @@ export class PresentationController {
       this.exit();
       return;
     }
+    // Space must still activate a focused control instead of skipping the scene.
+    if (
+      event.key === ' ' &&
+      typeof HTMLElement !== 'undefined' &&
+      target instanceof HTMLElement &&
+      target.closest('button, summary, a[href], [role="button"], [role="tab"], [role="checkbox"], [role="radio"]')
+    ) {
+      return;
+    }
     if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
       event.preventDefault();
       this.next();

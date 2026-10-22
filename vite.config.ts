@@ -60,6 +60,8 @@ export default defineConfig(() => ({
         test: {
           name: 'server',
           environment: 'node',
+          // The map and PDF palette consume the real single-source CSS as raw text.
+          css: { include: [/\/styles\/theme\.css(?:\?.*)?$/] },
           include: ['src/**/*.{test,spec}.{js,ts}', 'tests/unit/**/*.{test,spec}.{js,ts}'],
           exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'tests/e2e/**']
         }

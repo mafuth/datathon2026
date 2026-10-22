@@ -23,9 +23,9 @@
     <ThemeSwitch />
   </header>
 
-  <main class="flex min-h-screen items-center justify-center px-6 py-24">
+  <div class="flex min-h-screen items-center justify-center px-6 py-24">
     <div class="w-full max-w-95">
       {@render children?.()}
     </div>
-  </main>
+  </div>
 </div>

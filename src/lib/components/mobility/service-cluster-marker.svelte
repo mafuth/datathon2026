@@ -39,28 +39,29 @@
     min-width: 1.75rem;
     height: 1.75rem;
     padding: 0 0.28rem;
-    border: 2px solid #ffffff;
-    border-radius: 999px;
+    border: 2px solid var(--mobility-surface);
+    border-radius: var(--mobility-radius-pill);
     background: var(--cluster-background);
-    color: #ffffff;
-    box-shadow: 0 0.18rem 0.55rem rgb(16 24 32 / 22%);
-    animation: service-cluster-marker-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    color: var(--mobility-on-accent);
+    box-shadow: var(--mobility-shadow-marker);
+    animation: service-cluster-marker-enter var(--mobility-duration-enter) var(--mobility-ease) both;
     opacity: 1;
     transform: scale(var(--marker-scale, 1));
     cursor: pointer;
-    font-size: 0.62rem;
-    font-weight: 900;
+    font-family: var(--mobility-font-body);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-extrabold);
     line-height: 1;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 32%);
+    text-shadow: var(--mobility-shadow-text);
     transition:
-      transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 360ms ease,
-      box-shadow 360ms ease;
+      transform var(--mobility-duration-fast) var(--mobility-ease),
+      opacity var(--mobility-duration-fast) ease,
+      box-shadow var(--mobility-duration-fast) ease;
   }
 
   .service-cluster-marker:hover {
     transform: scale(calc(var(--marker-scale, 1) * 1.08));
-    box-shadow: 0 0.25rem 0.7rem rgb(16 24 32 / 28%);
+    box-shadow: var(--mobility-shadow-popup);
   }
 
   :global(.service-cluster-marker-exiting) {
@@ -70,7 +71,7 @@
   }
 
   .service-cluster-marker:focus-visible {
-    outline: 3px solid #09090b;
+    outline: 3px solid var(--mobility-ink);
     outline-offset: 3px;
   }
 

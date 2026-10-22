@@ -34,6 +34,7 @@ FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
+ENV MOBILITY_CACHE_DIR=/app/.cache/mobility
 
 WORKDIR /app
 
@@ -41,6 +42,8 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
 COPY --from=build /app/data/mobility ./data/mobility
+
+RUN mkdir -p /app/.cache/mobility && chown -R node:node /app/.cache
 
 USER node
 

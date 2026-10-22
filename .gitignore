@@ -39,6 +39,7 @@ node_modules/
 # Databases & local data
 # -------------------------
 dev.db
+/data/mobility/.cache/
 
 # -------------------------
 # Test results

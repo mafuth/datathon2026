@@ -1,0 +1,29 @@
+Microsoft animated Fluent emoji artwork
+Source collection: Tarikul-Islam-Anik/Animated-Fluent-Emojis
+Pinned source commit: 55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e
+
+Source repository LICENSE (Personal Use Only License):
+- This repository is for strictly personal use only.
+- All rights are reserved by Microsoft, which retains the authority to restrict its use in personal projects.
+- The repository owner and contributors hold no liability for any consequences arising from its use.
+
+These files are mechanical 72 x 72 pixel derivatives: animated WebP at 15 fps
+and first-frame PNG. Original total animation durations and looping are retained.
+
+crying:
+https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e/Emojis/Smilies/Loudly%20Crying%20Face.png
+
+worried:
+https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e/Emojis/Smilies/Worried%20Face.png
+
+neutral:
+https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e/Emojis/Smilies/Neutral%20Face.png
+
+slight-smile:
+https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e/Emojis/Smilies/Slightly%20Smiling%20Face.png
+
+smiling:
+https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e/Emojis/Smilies/Smiling%20Face.png
+
+beaming:
+https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/55e1dceff489121c3f7c7a7ec4f4d401d2cbd53e/Emojis/Smilies/Beaming%20Face%20with%20Smiling%20Eyes.png

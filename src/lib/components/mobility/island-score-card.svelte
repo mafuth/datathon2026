@@ -1,222 +1,218 @@
 <script lang="ts">
   import type { AnalyticsIsland } from './national-analytics-card.svelte';
-  import type { ScoreCardMetric } from './score-presentation';
+
+  import ChevronDown from '@lucide/svelte/icons/chevron-down';
 
   import { Skeleton } from '$components/ui/skeleton';
 
-  import { isUnavailableScore, scorePercentage, scorePresentation } from './score-presentation';
+  import { chartScore, islandScoreMetrics } from './island-chart-data';
+  import IslandScoreComparison from './island-score-comparison.svelte';
+  import ScoreDisplay from './score-display.svelte';
 
-  type Props = {
+  let {
+    island,
+    loading = false,
+    error = false,
+    embedded = false
+  }: {
     island: AnalyticsIsland | null;
     loading?: boolean;
     error?: boolean;
-  };
+    embedded?: boolean;
+  } = $props();
 
-  let { island, loading = false, error = false }: Props = $props();
-
-  let overall = $derived(island?.overall.score);
-  let presentation = $derived(scorePresentation(overall, 'Island score unavailable'));
-  let metrics = $derived<readonly ScoreCardMetric[]>([
-    { key: 'health', label: 'Health', value: island?.health.score },
-    { key: 'education', label: 'Schools', value: island?.education.score },
-    { key: 'transport', label: 'Getting around', value: island?.transport.score },
-    { key: 'employment', label: 'Jobs', value: island?.employment.score },
-    { key: 'sustainability', label: 'Sustainability', value: island?.sustainability.score }
-  ]);
-
-  function islandLabel(): string {
-    return island ? `${island.atollName} ${island.name}` : 'Island score';
-  }
+  let overall = $derived(chartScore(island?.overall.score));
+  let metrics = $derived(islandScoreMetrics(island));
 </script>
 
-<section class="island-panel" aria-label="Island mobility score" aria-busy={loading} data-story-target="island-score">
+<section
+  class="island-panel"
+  class:embedded
+  aria-label="Island mobility score"
+  aria-busy={loading}
+  data-story-target="island-score"
+>
   <div class="panel-heading">
-    <div class="heading-copy">
-      {#if loading}
-        <Skeleton class="title-skeleton" />
-        <Skeleton class="caption-skeleton" />
-      {:else}
-        <h2>{islandLabel()}</h2>
-        <p>Island score</p>
-      {/if}
-    </div>
-  </div>
-
-  <div class="score-mood" aria-live="polite">
     {#if loading}
-      <Skeleton class="value-skeleton" />
-      <Skeleton class="emoji-skeleton" />
-    {:else if isUnavailableScore(overall)}
-      <div class="score-unavailable">
-        <strong>Score unavailable</strong>
-        <span>There is not enough island data to calculate a score.</span>
-      </div>
+      <Skeleton class="island-title-skeleton" />
+      <Skeleton class="island-caption-skeleton" />
     {:else}
-      <strong class="score-value" style={`color: ${presentation.color}`}>{presentation.percent}</strong>
-      {#if presentation.emojiSrc}
-        <img src={presentation.emojiSrc} alt={presentation.emojiLabel} width="82" height="82" />
-      {:else}
-        <span class="emoji-placeholder" aria-hidden="true">?</span>
-      {/if}
+      <p class="eyebrow">{island?.atollName ? `${island.atollName} · Island mobility` : 'Island mobility'}</p>
+      <h2>{island?.name ?? 'Island score'}</h2>
     {/if}
   </div>
 
-  <div class="metric-grid" aria-label="Island score breakdown">
-    {#each metrics as metric (metric.key)}
-      <div class="metric">
-        {#if loading}
-          <Skeleton class="metric-label-skeleton" />
-          <Skeleton class="metric-value-skeleton" />
-        {:else}
-          <span>{metric.label}</span>
-          <strong>{scorePercentage(metric.value)}</strong>
-        {/if}
-      </div>
-    {/each}
+  <div class="score-summary" aria-live="polite">
+    {#if loading}
+      <Skeleton class="island-score-skeleton" />
+      <Skeleton class="island-copy-skeleton" />
+    {:else}
+      <ScoreDisplay value={overall} label={`${island?.name ?? 'Island'} overall mobility score`} prominent />
+      <p class="score-note">
+        {overall === null ? 'Insufficient evidence for an island score.' : 'Modeled mobility index · higher is better'}
+      </p>
+    {/if}
   </div>
 
+  <details class="score-breakdown">
+    <summary><span>Score breakdown</span><ChevronDown size={15} aria-hidden="true" /></summary>
+    <div class="breakdown-content" aria-label="Island score breakdown">
+      {#if loading}
+        {#each metrics as metric (metric.key)}
+          <div class="loading-row">
+            <Skeleton class="island-metric-label-skeleton" /><Skeleton class="island-metric-bar-skeleton" />
+          </div>
+        {/each}
+      {:else}
+        <IslandScoreComparison {metrics} compact />
+      {/if}
+    </div>
+  </details>
   {#if error}<p class="panel-error">Island details are unavailable.</p>{/if}
 </section>
 
 <style>
   .island-panel {
     width: min(19rem, calc(100vw - 2rem));
-    padding: 0.9rem 1rem;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    border-radius: 0.55rem;
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
-    color: var(--mobility-text, #09090b);
+    padding: 1rem;
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-panel);
+    background: var(--mobility-surface);
+    box-shadow: var(--mobility-shadow-panel);
+    color: var(--mobility-ink);
     color-scheme: light;
+    animation: panel-enter var(--mobility-duration-enter) var(--mobility-ease) both;
   }
   .panel-heading {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.55rem;
-  }
-  .heading-copy {
     min-width: 0;
+  }
+  .eyebrow {
+    margin: 0 0 0.25rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   h2 {
     overflow: hidden;
     margin: 0;
-    font-size: 1.08rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: var(--mobility-text-xl);
+    font-weight: var(--mobility-font-weight-semibold);
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
   }
-  .heading-copy p {
-    margin: 0.16rem 0 0;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.62rem;
-    font-weight: 650;
-  }
-  .score-mood {
+  .score-summary {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    justify-items: start;
+    gap: 0.35rem;
+    min-width: 0;
+    margin: 0.65rem 0 0.7rem;
+  }
+  .score-breakdown {
+    border-top: 1px solid var(--mobility-border);
+  }
+  summary {
+    display: flex;
     align-items: center;
-    width: min(15rem, 100%);
-    margin: 1rem auto 1.05rem;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 2.25rem;
+    padding: 0.55rem 0;
+    border-radius: var(--mobility-radius-small);
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-semibold);
+    list-style: none;
+    cursor: pointer;
   }
-  .score-value {
-    font-size: 2.9rem;
-    font-weight: 800;
-    letter-spacing: -0.05em;
-    line-height: 1;
+  summary::-webkit-details-marker {
+    display: none;
   }
-  .score-mood img,
-  .emoji-placeholder {
-    display: grid;
-    place-items: center;
-    width: 5.1rem;
-    height: 5.1rem;
-    object-fit: contain;
+  summary:hover {
+    color: var(--mobility-accent);
   }
-  .emoji-placeholder {
-    color: #8b949b;
-    font-size: 1.7rem;
-    font-weight: 800;
+  summary:focus-visible {
+    outline: 2px solid var(--mobility-accent);
+    outline-offset: 3px;
   }
-  .score-unavailable {
-    display: grid;
-    grid-column: 1 / -1;
-    justify-items: center;
-    gap: 0.25rem;
-    text-align: center;
+  summary :global(svg) {
+    flex: 0 0 auto;
+    transition: transform var(--mobility-duration-fast) var(--mobility-ease);
   }
-  .score-unavailable strong {
-    font-size: 0.76rem;
+  details[open] summary :global(svg) {
+    transform: rotate(180deg);
   }
-  .score-unavailable span {
-    color: #52525b;
-    font-size: 0.61rem;
-    line-height: 1.35;
+  .breakdown-content {
+    padding: 0.3rem 0 0.65rem;
   }
-  .metric-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-    margin-top: 0.6rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--mobility-border, #e4e4e7);
+  .score-note {
+    margin: 0;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    line-height: 1.45;
   }
-  .metric {
-    display: grid;
-    gap: 0.14rem;
-    min-height: 2.65rem;
-    padding: 0.48rem 0.55rem;
-    border: 1px solid var(--mobility-border, #e4e4e7);
-    border-radius: 0.4rem;
-    background: #fafafa;
-  }
-  .metric span {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.55rem;
-    font-weight: 700;
-    line-height: 1.1;
-  }
-  .metric strong {
-    color: var(--mobility-text, #09090b);
-    font-size: 0.76rem;
-    font-variant-numeric: tabular-nums;
+  .island-panel.embedded {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    animation: none;
   }
   .panel-error {
     margin: 0.55rem 0 0;
-    color: #b42318;
-    font-size: 0.72rem;
+    color: var(--destructive, var(--mobility-danger-ink));
+    font-size: var(--mobility-text-xs);
   }
-  :global([data-slot='skeleton']) {
-    background-color: #f4f4f5;
-    background-image: linear-gradient(90deg, #f4f4f5 0%, #fafafa 50%, #f4f4f5 100%);
-    background-size: 200% 100%;
+  .loading-row {
+    display: grid;
+    grid-template-columns: 5.1rem 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.7rem;
   }
-  :global(.title-skeleton) {
+  :global(.island-title-skeleton) {
     width: 8.5rem;
     height: 1rem;
   }
-  :global(.caption-skeleton) {
+  :global(.island-caption-skeleton) {
     width: 5rem;
     height: 0.5rem;
-    margin-top: 0.18rem;
+    margin-top: 0.25rem;
   }
-  :global(.value-skeleton) {
-    width: 5rem;
-    height: 2.9rem;
+  :global(.island-score-skeleton) {
+    width: 11rem;
+    height: 5rem;
+    flex: 0 0 auto;
+    border-radius: var(--mobility-radius-small);
   }
-  :global(.emoji-skeleton) {
-    width: 5.1rem;
-    height: 5.1rem;
-    border-radius: 50%;
+  :global(.island-copy-skeleton) {
+    width: 12rem;
+    height: 0.55rem;
   }
-  :global(.metric-label-skeleton) {
-    width: 72%;
-    height: 0.5rem;
+  :global(.island-metric-label-skeleton) {
+    width: 4rem;
+    height: 0.65rem;
   }
-  :global(.metric-value-skeleton) {
-    width: 3rem;
-    height: 0.76rem;
-    margin-top: 0.14rem;
+  :global(.island-metric-bar-skeleton) {
+    width: 100%;
+    height: 0.35rem;
+  }
+  @keyframes panel-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .island-panel {
+      animation: none;
+    }
+    summary :global(svg) {
+      transition: none;
+    }
   }
 </style>

@@ -290,14 +290,13 @@ export function calculateSustainabilityScore(input: SustainabilityScoreInput): S
     .reduce((sum, value) => sum + value, 0);
   const modeledPollution = round(Math.max(0, netPollution));
   const pollutionFactors = withContributionShares(rawPollutionFactors, Math.max(1, Math.abs(netPollution)));
-  const pollutionPressure =
-    rows.length > 0 && totalPopulation !== null && totalPopulation > 0
-      ? round(modeledPollution / totalPopulation)
-      : null;
+  const rawPollutionPressure =
+    rows.length > 0 && totalPopulation !== null && totalPopulation > 0 ? modeledPollution / totalPopulation : null;
+  const pollutionPressure = rawPollutionPressure === null ? null : round(rawPollutionPressure);
   const sustainabilityScore =
-    rows.length === 0 || pollutionPressure === null
+    rows.length === 0 || rawPollutionPressure === null
       ? null
-      : round(clamp(1 - pollutionPressure / sustainabilityConfig.pollutionPressureReference) * 100);
+      : round(clamp(1 - rawPollutionPressure / sustainabilityConfig.pollutionPressureReference) * 100);
   const limitations = [
     'Vehicle data source: Maldives Bureau of Statistics Statistical Yearbook 2024, Table 11.6 (2018 registration totals); island rows for Addu and Other atolls are planning allocations, not observed island registrations. Resort, industrial, uninhabited, and zero-population island registrations remain unknown.',
     'Vehicle counts are a private-travel proxy; they do not measure trips, distance, occupancy, fuel type, or emissions.',

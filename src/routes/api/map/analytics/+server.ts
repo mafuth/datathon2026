@@ -5,12 +5,12 @@ import type {
   TransportDemandResult
 } from '$lib/server/scoring/types';
 
-import { json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 import { Atoll, Island } from '$lib/db/models';
 import db from '$lib/server/database';
 import { waitForMobilityApiDelay } from '$lib/server/mobility/api-delay';
+import { publicMapResponse } from '$lib/server/mobility/public-map-response';
 import { buildAnalyticsRankings } from '$lib/server/scoring/analytics-rankings';
 import { loadScoringSnapshot } from '$lib/server/scoring/database-input';
 import { populationForIsland, totalPopulation } from '$lib/server/scoring/demand-allocation';
@@ -189,9 +189,7 @@ function aggregateTransportDemand(results: TransportDemandResult[]) {
   };
 }
 
-export const GET: RequestHandler = async () => {
-  await waitForMobilityApiDelay();
-
+async function buildAnalyticsPayload() {
   const [snapshot, islandRows] = await Promise.all([
     loadScoringSnapshot(),
     db
@@ -295,7 +293,7 @@ export const GET: RequestHandler = async () => {
   }));
   const rankings = buildAnalyticsRankings(rankingInputs);
 
-  return json({
+  return {
     national: {
       score: national.score,
       status: national.status,
@@ -323,5 +321,10 @@ export const GET: RequestHandler = async () => {
     population,
     islands,
     rankings
-  });
+  };
+}
+
+export const GET: RequestHandler = async ({ request }) => {
+  await waitForMobilityApiDelay();
+  return publicMapResponse(request, 'map/analytics', buildAnalyticsPayload);
 };

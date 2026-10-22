@@ -1,0 +1,77 @@
+.presentation-journey-vehicle {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 56px;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.presentation-journey-vehicle::before {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--mobility-surface-soft);
+  box-shadow: var(--mobility-shadow-marker);
+  content: '';
+}
+
+.presentation-journey-vehicle img {
+  position: relative;
+  grid-area: 1 / 1;
+  display: block;
+  width: 48px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(var(--mobility-shadow-text));
+}
+
+.presentation-journey-vehicle img[hidden] {
+  display: none;
+}
+
+.presentation-journey-vehicle[data-mode='aircraft'],
+.presentation-journey-vehicle[data-mode='aircraft'] img {
+  width: 64px;
+  height: 64px;
+}
+
+.presentation-journey-vehicle[data-mode='aircraft']::before {
+  display: none;
+}
+
+.presentation-journey-vehicle-tail {
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: 30px;
+  height: 48px;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity var(--mobility-duration-fast) var(--mobility-ease);
+  pointer-events: none;
+}
+
+.presentation-journey-vehicle[data-moving='true'] .presentation-journey-vehicle-tail {
+  opacity: 1;
+}
+
+.presentation-journey-vehicle[data-mode='ferry'] .presentation-journey-vehicle-tail {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mobility-surface-soft) 80%, transparent), transparent);
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 70% 100%, 50% 22%, 30% 100%, 0 100%);
+}
+
+.presentation-journey-vehicle[data-mode='aircraft'] .presentation-journey-vehicle-tail {
+  width: 15px;
+  height: 68px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mobility-surface-soft) 80%, transparent), transparent);
+  mask-image: linear-gradient(90deg, #0000 15%, #000 25% 35%, #0000 45% 55%, #000 65% 75%, #0000 85%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presentation-journey-vehicle-tail {
+    display: none;
+    transition: none;
+  }
+}

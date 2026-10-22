@@ -13,6 +13,7 @@ import {
   serviceClusterBackground,
   serviceMarkerCollection
 } from '../../src/lib/components/mobility/service-marker-clustering';
+import { themeColor } from '../../src/lib/config/theme/theme-tokens';
 
 describe('national accessibility map zoom handoff', () => {
   it('keeps score fields visible past the old cutoff and crossfades island fill', () => {
@@ -65,7 +66,9 @@ describe('selected-island service marker clustering', () => {
     };
 
     expect(clusterMarkerLabel(cluster)).toBe('4 services: 2 health, 1 education, 1 transport');
-    expect(serviceClusterBackground(cluster)).toBe('conic-gradient(#bf4f55 0% 50%, #4b6fa8 50% 75%, #b47a3c 75% 100%)');
+    expect(serviceClusterBackground(cluster)).toBe(
+      `conic-gradient(${themeColor('--mobility-chart-health')} 0% 50%, ${themeColor('--mobility-chart-education')} 50% 75%, ${themeColor('--mobility-chart-transport')} 75% 100%)`
+    );
   });
 });
 

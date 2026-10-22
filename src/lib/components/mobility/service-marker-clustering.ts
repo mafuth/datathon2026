@@ -1,5 +1,7 @@
 import type { IslandMapService } from './island-services';
 
+import { themeColor } from '$lib/config/theme/theme-tokens';
+
 export type Coordinate = [number, number];
 
 export type ServiceMarkerFeature = {
@@ -28,11 +30,18 @@ export const SERVICE_MARKER_ANCHOR_LAYER_ID = 'service-marker-anchor';
 export const SERVICE_MARKER_CLUSTER_RADIUS = 56;
 export const SERVICE_MARKER_CLUSTER_MAX_ZOOM = 15;
 export const SERVICE_MARKER_COLORS = {
-  health: '#bf4f55',
-  education: '#4b6fa8',
-  transport: '#b47a3c'
+  health: themeColor('--mobility-chart-health'),
+  education: themeColor('--mobility-chart-education'),
+  transport: themeColor('--mobility-chart-transport')
 } as const;
 export const EMPTY_SERVICE_MARKERS: ServiceMarkerCollection = { type: 'FeatureCollection', features: [] };
+
+export function isProposalServiceMarker(service: Pick<IslandMapService, 'id' | 'change'>): boolean {
+  return (
+    service.change !== 'deleted' &&
+    (service.id.startsWith('draft:') || (service.change !== undefined && service.change !== 'unchanged'))
+  );
+}
 
 export function serviceMarkerCollection(
   services: readonly Pick<IslandMapService, 'id' | 'serviceType' | 'coordinates'>[]
@@ -52,6 +61,25 @@ export function serviceMarkerCollection(
         : []
     )
   };
+}
+
+export function serviceMarkerPositionsMatch(
+  previous: ReadonlyMap<string, Pick<IslandMapService, 'serviceType' | 'coordinates'>>,
+  next: ReadonlyMap<string, Pick<IslandMapService, 'serviceType' | 'coordinates'>>
+): boolean {
+  if (previous.size !== next.size) return false;
+  for (const [id, service] of next) {
+    const prior = previous.get(id);
+    if (
+      !prior ||
+      prior.serviceType !== service.serviceType ||
+      prior.coordinates?.[0] !== service.coordinates?.[0] ||
+      prior.coordinates?.[1] !== service.coordinates?.[1]
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function clusterMarkerLabel(cluster: ClusterMarkerData): string {

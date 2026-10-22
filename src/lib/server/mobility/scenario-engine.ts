@@ -1,9 +1,12 @@
+import type { ProposalCostItem } from '$lib/mobility/proposal-planning';
+import type { ProposalTransportOperation, ProposalTransportPlan } from '$lib/mobility/proposal-transport';
 import type { ScenarioOperation, ScenarioOperationResult } from '$lib/mobility/scenario-contracts';
 import type { ScoringSnapshot } from '$lib/server/scoring/types';
 import type { Island, Service } from '$models';
 
 import { isTransportStopSubtype, serviceCatalogEntry } from '$lib/mobility/service-catalog';
 
+import { ProposalTransportError, resolveProposalTransport } from './proposal-transport';
 import { serviceDowngradeOptions, serviceUpgradeOptions } from './service-rules';
 
 export class ScenarioDomainError extends Error {
@@ -20,6 +23,10 @@ export class ScenarioDomainError extends Error {
       | 'DOWNGRADE_NOT_ELIGIBLE'
       | 'MOVE_OUTSIDE_ISLAND'
       | 'BASELINE_VERSION_MISMATCH'
+      | 'PROPOSAL_BUDGET_EXCEEDED'
+      | 'PROPOSAL_COST_UNAVAILABLE'
+      | 'TRANSPORT_INVALID'
+      | 'TRANSPORT_NOT_FOUND'
       | 'OPERATION_CONFLICT',
     message: string,
     public readonly status = 422
@@ -36,6 +43,8 @@ type ProjectedScenario = {
   changes: Map<string, 'added' | 'upgraded' | 'downgraded' | 'moved'>;
   deleted: Set<string>;
   results: ScenarioOperationResult[];
+  transportCosts: ProposalCostItem[];
+  transportPlans: ProposalTransportPlan[];
 };
 
 function parseGeometry(geoJson: string): unknown {
@@ -90,14 +99,25 @@ function updateTransportStops(
   deleted: Set<string>,
   added: Set<string>
 ): ScoringSnapshot['transportStops'] {
-  const activeIds = new Set(services.map((service) => service.id));
+  const servicesById = new Map(services.map((service) => [service.id, service]));
+  let changed = false;
   const stops = snapshot.transportStops
-    .filter((stop) => !deleted.has(stop.id))
+    .filter((stop) => {
+      if (!deleted.has(stop.id)) return true;
+      changed = true;
+      return false;
+    })
     .map((stop) => {
-      const service = services.find((entry) => entry.id === stop.id);
-      if (!service || !activeIds.has(stop.id)) return stop;
+      const service = servicesById.get(stop.id);
+      if (
+        !service ||
+        (service.latitude === stop.latitude && service.longitude === stop.longitude && service.subtype === stop.subtype)
+      )
+        return stop;
+      changed = true;
       return { ...stop, latitude: service.latitude, longitude: service.longitude, subtype: service.subtype };
     });
+  const stopIds = new Set(stops.map((stop) => stop.id));
 
   for (const service of services) {
     if (
@@ -107,7 +127,7 @@ function updateTransportStops(
       !isTransportStopSubtype(service.serviceType, service.subtype) ||
       service.latitude === null ||
       service.longitude === null ||
-      stops.some((stop) => stop.id === service.id)
+      stopIds.has(service.id)
     ) {
       continue;
     }
@@ -121,9 +141,11 @@ function updateTransportStops(
       longitude: service.longitude,
       routeIds: []
     });
+    changed = true;
+    stopIds.add(service.id);
   }
 
-  return stops;
+  return changed ? stops : snapshot.transportStops;
 }
 
 export function projectScenario(
@@ -136,14 +158,35 @@ export function projectScenario(
     throw new ScenarioDomainError('ISLAND_NOT_FOUND', `Island ${selectedIslandId} was not found.`, 404);
   }
 
-  const services = snapshot.services.map((service) => ({ ...service }));
   const changes = new Map<string, 'added' | 'upgraded' | 'downgraded' | 'moved'>();
   const deleted = new Set<string>();
+  if (operations.length === 0) {
+    return { snapshot, changes, deleted, results: [], transportCosts: [], transportPlans: [] };
+  }
+  const hasServiceOperations = operations.some(
+    (operation) => operation.kind !== 'add_bus_service' && operation.kind !== 'add_ferry_service'
+  );
+  // Baseline rows are immutable. Only replace rows actually changed by this draft.
+  const services = hasServiceOperations ? [...snapshot.services] : snapshot.services;
+  const serviceIndexes = new Map(services.map((service, index) => [service.id, index]));
   const added = new Set<string>();
+  const moved = new Set<string>();
   const results: ScenarioOperationResult[] = [];
-  const geometry = parseGeometry(island.geoJson);
+  const transportOperations: ProposalTransportOperation[] = [];
+  const geometry = operations.some((operation) => operation.kind === 'add_service' || operation.kind === 'move_service')
+    ? parseGeometry(island.geoJson)
+    : null;
+  const operationIds = new Set<string>();
 
   for (const operation of operations) {
+    if (operationIds.has(operation.operationId)) {
+      throw new ScenarioDomainError('OPERATION_CONFLICT', 'Every proposal operation must have a unique identifier.');
+    }
+    operationIds.add(operation.operationId);
+    if (operation.kind === 'add_bus_service' || operation.kind === 'add_ferry_service') {
+      transportOperations.push(operation);
+      continue;
+    }
     if (operation.kind === 'add_service') {
       const catalogEntry = serviceCatalogEntry(operation.serviceType, operation.subtype);
       if (!catalogEntry) {
@@ -154,7 +197,7 @@ export function projectScenario(
       }
 
       const serviceId = `draft:${operation.operationId}`;
-      if (services.some((service) => service.id === serviceId)) {
+      if (serviceIndexes.has(serviceId)) {
         throw new ScenarioDomainError('SERVICE_ID_COLLISION', `Draft service ${serviceId} already exists.`);
       }
 
@@ -171,6 +214,7 @@ export function projectScenario(
         throw new ScenarioDomainError('ADD_OUTSIDE_ISLAND', 'Choose a point inside the selected island.');
       }
 
+      serviceIndexes.set(serviceId, services.length);
       services.push({
         id: serviceId,
         islandId: selectedIslandId,
@@ -192,8 +236,8 @@ export function projectScenario(
       continue;
     }
 
-    const serviceIndex = services.findIndex((service) => service.id === operation.serviceId);
-    if (serviceIndex < 0) {
+    const serviceIndex = serviceIndexes.get(operation.serviceId);
+    if (serviceIndex === undefined) {
       throw new ScenarioDomainError('SERVICE_NOT_FOUND', `Service ${operation.serviceId} was not found.`);
     }
     const service = services[serviceIndex];
@@ -244,6 +288,7 @@ export function projectScenario(
         throw new ScenarioDomainError('MOVE_OUTSIDE_ISLAND', 'Choose a point inside the selected island.');
       }
       services[serviceIndex] = { ...service, longitude, latitude };
+      moved.add(service.id);
       changes.set(service.id, changes.get(service.id) === 'added' ? 'added' : 'moved');
       results.push({
         operationId: operation.operationId,
@@ -265,19 +310,67 @@ export function projectScenario(
     });
   }
 
-  const activeServices = services.filter((service) => !deleted.has(service.id));
-  const deletedIds = new Set(
-    [...snapshot.services].filter((service) => deleted.has(service.id)).map((service) => service.id)
-  );
+  const activeServices = deleted.size > 0 ? services.filter((service) => !deleted.has(service.id)) : services;
+  const transportCosts: ProposalCostItem[] = [];
+  const transportPlans: ProposalTransportPlan[] = [];
+  const routes = transportOperations.length > 0 ? [...snapshot.routes] : snapshot.routes;
+  const connections = transportOperations.length > 0 ? [...snapshot.connections] : snapshot.connections;
+  const transportKeys = new Set<string>();
+  for (const operation of transportOperations) {
+    const key =
+      operation.kind === 'add_bus_service'
+        ? `bus:${operation.routeId}`
+        : `ferry:${[operation.originStopId, operation.destinationStopId].sort().join('|')}`;
+    if (transportKeys.has(key))
+      throw new ScenarioDomainError(
+        'OPERATION_CONFLICT',
+        'This route already has a proposed service. Remove or undo the earlier service before changing its frequency.'
+      );
+    transportKeys.add(key);
+    if (
+      operation.kind === 'add_ferry_service' &&
+      [operation.originStopId, operation.destinationStopId].some((id) => deleted.has(id) || moved.has(id))
+    ) {
+      throw new ScenarioDomainError(
+        'OPERATION_CONFLICT',
+        'A proposed ferry must use existing landing places that remain at their recorded locations.'
+      );
+    }
+    try {
+      const resolved = resolveProposalTransport(snapshot, selectedIslandId, operation);
+      transportCosts.push(resolved.cost);
+      transportPlans.push(resolved.plan);
+      if (resolved.route) routes.push(resolved.route);
+      if (resolved.connection) connections.push(resolved.connection);
+      results.push({
+        operationId: operation.operationId,
+        kind: operation.kind,
+        serviceId: `draft:${operation.operationId}`,
+        status: 'applied',
+        message: `${resolved.plan.label}: ${resolved.plan.departuresPerDirectionPerDay} proposed departures per operating day${resolved.plan.bidirectional ? ' in each direction' : ''}.`
+      });
+    } catch (error) {
+      if (error instanceof ProposalTransportError)
+        throw new ScenarioDomainError(error.code, error.message, error.status);
+      throw error;
+    }
+  }
   return {
     snapshot: {
       ...snapshot,
+      routes,
+      connections,
       services: activeServices,
-      transportStops: updateTransportStops(snapshot, activeServices, deletedIds, added),
-      routeStops: snapshot.routeStops.filter((stop) => !deletedIds.has(stop.stopId))
+      transportStops: hasServiceOperations
+        ? updateTransportStops(snapshot, activeServices, deleted, added)
+        : snapshot.transportStops,
+      routeStops:
+        deleted.size > 0 ? snapshot.routeStops.filter((stop) => !deleted.has(stop.stopId)) : snapshot.routeStops
     },
     changes,
     deleted,
-    results
+    results,
+    transportCosts,
+    transportPlans
   };
 }

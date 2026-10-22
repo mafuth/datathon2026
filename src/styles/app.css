@@ -1,103 +1,120 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-
-@font-face {
-  font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-VariableFont.ttf') format('truetype');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Sora';
-  src: url('/fonts/Sora-VariableFont.ttf') format('truetype');
-  font-display: swap;
-}
+@import './theme.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --background: var(--color-white);
-  --foreground: var(--color-zinc-950);
-  --muted: var(--color-zinc-100);
-  --muted-foreground: var(--color-zinc-500);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-zinc-950);
-  --card: var(--color-white);
-  --card-foreground: var(--color-zinc-950);
-  --border: var(--color-zinc-200);
-  --input: var(--color-zinc-200);
-  --primary: var(--color-zinc-900);
-  --primary-foreground: var(--color-zinc-50);
-  --secondary: var(--color-zinc-100);
-  --secondary-foreground: var(--color-zinc-900);
-  --accent: var(--color-zinc-100);
-  --accent-foreground: var(--color-zinc-900);
-  --destructive: var(--color-red-600);
-  --destructive-foreground: var(--color-zinc-50);
-  --ring: var(--color-zinc-950);
-  --radius: 0.5rem;
-  --sidebar-background: var(--color-zinc-50);
-  --sidebar-foreground: var(--color-zinc-700);
-  --sidebar-primary: var(--color-zinc-900);
-  --sidebar-primary-foreground: var(--color-zinc-50);
-  --sidebar-accent: var(--color-zinc-100);
-  --sidebar-accent-foreground: var(--color-zinc-700);
-  --sidebar-border: var(--color-zinc-200);
-  --sidebar-ring: var(--ring);
-
-  --brand-primary: var(--color-yellow-300);
-  --brand-secondary: var(--color-teal-300);
-  --brand-tertiary: var(--color-rose-400);
+/* Aliases must resolve again when a light map or portal is inside the dark app. */
+.mobility-theme,
+.proposal-builder-panel,
+.proposal-review-dialog,
+.proposal-delete-dialog,
+.proposal-transport-options {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
+  font-family: var(--mobility-font-body);
+  font-size: var(--mobility-text-base);
+  line-height: var(--mobility-leading-normal);
 }
 
-.dark {
-  --background: var(--color-zinc-950);
-  --foreground: var(--color-zinc-50);
-  --muted: var(--color-zinc-800);
-  --muted-foreground: var(--color-zinc-400);
-  --popover: var(--color-zinc-950);
-  --popover-foreground: var(--color-zinc-50);
-  --card: var(--color-zinc-950);
-  --card-foreground: var(--color-zinc-50);
-  --border: var(--color-zinc-800);
-  --input: var(--color-zinc-800);
-  --primary: var(--color-zinc-50);
-  --primary-foreground: var(--color-zinc-900);
-  --secondary: var(--color-zinc-800);
-  --secondary-foreground: var(--color-zinc-50);
-  --accent: var(--color-zinc-800);
-  --accent-foreground: var(--color-zinc-50);
-  --destructive: var(--color-red-600);
-  --destructive-foreground: var(--color-zinc-50);
-  --ring: var(--color-zinc-300);
-  --sidebar-background: var(--color-zinc-900);
-  --sidebar-foreground: var(--color-zinc-200);
-  --sidebar-primary: var(--color-white);
-  --sidebar-primary-foreground: var(--color-white);
-  --sidebar-accent: var(--color-zinc-800);
-  --sidebar-accent-foreground: var(--color-zinc-200);
-  --sidebar-border: var(--color-zinc-800);
-  --sidebar-ring: var(--ring);
+/* A small entrance shared by occasional panels; no layout animation or JS work. */
+@keyframes mobility-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--mobility-panel-enter-offset));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  --brand-primary: var(--color-teal-300);
-  --brand-secondary: var(--color-yellow-300);
-  --brand-tertiary: var(--color-rose-400);
+@layer components {
+  .ui-button {
+    touch-action: manipulation;
+    transition:
+      background-color var(--mobility-duration-fast) var(--mobility-ease),
+      color var(--mobility-duration-fast) var(--mobility-ease),
+      border-color var(--mobility-duration-fast) var(--mobility-ease),
+      box-shadow var(--mobility-duration-fast) var(--mobility-ease),
+      scale var(--mobility-duration-fast) var(--mobility-ease);
+  }
+
+  .ui-button:active:not(:focus-visible):not(:disabled):not([aria-disabled='true']) {
+    scale: var(--mobility-press-scale);
+  }
+
+  .ui-button:focus-visible {
+    outline: var(--mobility-focus-width) solid var(--ring);
+    outline-offset: var(--mobility-focus-offset);
+  }
 }
 
 @theme {
-  /* Fonts */
-  --font-primary: 'Montserrat', sans-serif;
-  --font-secondary: 'Sora', sans-serif;
-  --font-sans:
-    'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-    'Noto Color Emoji';
-  --font-mono:
-    'Source Code Pro Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
-
-  /* Typography */
-  --text-sm: 0.825rem;
-
+  /* Visual values live in theme.css; Tailwind consumes these aliases. */
+  --font-primary: var(--mobility-font-body);
+  --font-secondary: var(--mobility-font-heading);
+  --font-sans: var(--mobility-font-body);
+  --font-mono: var(--mobility-font-mono);
+  --font-weight-thin: var(--mobility-font-weight-thin);
+  --font-weight-extralight: var(--mobility-font-weight-extralight);
+  --font-weight-light: var(--mobility-font-weight-light);
+  --font-weight-normal: var(--mobility-font-weight-normal);
+  --font-weight-medium: var(--mobility-font-weight-medium);
+  --font-weight-semibold: var(--mobility-font-weight-semibold);
+  --font-weight-bold: var(--mobility-font-weight-bold);
+  --font-weight-extrabold: var(--mobility-font-weight-extrabold);
+  --font-weight-black: var(--mobility-font-weight-black);
+  --text-xs: var(--app-text-xs);
+  --text-sm: var(--app-text-sm);
+  --text-base: var(--app-text-base);
+  --text-lg: var(--app-text-lg);
+  --text-xl: var(--app-text-xl);
+  --text-2xl: var(--app-text-2xl);
+  --text-3xl: var(--app-text-3xl);
+  --text-4xl: var(--app-text-4xl);
+  --text-5xl: var(--app-text-5xl);
+  --text-6xl: var(--app-text-6xl);
+  --text-7xl: var(--app-text-7xl);
+  --text-8xl: var(--app-text-8xl);
+  --text-9xl: var(--app-text-9xl);
+  --text-xs--line-height: var(--mobility-leading-normal);
+  --text-sm--line-height: var(--mobility-leading-normal);
+  --text-base--line-height: var(--mobility-leading-normal);
+  --text-lg--line-height: var(--mobility-leading-normal);
+  --text-xl--line-height: var(--mobility-leading-tight);
+  --text-2xl--line-height: var(--mobility-leading-tight);
+  --text-3xl--line-height: var(--mobility-leading-tight);
+  --text-4xl--line-height: var(--mobility-leading-tight);
+  --text-5xl--line-height: var(--mobility-leading-tight);
+  --text-6xl--line-height: var(--mobility-leading-tight);
+  --text-7xl--line-height: var(--mobility-leading-tight);
+  --text-8xl--line-height: var(--mobility-leading-tight);
+  --text-9xl--line-height: var(--mobility-leading-tight);
+  --leading-none: var(--mobility-leading-none);
+  --leading-tight: var(--mobility-leading-tight);
+  --leading-snug: var(--mobility-leading-snug);
+  --leading-normal: var(--mobility-leading-normal);
+  --leading-relaxed: var(--mobility-leading-relaxed);
+  --leading-loose: var(--mobility-leading-loose);
+  --spacing: var(--app-spacing-unit);
   /* Colors */
   --color-border: var(--border);
   --color-input: var(--input);
@@ -110,9 +127,9 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-caution: var(--color-red-500);
-  --color-warning: var(--color-amber-500);
-  --color-info: var(--color-sky-500);
+  --color-caution: var(--mobility-danger);
+  --color-warning: var(--mobility-warning);
+  --color-info: var(--mobility-info);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -134,10 +151,15 @@
   --color-brand-tertiary: var(--brand-tertiary);
 
   /* Border */
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: var(--mobility-radius-panel);
+  --radius-lg: var(--mobility-radius-card);
+  --radius-md: var(--mobility-radius-control);
+  --radius-sm: var(--mobility-radius-small);
+}
+
+/* Style consuming control roles centrally instead of changing imported primitives. */
+:where([data-slot='button'], [data-slot='toggle']) {
+  font-size: var(--app-text-control);
 }
 
 @layer base {
@@ -155,7 +177,7 @@
   }
 
   body {
-    @apply bg-background font-primary text-foreground antialiased;
+    @apply bg-background font-primary text-base text-foreground antialiased;
   }
 
   form {
@@ -163,7 +185,8 @@
   }
 
   ::-webkit-scrollbar {
-    @apply size-2;
+    width: var(--app-scrollbar-size);
+    height: var(--app-scrollbar-size);
   }
 
   ::-webkit-scrollbar-track {
@@ -186,11 +209,19 @@
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: var(--app-container-gutter);
+}
+
+/* Keep touch form entry readable and prevent mobile browsers zooming a field on focus. */
+@media (max-width: 640px) {
+  :where(.mobility-theme, .proposal-builder-panel, .proposal-review-dialog, .proposal-delete-dialog)
+    :is(input:not([type='checkbox']):not([type='radio']), textarea, select) {
+    font-size: var(--mobility-text-lg);
+  }
 }
 
 @media (min-width: 1400px) {
   .container {
-    max-width: 1400px;
+    max-width: var(--app-container-width);
   }
 }

@@ -10,7 +10,7 @@ services:
         PUBLIC_R2_BUCKET_URL: ${PUBLIC_R2_BUCKET_URL:-}
     image: mobilix:local
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - '${APP_PORT:-3000}:3000'
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
@@ -31,13 +31,17 @@ services:
       EMAIL_SENDER: ${EMAIL_SENDER:-}
     volumes:
       - ./local.db:/app/data/local.db:Z
+      - mobility-cache:/app/.cache/mobility
     healthcheck:
       test:
         - CMD
         - node
         - -e
-        - fetch('http://127.0.0.1:3000/').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))
+        - "fetch('http://127.0.0.1:3000/').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
       interval: 30s
       timeout: 5s
       start_period: 10s
       retries: 3
+
+volumes:
+  mobility-cache:

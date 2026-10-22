@@ -1,5 +1,6 @@
 import type { DemandAllocationResult, ResidentialDemandPoint, ScoringSnapshot } from './types';
 import type {
+  IslandMapService,
   IslandServiceDemand,
   IslandServicesResponse,
   ServiceDemandCategory,
@@ -14,11 +15,13 @@ import { loadIslandContext, loadScoringSnapshot } from './database-input';
 import { buildDemandAllocation } from './demand-allocation';
 import { healthDemandLayer, healthServiceTargetSubtypes } from './health-demand';
 import { buildServiceDemandHexes } from './service-hex-grid';
+import { indexedServices } from './snapshot-index';
 import { calculateTransportDemand } from './transport-demand';
 
 type Coordinate = [number, number];
-const islandGeometryCache = new WeakMap<ScoringSnapshot, Map<string, unknown>>();
-const residentialPointsCache = new WeakMap<ScoringSnapshot, Map<string, ResidentialDemandPoint[]>>();
+const islandGeometryCache = new WeakMap<Island, unknown>();
+const residentialPointsCache = new WeakMap<ResidentialDemandPoint[], Map<string, ResidentialDemandPoint[]>>();
+const noResidentialPoints: ResidentialDemandPoint[] = [];
 
 export type IslandServiceIslandRow = {
   island: Island;
@@ -276,7 +279,7 @@ export function normalizeDemandWeights(values: readonly (number | null)[]): numb
 }
 
 export function normalizeProportionalDemandWeights(values: readonly (number | null)[]): number[] {
-  const total = values.reduce(
+  const total = values.reduce<number>(
     (sum, value) => sum + (value !== null && Number.isFinite(value) && value > 0 ? value : 0),
     0
   );
@@ -293,7 +296,12 @@ function buildPopulationDemand(
 ): IslandServiceDemand {
   if (service.serviceType === 'health') return emptyDemand('population-allocation');
   if (service.serviceType !== 'education') return emptyDemand();
-  return populationDemandForService(service, servicesOnIsland, population, totals);
+  return populationDemandForService(
+    { serviceType: service.serviceType, subtype: service.subtype },
+    servicesOnIsland,
+    population,
+    totals
+  );
 }
 
 function serviceCoverageWeights(service: { serviceType: string; subtype: string }) {
@@ -312,34 +320,32 @@ function serviceCoverageWeights(service: { serviceType: string; subtype: string 
   } satisfies Record<ServiceDemandCategory, number>;
 }
 
-function islandGeometry(snapshot: ScoringSnapshot, islandId: string, geoJson: string): unknown {
-  let geometries = islandGeometryCache.get(snapshot);
-  if (!geometries) {
-    geometries = new Map();
-    islandGeometryCache.set(snapshot, geometries);
-  }
-  if (geometries.has(islandId)) return geometries.get(islandId);
+function islandGeometry(island: Island): unknown {
+  if (islandGeometryCache.has(island)) return islandGeometryCache.get(island);
   let geometry: unknown = null;
   try {
-    geometry = JSON.parse(geoJson) as unknown;
+    geometry = JSON.parse(island.geoJson) as unknown;
   } catch {
     // Invalid optional geometry produces no heatmap rather than failing the services response.
   }
-  geometries.set(islandId, geometry);
+  islandGeometryCache.set(island, geometry);
   return geometry;
 }
 
 function residentialPointsForIsland(snapshot: ScoringSnapshot, islandId: string): ResidentialDemandPoint[] {
-  let pointsByIsland = residentialPointsCache.get(snapshot);
+  const points = snapshot.residentialDemandPoints;
+  if (!points) return noResidentialPoints;
+  let pointsByIsland = residentialPointsCache.get(points);
   if (!pointsByIsland) {
     pointsByIsland = new Map();
-    residentialPointsCache.set(snapshot, pointsByIsland);
+    for (const point of points) {
+      const islandPoints = pointsByIsland.get(point.islandId);
+      if (islandPoints) islandPoints.push(point);
+      else pointsByIsland.set(point.islandId, [point]);
+    }
+    residentialPointsCache.set(points, pointsByIsland);
   }
-  const cached = pointsByIsland.get(islandId);
-  if (cached) return cached;
-  const points = snapshot.residentialDemandPoints?.filter((point) => point.islandId === islandId) ?? [];
-  pointsByIsland.set(islandId, points);
-  return points;
+  return pointsByIsland.get(islandId) ?? noResidentialPoints;
 }
 
 export async function getIslandServices(
@@ -360,14 +366,12 @@ export async function getIslandServices(
 
   const allocations = buildDemandAllocation(snapshot);
   const transportDemand = calculateTransportDemand(normalizedId, snapshot, allocations);
-  const services = snapshot.services
-    .filter((service) => service.islandId === normalizedId)
-    .sort(
-      (left, right) =>
-        left.serviceType.localeCompare(right.serviceType) ||
-        left.subtype.localeCompare(right.subtype) ||
-        left.id.localeCompare(right.id)
-    );
+  const services = [...(indexedServices(snapshot).get(normalizedId) ?? [])].sort(
+    (left, right) =>
+      left.serviceType.localeCompare(right.serviceType) ||
+      left.subtype.localeCompare(right.subtype) ||
+      left.id.localeCompare(right.id)
+  );
   const population = allocations.byIsland.get(normalizedId)?.population ?? null;
   const populationTotals = aggregatePopulationDemand(allocations, normalizedId);
   const healthTotals = aggregateHealthDemand(allocations, normalizedId);
@@ -377,7 +381,7 @@ export async function getIslandServices(
     subtype: service.subtype
   }));
 
-  const mapServices = services.map((service) => {
+  const mapServices = services.map((service): IslandMapService => {
     const coordinates = finiteCoordinate(service.longitude, service.latitude);
     const demand = {
       health:
@@ -417,7 +421,7 @@ export async function getIslandServices(
   const healthWeights = normalizeProportionalDemandWeights(mapServices.map((service) => service.demand.health.value));
   const educationWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.education.value));
   const transportWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.transport.value));
-  const geometry = islandGeometry(snapshot, normalizedId, islandRow.island.geoJson);
+  const geometry = islandGeometry(islandRow.island);
   const islandResidentialPoints = residentialPointsForIsland(snapshot, normalizedId);
   const hexes = buildServiceDemandHexes(
     geometry,

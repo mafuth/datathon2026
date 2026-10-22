@@ -429,7 +429,8 @@ describe('age-based service demand allocation', () => {
           geoJson: null,
           source: 'test',
           sourceObjectId: 'test',
-          modeled: false
+          modeled: false,
+          scoreEligible: true
         },
         {
           id: 'origin-two-destination',
@@ -443,7 +444,8 @@ describe('age-based service demand allocation', () => {
           geoJson: null,
           source: 'test',
           sourceObjectId: 'test',
-          modeled: false
+          modeled: false,
+          scoreEligible: true
         }
       ],
       routes: [],
@@ -540,11 +542,16 @@ describe('age-based service demand allocation', () => {
     expect(score.transport.demand.careTransferDemand).toBeGreaterThan(0);
     expect(score.transport.demand.averageLoad).not.toBeNull();
     expect(score.transport.demand.modes.marine.careTransferDemand).toBeGreaterThan(0);
-    expect(
-      transportStops.reduce((sum, stop) => sum + stop.workingDemand + stop.studentDemand + stop.elderlyDemand, 0)
-    ).toBeCloseTo(
-      score.transport.demand.workingDemand + score.transport.demand.studentDemand + score.transport.demand.elderlyDemand
+    const roundedStopDemand = transportStops.reduce(
+      (sum, stop) => sum + stop.workingDemand + stop.studentDemand + stop.elderlyDemand,
+      0
     );
+    const cohortDemand =
+      score.transport.demand.workingDemand +
+      score.transport.demand.studentDemand +
+      score.transport.demand.elderlyDemand;
+    // Each of three cohorts is rounded independently to two decimals per stop.
+    expect(Math.abs(roundedStopDemand - cohortDemand)).toBeLessThanOrEqual(transportStops.length * 3 * 0.005);
     expect(transportStops.find((stop) => stop.stopId === 'destination-stop-b')?.totalDemand).toBeGreaterThan(
       transportStops.find((stop) => stop.stopId === 'destination-stop-a')?.totalDemand ?? 0
     );
@@ -608,7 +615,24 @@ describe('age-based service demand allocation', () => {
     });
     expect(noRouteOrigin?.healthByNeed.chronic_elderly.outbound).toBe(10);
     expect(noRouteOrigin?.healthByNeed.chronic_elderly.unserved).toBe(10);
-    expect(noRouteDestination?.healthByNeed.chronic_elderly.inbound).toBe(10);
-    expect(noRouteDestination?.health.inbound).toBe(10);
+    // Both origins contribute potential same-atoll hospital pressure (10 + 40),
+    // while their actual routes remain unavailable and demand remains unserved.
+    expect(noRouteAllocations.hospitalOverlays).toEqual([
+      expect.objectContaining({
+        originIslandId: 'origin',
+        destinationIslandId: 'destination',
+        demand: 10,
+        knownConnectivity: false
+      }),
+      expect.objectContaining({
+        originIslandId: 'origin-two',
+        destinationIslandId: 'destination',
+        demand: 40,
+        knownConnectivity: false
+      })
+    ]);
+    expect(noRouteAllocations.byIsland.get('origin-two')?.healthByNeed.chronic_elderly.unserved).toBe(40);
+    expect(noRouteDestination?.healthByNeed.chronic_elderly.inbound).toBe(50);
+    expect(noRouteDestination?.health.inbound).toBe(50);
   });
 });

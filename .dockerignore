@@ -10,6 +10,7 @@ dist
 coverage
 test-results
 playwright-report
+data/mobility/.cache
 
 .env*
 !.env.example
@@ -19,4 +20,7 @@ playwright-report
 *.sqlite
 *.sqlite-*
 
-local.db.bak-*
+**/*.bak-*
+**/*.backup-*
+**/__pycache__
+**/*.pyc

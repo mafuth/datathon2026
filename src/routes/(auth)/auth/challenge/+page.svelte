@@ -47,7 +47,9 @@
 
 <section class="space-y-6">
   <header class="space-y-1.5">
-    <h1 class="font-secondary text-[26px] leading-tight font-semibold tracking-tight">{title}</h1>
+    <h1 class="font-secondary text-[length:var(--app-text-title)] leading-tight font-semibold tracking-tight">
+      {title}
+    </h1>
     <p class="text-sm text-muted-foreground">{description}</p>
   </header>
 
@@ -57,12 +59,15 @@
         <input {...recoveryForm.fields.next.as('hidden', data.next)} />
 
         <Field.Field class="gap-1.5">
-          <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Recovery Code</Field.Label>
+          <Field.Label for={`${formKey}-recovery-code`} class="text-xs font-medium tracking-tight text-muted-foreground"
+            >Recovery Code</Field.Label
+          >
           <Input
             autofocus
             autocomplete="one-time-code"
             class="h-10 bg-background font-mono text-sm dark:bg-background"
             {...recoveryForm.fields._recoveryCode.as('text')}
+            id={`${formKey}-recovery-code`}
           />
           <Field.Error errors={recoveryErrors()} />
         </Field.Field>
@@ -130,7 +135,9 @@
 
       <Field.Field class="gap-1.5">
         <div class="flex items-baseline justify-between">
-          <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Password</Field.Label>
+          <Field.Label for={`${formKey}-password`} class="text-xs font-medium tracking-tight text-muted-foreground"
+            >Password</Field.Label
+          >
           <button
             type="submit"
             form="reset-password-logout"
@@ -145,6 +152,7 @@
           autocomplete="current-password"
           class="h-10 bg-background text-sm dark:bg-background"
           {...passwordForm.fields._password.as('password')}
+          id={`${formKey}-password`}
         />
         <Field.Error errors={passwordErrors()} />
       </Field.Field>

@@ -3,12 +3,11 @@
 
   import ArrowDown from '@lucide/svelte/icons/arrow-down';
   import ArrowUp from '@lucide/svelte/icons/arrow-up';
-  import Hospital from '@lucide/svelte/icons/hospital';
   import MapPin from '@lucide/svelte/icons/map-pin';
-  import Route from '@lucide/svelte/icons/route';
-  import School from '@lucide/svelte/icons/school';
   import Trash2 from '@lucide/svelte/icons/trash-2';
   import X from '@lucide/svelte/icons/x';
+
+  import { serviceAppearance } from '$lib/mobility/service-icons';
 
   import * as AlertDialog from '$components/ui/alert-dialog';
   import { Button } from '$components/ui/button';
@@ -40,6 +39,7 @@
   }: Props = $props();
 
   let deleteDialogOpen = $state(false);
+  let appearance = $derived(serviceAppearance(service.serviceType, service.subtype));
 
   const demandRows: DemandRow[] = [
     { key: 'health', label: 'Health' },
@@ -48,16 +48,12 @@
   ];
   let availableDemandRows = $derived(demandRows.filter((row) => service.demand[row.key].status !== 'unavailable'));
 
-  function titleCase(value: string): string {
-    return value.replaceAll('_', ' ').replace(/\b\w/g, (character) => character.toUpperCase());
-  }
-
   function serviceName(): string {
-    return service.name ?? titleCase(service.subtype);
+    return service.name ?? appearance.label;
   }
 
   function serviceTypeLabel(): string {
-    return titleCase(service.subtype);
+    return appearance.label;
   }
 
   function demandFor(key: ServiceDemandCategory): IslandServiceDemand {
@@ -89,13 +85,7 @@
   <Card.Header class="service-popup-header">
     <div class="service-popup-heading">
       <span class={`service-popup-service-icon service-popup-service-icon-${service.serviceType}`} aria-hidden="true">
-        {#if service.serviceType === 'health'}
-          <Hospital size={16} strokeWidth={2.2} />
-        {:else if service.serviceType === 'education'}
-          <School size={16} strokeWidth={2.2} />
-        {:else}
-          <Route size={16} strokeWidth={2.2} />
-        {/if}
+        <appearance.Icon size={18} strokeWidth={2.1} />
       </span>
       <div class="service-popup-title-group">
         <h2>{serviceName()}</h2>
@@ -255,11 +245,12 @@
     overflow-y: auto;
     gap: 0;
     padding-block: 0;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-text, #09090b);
+    border: 1px solid var(--mobility-border-strong);
+    background: var(--mobility-surface);
+    color: var(--mobility-text);
+    font-family: var(--mobility-font-body);
     color-scheme: light;
-    box-shadow: 0 0.75rem 1.75rem rgb(16 24 32 / 12%);
+    box-shadow: var(--mobility-shadow-panel);
   }
 
   :global(.proposal-delete-dialog) {
@@ -274,12 +265,12 @@
     grid-template-rows: auto auto;
     gap: 1.1rem;
     padding: 1.2rem;
-    border: 1px solid #e7c5c5;
-    border-radius: 1rem;
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-text, #09090b);
+    border: 1px solid var(--mobility-danger-border);
+    border-radius: var(--mobility-radius-panel);
+    background: var(--mobility-surface);
+    color: var(--mobility-text);
     color-scheme: light;
-    box-shadow: 0 1rem 2.5rem rgb(16 24 32 / 16%);
+    box-shadow: var(--mobility-shadow-popup);
   }
 
   :global(.proposal-delete-header) {
@@ -302,22 +293,23 @@
     height: 2rem;
     flex: 0 0 auto;
     place-items: center;
-    border-radius: 0.6rem;
-    background: #fff1f2;
-    color: #be123c;
+    border-radius: var(--mobility-radius-card);
+    background: var(--mobility-danger-soft);
+    color: var(--mobility-danger);
   }
 
   :global(.proposal-delete-header [data-slot='alert-dialog-title']) {
-    color: var(--mobility-text, #09090b);
-    font-size: 1.08rem;
-    font-weight: 800;
+    color: var(--mobility-text);
+    font-family: var(--mobility-font-heading);
+    font-size: var(--mobility-text-lg);
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: -0.02em;
   }
 
   :global(.proposal-delete-header [data-slot='alert-dialog-description']) {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.72rem;
-    line-height: 1.45;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-sm);
+    line-height: var(--mobility-leading-normal);
   }
 
   :global(.proposal-delete-footer) {
@@ -330,29 +322,29 @@
     flex: 0 0 auto;
     margin: 0;
     padding: 0.9rem 0 0;
-    border-top: 1px solid #f0dada;
+    border-top: 1px solid var(--mobility-danger-border);
     border-radius: 0;
     background: transparent;
   }
 
   :global(.proposal-delete-footer button) {
     min-height: 2.35rem;
-    font-size: 0.68rem;
+    font-size: var(--mobility-text-xs);
   }
 
   :global(.proposal-delete-cancel) {
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface-soft, #fafafa);
-    color: var(--mobility-text, #09090b);
+    border-color: var(--mobility-border-strong);
+    background: var(--mobility-surface-soft);
+    color: var(--mobility-text);
   }
 
   :global(.proposal-delete-confirm) {
-    background: #be123c;
-    color: #ffffff;
+    background: var(--mobility-danger);
+    color: var(--mobility-on-accent);
   }
 
   :global(.proposal-delete-confirm:hover) {
-    background: #9f1239;
+    background: var(--mobility-danger-hover);
   }
 
   :global(.service-popup-header) {
@@ -362,7 +354,7 @@
     gap: 0.7rem;
     min-height: 4.1rem;
     padding: 0.75rem 0.75rem 0.7rem 0.9rem;
-    border-bottom: 1px solid var(--mobility-border, #e4e4e7);
+    border-bottom: 1px solid var(--mobility-border);
   }
 
   :global(.service-popup-content) {
@@ -373,9 +365,9 @@
     display: grid;
     gap: 0.45rem;
     padding: 0.7rem 0.9rem 0.85rem;
-    border-top: 1px solid var(--mobility-border, #e4e4e7);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-text, #09090b);
+    border-top: 1px solid var(--mobility-border);
+    background: var(--mobility-surface);
+    color: var(--mobility-text);
     color-scheme: light;
   }
 
@@ -387,30 +379,30 @@
 
   .service-popup-action-row :global(button) {
     flex: 1 1 auto;
-    font-size: 0.6rem;
+    font-size: var(--mobility-text-xs);
   }
 
   :global(.service-popup-outline-action) {
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-accent, #09090b);
+    border-color: var(--mobility-border-strong);
+    background: var(--mobility-surface);
+    color: var(--mobility-accent);
   }
 
   :global(.service-popup-outline-action:hover) {
-    border-color: var(--mobility-focus, #3f3f46);
-    background: var(--mobility-accent-soft, #f4f4f5);
+    border-color: var(--mobility-focus);
+    background: var(--mobility-accent-soft);
   }
 
   :global(.service-popup-delete-action) {
-    border-color: #fecdd3;
-    background: #fff1f2;
-    color: #be123c;
+    border-color: var(--mobility-danger-border);
+    background: var(--mobility-danger-soft);
+    color: var(--mobility-danger);
   }
 
   :global(.service-popup-delete-action:hover) {
-    border-color: #fda4af;
-    background: #ffe4e6;
-    color: #9f1239;
+    border-color: var(--mobility-danger);
+    background: var(--mobility-danger-soft);
+    color: var(--mobility-danger-hover);
   }
 
   .service-popup-heading {
@@ -426,22 +418,22 @@
     height: 2rem;
     flex: 0 0 auto;
     place-items: center;
-    border-radius: 0.55rem;
+    border-radius: var(--mobility-radius-small);
   }
 
   .service-popup-service-icon-health {
-    background: #fff0f1;
-    color: #ad4b52;
+    background: color-mix(in srgb, var(--mobility-chart-health) 8%, var(--mobility-surface));
+    color: var(--mobility-chart-health);
   }
 
   .service-popup-service-icon-education {
-    background: #edf2fb;
-    color: #486995;
+    background: color-mix(in srgb, var(--mobility-chart-education) 8%, var(--mobility-surface));
+    color: var(--mobility-chart-education);
   }
 
   .service-popup-service-icon-transport {
-    background: #fbf3e7;
-    color: #a46d32;
+    background: color-mix(in srgb, var(--mobility-chart-transport) 8%, var(--mobility-surface));
+    color: var(--mobility-chart-transport);
   }
 
   .service-popup-change {
@@ -449,10 +441,10 @@
     margin-top: 0.3rem;
     padding: 0.15rem 0.35rem;
     border-radius: 999px;
-    background: var(--mobility-accent-soft, #f4f4f5);
-    color: var(--mobility-accent, #09090b);
-    font-size: 0.52rem;
-    font-weight: 750;
+    background: var(--mobility-accent-soft);
+    color: var(--mobility-accent);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
@@ -465,22 +457,23 @@
 
   :global(.service-popup-header h2) {
     margin: 0;
-    color: var(--mobility-text, #09090b);
-    font-size: 1.08rem;
-    font-weight: 750;
+    color: var(--mobility-text);
+    font-family: var(--mobility-font-heading);
+    font-size: var(--mobility-text-lg);
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: -0.025em;
-    line-height: 1.08;
+    line-height: var(--mobility-leading-tight);
     overflow-wrap: anywhere;
     white-space: normal;
   }
 
   :global(.service-popup-header p) {
     margin: 0.2rem 0 0;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.68rem;
-    font-weight: 650;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-semibold);
     letter-spacing: 0.01em;
-    line-height: 1.15;
+    line-height: var(--mobility-leading-tight);
     white-space: normal;
   }
 
@@ -488,30 +481,30 @@
     flex: 0 0 auto;
     width: 1.9rem;
     height: 1.9rem;
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    border-radius: 0.65rem;
-    background: var(--mobility-surface-soft, #fafafa);
-    color: var(--mobility-text, #09090b);
-    box-shadow: 0 0.1rem 0.25rem rgb(16 24 32 / 5%);
+    border-color: var(--mobility-border-strong);
+    border-radius: var(--mobility-radius-control);
+    background: var(--mobility-surface-soft);
+    color: var(--mobility-text);
+    box-shadow: var(--mobility-shadow-card);
   }
 
   :global(.service-popup-close:hover) {
-    border-color: var(--mobility-focus, #3f3f46);
-    background: var(--mobility-accent-soft, #f4f4f5);
-    color: var(--mobility-accent, #09090b);
+    border-color: var(--mobility-focus);
+    background: var(--mobility-accent-soft);
+    color: var(--mobility-accent);
   }
 
   :global(.service-popup-close:focus-visible) {
-    border-color: var(--mobility-focus, #3f3f46);
-    box-shadow: 0 0 0 3px rgb(9 9 11 / 18%);
+    border-color: var(--mobility-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mobility-focus), transparent 75%);
   }
 
   .metric-card dt {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.62rem;
-    font-weight: 600;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-semibold);
     letter-spacing: 0.06em;
-    line-height: 1.15;
+    line-height: var(--mobility-leading-tight);
     min-height: 1.15em;
     text-transform: uppercase;
   }
@@ -526,10 +519,10 @@
     display: grid;
     gap: 0.45rem;
     padding: 0.6rem 0.65rem;
-    border: 1px solid var(--mobility-border, #e4e4e7);
-    border-radius: 0.6rem;
-    background: var(--mobility-surface-soft, #fafafa);
-    box-shadow: 0 0.15rem 0.4rem rgb(16 24 32 / 4%);
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-card);
+    background: var(--mobility-surface-soft);
+    box-shadow: var(--mobility-shadow-card);
   }
 
   .demand-card-heading {
@@ -538,9 +531,9 @@
 
   .demand-card-heading h4 {
     margin: 0;
-    color: var(--mobility-text, #09090b);
-    font-size: 0.76rem;
-    font-weight: 750;
+    color: var(--mobility-text);
+    font-size: var(--mobility-text-sm);
+    font-weight: var(--mobility-font-weight-bold);
   }
 
   .metric-grid {
@@ -560,26 +553,27 @@
     min-height: 3.35rem;
     box-sizing: border-box;
     padding: 0.45rem 0.5rem;
-    border: 1px solid var(--mobility-border, #e4e4e7);
-    border-radius: 0.42rem;
-    background: var(--mobility-surface, #ffffff);
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-small);
+    background: var(--mobility-surface);
   }
 
   .metric-card dd {
     margin: 0;
-    color: var(--mobility-text, #09090b);
-    font-size: 0.76rem;
-    font-weight: 650;
+    color: var(--mobility-text);
+    font-size: var(--mobility-text-sm);
+    font-weight: var(--mobility-font-weight-semibold);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
 
   :global(.maplibregl-popup-content) {
+    font-family: var(--mobility-font-body);
     padding: 0;
     border: 0;
-    border-radius: 1rem;
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0.75rem 1.75rem rgb(16 24 32 / 12%);
+    border-radius: var(--mobility-radius-panel);
+    background: var(--mobility-surface);
+    box-shadow: var(--mobility-shadow-panel);
   }
 
   :global(.maplibregl-popup-tip) {
@@ -587,39 +581,39 @@
   }
 
   :global(.maplibregl-popup-anchor-top .maplibregl-popup-tip) {
-    border-bottom-color: #ffffff;
+    border-bottom-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-bottom .maplibregl-popup-tip) {
-    border-top-color: #ffffff;
+    border-top-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-left .maplibregl-popup-tip) {
-    border-right-color: #ffffff;
+    border-right-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-right .maplibregl-popup-tip) {
-    border-left-color: #ffffff;
+    border-left-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-top-left .maplibregl-popup-tip) {
-    border-right-color: #ffffff;
-    border-bottom-color: #ffffff;
+    border-right-color: var(--mobility-surface);
+    border-bottom-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-top-right .maplibregl-popup-tip) {
-    border-left-color: #ffffff;
-    border-bottom-color: #ffffff;
+    border-left-color: var(--mobility-surface);
+    border-bottom-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip) {
-    border-right-color: #ffffff;
-    border-top-color: #ffffff;
+    border-right-color: var(--mobility-surface);
+    border-top-color: var(--mobility-surface);
   }
 
   :global(.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip) {
-    border-left-color: #ffffff;
-    border-top-color: #ffffff;
+    border-left-color: var(--mobility-surface);
+    border-top-color: var(--mobility-surface);
   }
 
   @media (max-width: 480px) {

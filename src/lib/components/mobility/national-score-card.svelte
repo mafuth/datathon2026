@@ -3,9 +3,12 @@
 
   import { onMount } from 'svelte';
 
+  import { Button } from '$components/ui/button';
   import { Input } from '$components/ui/input';
   import { Skeleton } from '$components/ui/skeleton';
 
+  import { chartScore } from './island-chart-data';
+  import ScoreDisplay from './score-display.svelte';
   import { isUnavailableScore, SCORE_NO_DATA_MESSAGES, scorePercentage, scorePresentation } from './score-presentation';
 
   export type IslandSearchOption = {
@@ -117,22 +120,12 @@
           <span>{noDataMessage.description}</span>
         </div>
       {:else}
-        <div class="score-value">
-          <strong style={`color: ${presentation.color}`}>{presentation.percent}</strong>
+        <ScoreDisplay value={overall} label="National mobility score" />
+        <div class="score-explanation">
+          <strong>Access at a glance</strong>
+          <p>A modeled index across service access and transport conditions.</p>
+          <small>Not the share of residents served.</small>
         </div>
-        {#if presentation.emojiSrc}
-          <img
-            class="score-emoji"
-            src={presentation.emojiSrc}
-            alt={presentation.emojiLabel}
-            width="88"
-            height="88"
-            loading="eager"
-            decoding="async"
-          />
-        {:else}
-          <span class="score-emoji-placeholder" aria-hidden="true">?</span>
-        {/if}
       {/if}
     </div>
   </div>
@@ -140,14 +133,16 @@
   {#if loading}
     <Skeleton class="why-score-button-skeleton" aria-hidden="true" />
   {:else}
-    <button
+    <Button
       class="why-score-button"
       type="button"
       aria-label={`Why ${presentation.percent}?`}
+      aria-controls="national-analytics-dialog"
+      aria-haspopup="dialog"
       onclick={onAnalyticsOpen}
     >
       Why {presentation.percent}?
-    </button>
+    </Button>
   {/if}
 
   <div class="overall-score-grid" aria-label="Score breakdown">
@@ -159,6 +154,10 @@
         {:else}
           <span>{metric.label}</span>
           <strong>{scorePercentage(metric.value)}</strong>
+          {@const score = chartScore(metric.value)}
+          <div class="metric-track" aria-hidden="true" data-unavailable={score === null}>
+            {#if score !== null}<i style:width={`${score}%`}></i>{/if}
+          </div>
         {/if}
       </div>
     {/each}
@@ -190,8 +189,9 @@
             <p class="island-search-empty">No islands found</p>
           {:else}
             {#each filteredIslands as island (island.id)}
-              <button
+              <Button
                 class="island-search-suggestion"
+                variant="ghost"
                 type="button"
                 role="option"
                 aria-selected="false"
@@ -202,7 +202,7 @@
               >
                 <span>{island.atollName} {island.name}</span>
                 <strong>{scorePercentage(island.score)}</strong>
-              </button>
+              </Button>
             {/each}
           {/if}
         </div>
@@ -218,12 +218,13 @@
     position: relative;
     width: min(19rem, calc(100vw - 2rem));
     padding: 0.9rem 1rem;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    border-radius: 0.55rem;
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
-    color: var(--mobility-text, #09090b);
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-panel);
+    background: var(--mobility-surface);
+    box-shadow: var(--mobility-shadow-panel);
+    color: var(--mobility-ink);
     color-scheme: light;
+    animation: panel-enter var(--mobility-duration-enter) var(--mobility-ease) both;
   }
   .national-panel-header {
     display: flex;
@@ -245,8 +246,8 @@
     min-width: 0;
     overflow: hidden;
     margin: 0;
-    font-size: 1.22rem;
-    font-weight: 750;
+    font-size: var(--mobility-text-xl);
+    font-weight: var(--mobility-font-weight-semibold);
     letter-spacing: -0.02em;
     line-height: 1.25;
     text-overflow: ellipsis;
@@ -254,16 +255,16 @@
   }
   .panel-caption {
     margin: 0.16rem 0 0;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.62rem;
-    font-weight: 650;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-semibold);
     letter-spacing: 0.03em;
     line-height: 1.35;
   }
   :global(.score-title-skeleton) {
     width: 8.8rem;
     height: 1.1rem;
-    border-radius: 0.28rem;
+    border-radius: var(--mobility-radius-small);
   }
   :global(.score-caption-skeleton) {
     width: 6.2rem;
@@ -279,24 +280,25 @@
   :global(.island-search-skeleton) {
     width: 100%;
     height: 2rem;
-    border-radius: 0.38rem;
+    border-radius: var(--mobility-radius-small);
   }
   :global(.island-search-input) {
     width: 100%;
     height: 2rem;
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface-soft, #fafafa);
-    color: var(--mobility-text, #09090b);
-    font-size: 0.68rem;
-    font-weight: 650;
+    border-radius: var(--mobility-radius-control);
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface-muted);
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-medium);
   }
   :global(.island-search-input::placeholder) {
-    color: #7a858a;
+    color: var(--mobility-muted);
   }
   :global(.island-search-input:focus-visible) {
-    border-color: var(--mobility-focus, #3f3f46);
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0 0 3px rgb(9 9 11 / 16%);
+    border-color: var(--mobility-accent-hover);
+    background: var(--mobility-surface);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mobility-accent) 16%, transparent);
   }
   .island-search-suggestions {
     position: absolute;
@@ -308,12 +310,12 @@
     max-height: 14rem;
     overflow-y: auto;
     padding: 0.3rem;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    border-radius: 0.42rem;
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0.45rem 1.1rem rgb(16 24 32 / 12%);
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-card);
+    background: var(--mobility-surface);
+    box-shadow: var(--mobility-shadow-panel);
   }
-  .island-search-suggestion {
+  :global(.island-search-suggestion) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -321,34 +323,34 @@
     width: 100%;
     padding: 0.48rem 0.5rem;
     border: 0;
-    border-radius: 0.3rem;
+    border-radius: var(--mobility-radius-small);
     background: transparent;
-    color: var(--mobility-text, #09090b);
+    color: var(--mobility-ink);
     cursor: pointer;
-    font-size: 0.68rem;
+    font-size: var(--mobility-text-xs);
     text-align: left;
   }
-  .island-search-suggestion:hover,
-  .island-search-suggestion:focus-visible {
-    background: var(--mobility-accent-soft, #f4f4f5);
+  :global(.island-search-suggestion:hover),
+  :global(.island-search-suggestion:focus-visible) {
+    background: var(--mobility-accent-soft);
     outline: none;
   }
-  .island-search-suggestion span {
+  :global(.island-search-suggestion span) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .island-search-suggestion strong {
+  :global(.island-search-suggestion strong) {
     flex: 0 0 auto;
-    color: var(--mobility-accent, #09090b);
-    font-size: 0.65rem;
+    color: var(--mobility-accent);
+    font-size: var(--mobility-text-xs);
     font-variant-numeric: tabular-nums;
   }
   .island-search-empty {
     margin: 0;
     padding: 0.5rem;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.68rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   :global(.why-score-button) {
     display: flex;
@@ -358,37 +360,38 @@
     height: 2.35rem;
     margin-top: 0.7rem;
     padding: 0 0.8rem;
-    border: 1px solid var(--mobility-accent, #09090b);
-    border-radius: 0.48rem;
-    background: var(--mobility-accent, #09090b);
-    color: #fff;
+    border: 1px solid var(--mobility-accent);
+    border-radius: var(--mobility-radius-control);
+    background: var(--mobility-accent);
+    color: var(--mobility-on-accent);
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.72rem;
-    font-weight: 800;
+    font-size: var(--mobility-text-sm);
+    font-weight: var(--mobility-font-weight-semibold);
     letter-spacing: 0.01em;
   }
   :global(.why-score-button:hover),
   :global(.why-score-button:focus-visible) {
-    border-color: var(--mobility-focus, #3f3f46);
-    background: var(--mobility-focus, #3f3f46);
-    color: #fff;
+    border-color: var(--mobility-accent-hover);
+    background: var(--mobility-accent-hover);
+    color: var(--mobility-on-accent);
     outline: none;
-    box-shadow: 0 0 0 3px rgb(16 24 32 / 14%);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mobility-accent) 16%, transparent);
   }
   :global(.why-score-button-skeleton) {
     display: block;
     width: 100%;
     height: 2.35rem;
     margin-top: 0.7rem;
-    border-radius: 0.48rem;
+    border-radius: var(--mobility-radius-small);
   }
   .score-mood {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    width: min(15rem, 100%);
-    margin: 0.28rem auto 1.25rem;
+    gap: 0.85rem;
+    width: 100%;
+    margin: 0.65rem auto 0.85rem;
   }
   .score-loading {
     display: contents;
@@ -397,27 +400,22 @@
     min-width: 0;
     text-align: left;
   }
-  .score-value strong {
-    display: block;
-    font-size: 2.9rem;
-    font-weight: 800;
-    letter-spacing: -0.05em;
-    line-height: 1;
+  .score-explanation strong {
+    font-size: var(--mobility-text-sm);
+    font-weight: var(--mobility-font-weight-bold);
+    letter-spacing: -0.015em;
   }
-  .score-emoji {
-    display: block;
-    width: 5.25rem;
-    height: 5.25rem;
-    object-fit: contain;
+  .score-explanation p {
+    margin: 0.3rem 0;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    line-height: 1.5;
   }
-  .score-emoji-placeholder {
-    display: grid;
-    place-items: center;
-    width: 5.25rem;
-    height: 5.25rem;
-    color: #8b949b;
-    font-size: 1.7rem;
-    font-weight: 800;
+  .score-explanation small {
+    display: block;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    line-height: 1.4;
   }
   .score-no-data {
     display: grid;
@@ -434,13 +432,13 @@
   }
   .score-no-data strong {
     max-width: 15rem;
-    font-size: 0.75rem;
+    font-size: var(--mobility-text-sm);
     line-height: 1.25;
   }
   .score-no-data span {
     max-width: 15rem;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.62rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
     line-height: 1.35;
   }
   .overall-score-grid {
@@ -449,7 +447,7 @@
     gap: 0.45rem;
     margin-top: 0.6rem;
     padding-top: 0.6rem;
-    border-top: 1px solid var(--mobility-border, #e4e4e7);
+    border-top: 1px solid var(--mobility-border);
   }
   .overall-score-card {
     display: grid;
@@ -457,36 +455,57 @@
     min-width: 0;
     min-height: 2.65rem;
     padding: 0.48rem 0.55rem;
-    border: 1px solid var(--mobility-border, #e4e4e7);
-    border-radius: 0.4rem;
-    background: #fafafa;
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-card);
+    background: var(--mobility-surface-muted);
   }
   .overall-score-card span {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.55rem;
-    font-weight: 700;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-bold);
     line-height: 1.1;
   }
   .overall-score-card strong {
-    color: var(--mobility-text, #09090b);
-    font-size: 0.76rem;
-    font-weight: 800;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-base);
+    font-weight: var(--mobility-font-weight-bold);
     font-variant-numeric: tabular-nums;
+  }
+  .metric-track {
+    height: 3px;
+    margin-top: 0.25rem;
+    overflow: hidden;
+    border-radius: 9px;
+    background: var(--mobility-border);
+  }
+  .metric-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--mobility-accent);
+  }
+  .metric-track[data-unavailable='true'] {
+    background: repeating-linear-gradient(90deg, var(--mobility-border) 0 4px, transparent 4px 7px);
   }
   .panel-error {
     margin: 0.55rem 0 0;
-    color: #b42318;
-    font-size: 0.72rem;
+    color: var(--mobility-danger-ink);
+    font-size: var(--mobility-text-sm);
   }
   :global(.national-panel [data-slot='skeleton']) {
-    background-color: #f4f4f5;
-    background-image: linear-gradient(90deg, #f4f4f5 0%, #fafafa 50%, #f4f4f5 100%);
+    background-color: var(--mobility-surface-muted);
+    background-image: linear-gradient(
+      90deg,
+      var(--mobility-surface-muted) 0%,
+      var(--mobility-surface-soft) 50%,
+      var(--mobility-surface-muted) 100%
+    );
     background-size: 200% 100%;
   }
   :global(.score-value-skeleton) {
     width: 5.1rem;
     height: 2.9rem;
-    border-radius: 0.35rem;
+    border-radius: var(--mobility-radius-small);
   }
   :global(.score-label-skeleton) {
     width: 3.8rem;
@@ -515,7 +534,16 @@
       width: min(19rem, calc(100vw - 1.3rem));
     }
   }
+  @keyframes panel-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
+    .national-panel {
+      animation: none;
+    }
     :global(.national-panel [data-slot='skeleton']) {
       animation: none;
     }

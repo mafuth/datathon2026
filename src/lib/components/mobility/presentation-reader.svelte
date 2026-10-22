@@ -43,13 +43,13 @@
     max-height: min(60vh, 34rem);
     overflow-y: auto;
     overscroll-behavior: contain;
-    border: 1px solid rgb(24 24 27 / 18%);
+    border: 1px solid var(--mobility-border-strong);
     border-radius: 0.9rem;
-    background: rgb(255 255 255 / 97%);
-    box-shadow: 0 1.2rem 3rem rgb(24 24 27 / 24%);
-    color: #18181b;
+    background: color-mix(in srgb, var(--mobility-surface) 97%, transparent);
+    box-shadow: var(--mobility-shadow-panel);
+    color: var(--mobility-ink);
     pointer-events: auto;
-    scrollbar-color: #a1a1aa transparent;
+    scrollbar-color: var(--mobility-chart-reference) transparent;
     backdrop-filter: blur(16px);
   }
 
@@ -64,18 +64,18 @@
 
   .presentation-reader-cue {
     margin: 0;
-    color: #27272a;
-    font-size: clamp(0.8rem, 1vw, 0.92rem);
-    font-weight: 470;
+    color: var(--mobility-ink);
+    font-size: clamp(var(--mobility-text-base), 1vw, var(--mobility-text-md));
+    font-weight: var(--mobility-font-weight-normal);
     line-height: 1.34;
     text-wrap: pretty;
   }
 
   .presentation-reader-direction {
-    color: #c2410c;
-    font-size: 0.72rem;
+    color: var(--mobility-warning-ink);
+    font-size: var(--mobility-text-sm);
     font-style: italic;
-    font-weight: 720;
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: 0.01em;
   }
 

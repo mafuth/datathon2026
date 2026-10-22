@@ -1,4 +1,7 @@
+import { tick } from 'svelte';
+
 type ValidatableForm = {
+  readonly element: HTMLFormElement | null;
   validate: (opts: { preflightOnly: boolean }) => Promise<void>;
   fields: { allIssues(): Array<{ message: string }> | undefined };
 };
@@ -11,16 +14,38 @@ type ValidatableForm = {
 export function useFormValidation(form: ValidatableForm) {
   let hasErrors = $state(false);
 
-  async function validate() {
-    await form.validate({ preflightOnly: true });
+  function isLive(element: HTMLFormElement): boolean {
+    return element.isConnected && form.element === element;
+  }
+
+  async function validate(element: HTMLFormElement) {
+    await tick();
+    if (!isLive(element)) return;
+
+    try {
+      await form.validate({ preflightOnly: true });
+    } catch (error) {
+      // Remote validation itself yields before reading its form element. Leaving
+      // the page during that yield cancels this validation, not the navigation.
+      if (!isLive(element)) return;
+      throw error;
+    }
+
+    if (!isLive(element)) return;
     hasErrors = (form.fields.allIssues() ?? []).length > 0;
   }
 
   return {
-    onfocusout: () => validate(),
+    onfocusout: (event: FocusEvent) => {
+      if (!(event.target instanceof HTMLElement) || !event.target.matches('input, textarea, select')) return;
+      if (event.relatedTarget instanceof Element && event.relatedTarget.closest('a[href]')) return;
+      const element = form.element;
+      if (element?.isConnected) return validate(element);
+    },
     oninput: () => {
       if (!hasErrors) return;
-      validate();
+      const element = form.element;
+      if (element?.isConnected) return validate(element);
     }
   };
 }

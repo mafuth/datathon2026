@@ -9,7 +9,6 @@
   import Ship from '@lucide/svelte/icons/ship';
   import Users from '@lucide/svelte/icons/users';
   import X from '@lucide/svelte/icons/x';
-  import { tick } from 'svelte';
   import { prefersReducedMotion } from 'svelte/motion';
   import { fly } from 'svelte/transition';
 
@@ -18,6 +17,7 @@
   import { Progress } from '$components/ui/progress';
   import { Skeleton } from '$components/ui/skeleton';
 
+  import NationalAccessLandscape from './national-access-landscape.svelte';
   import { averagePercentage, scoreColor } from './score-presentation';
   import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
@@ -250,7 +250,6 @@
     onIslandSelect,
     proposalMode = false
   }: Props = $props();
-  let closeButton = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let selectedCategory = $state<'overall' | 'health' | 'education' | 'transport' | 'employment'>('overall');
 
   const populationGroups = [
@@ -479,19 +478,63 @@
     return Users;
   }
 
-  $effect(() => {
-    if (open) void tick().then(() => closeButton?.focus());
-  });
+  function isAvailableFocusTarget(element: HTMLElement | null): element is HTMLElement {
+    if (
+      !element?.isConnected ||
+      element.closest('[hidden], [inert], [aria-hidden="true"]') ||
+      element.getClientRects().length === 0
+    ) {
+      return false;
+    }
+    const style = window.getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.visibility !== 'collapse';
+  }
+
+  function manageDrawerFocus(layer: HTMLDivElement) {
+    const activeElement = document.activeElement;
+    const invokingElement =
+      activeElement instanceof HTMLElement && activeElement !== document.body && !layer.contains(activeElement)
+        ? activeElement
+        : null;
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.key !== 'Escape' || !open || proposalMode || !isAvailableFocusTarget(layer)) {
+        return;
+      }
+      event.preventDefault();
+      open = false;
+    };
+    layer.addEventListener('keydown', handleKeydown);
+    const entryFrame = window.requestAnimationFrame(() => {
+      if (!open || proposalMode || !isAvailableFocusTarget(layer)) return;
+      const closeButton = layer.querySelector<HTMLButtonElement>('.close-button');
+      if (isAvailableFocusTarget(closeButton)) closeButton.focus({ preventScroll: true });
+    });
+
+    return () => {
+      layer.removeEventListener('keydown', handleKeydown);
+      window.cancelAnimationFrame(entryFrame);
+      window.requestAnimationFrame(() => {
+        const currentFocus = document.activeElement;
+        if (currentFocus && currentFocus !== document.body && !layer.contains(currentFocus)) return;
+        const toggle = document.querySelector<HTMLElement>('[aria-controls="national-analytics-dialog"]');
+        const target = isAvailableFocusTarget(invokingElement) ? invokingElement : toggle;
+        if (isAvailableFocusTarget(target)) target.focus({ preventScroll: true });
+      });
+    };
+  }
 </script>
 
 {#if open}
   <div
     class={`analytics-card-layer${proposalMode ? ' proposal-mode-right' : ''}`}
     aria-hidden={proposalMode}
-    in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
-    out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
+    inert={proposalMode}
+    {@attach !proposalMode && manageDrawerFocus}
+    in:fly={{ x: prefersReducedMotion.current ? 0 : 12, duration: prefersReducedMotion.current ? 0 : 220 }}
+    out:fly={{ x: prefersReducedMotion.current ? 0 : 8, duration: prefersReducedMotion.current ? 0 : 140 }}
   >
     <Card.Root
+      id="national-analytics-dialog"
       class="analytics-card"
       role="dialog"
       aria-label="National accessibility analytics"
@@ -515,7 +558,6 @@
             {/if}
           </div>
           <Button
-            bind:ref={closeButton}
             class="close-button"
             variant="ghost"
             size="icon"
@@ -676,6 +718,9 @@
             </Card.Root>
           </div>
         {:else if data && !error}
+          <Card.Root class="insight-card" size="sm">
+            <NationalAccessLandscape islands={data.islands} {onIslandSelect} />
+          </Card.Root>
           <div class="detail-grid">
             <Card.Root class="insight-card" size="sm">
               <div class="card-heading">
@@ -1059,14 +1104,11 @@
   }
 
   .proposal-mode-right {
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    transform: translate3d(calc(100% + 2rem), 0, 0) scale(0.985);
+    transform: translateX(calc(100% + 2rem));
     opacity: 0;
     transition:
-      transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 340ms ease-out;
-    transition-delay: 35ms;
+      transform var(--mobility-duration-enter) var(--mobility-ease),
+      opacity var(--mobility-duration-fast) var(--mobility-ease);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1084,19 +1126,20 @@
     align-self: flex-start;
     margin: 1rem;
     overflow: hidden;
-    border: 1px solid rgb(16 24 32 / 14%);
-    border-radius: 0.55rem;
-    background: #fff;
-    color: #09090b;
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-panel);
+    background: var(--mobility-surface);
+    color: var(--mobility-ink);
     color-scheme: light;
-    box-shadow: 0 0.7rem 2.2rem rgb(16 24 32 / 16%);
+    box-shadow: var(--mobility-shadow-panel);
     pointer-events: auto;
   }
   .analytics-scroll {
     min-height: 0;
     overflow-y: auto;
     padding: 1rem;
-    scrollbar-color: #a1a1aa transparent;
+    scrollbar-color: color-mix(in srgb, var(--mobility-muted) 45%, transparent) transparent;
+    scrollbar-width: thin;
   }
   .analytics-heading,
   .card-heading,
@@ -1109,42 +1152,42 @@
   .analytics-heading h2 {
     max-width: 22rem;
     margin: 0;
-    color: #09090b;
-    font-size: clamp(1.7rem, 3vw, 2.15rem);
-    font-weight: 950;
+    color: var(--mobility-ink);
+    font-size: clamp(var(--mobility-text-xl), 2.6vw, var(--mobility-text-2xl));
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: -0.045em;
-    line-height: 0.98;
+    line-height: 1.15;
   }
-  :global(.close-button) {
+  :global(.analytics-card .close-button) {
     display: grid;
     flex: 0 0 auto;
     place-items: center;
     width: 2.45rem;
     height: 2.45rem;
-    border: 1px solid #d4d4d8;
-    border-radius: 0.8rem;
-    background: #fff;
-    color: #27272a;
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-control);
+    background: var(--mobility-surface);
+    color: var(--mobility-ink);
     box-shadow: none;
   }
-  :global(.close-button:hover),
-  :global(.close-button:focus-visible) {
-    border-color: #a1a1aa;
-    background: #f4f4f5;
-    color: #09090b;
+  :global(.analytics-card .close-button:hover),
+  :global(.analytics-card .close-button:focus-visible) {
+    border-color: var(--mobility-chart-reference);
+    background: var(--mobility-surface-muted);
+    color: var(--mobility-ink);
     outline: none;
-    box-shadow: 0 0 0 3px rgb(16 24 32 / 12%);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mobility-accent) 16%, transparent);
   }
   .card-heading h3 {
     margin: 0;
-    color: #09090b;
-    font-size: 0.78rem;
-    font-weight: 850;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-base);
+    font-weight: var(--mobility-font-weight-semibold);
     letter-spacing: -0.01em;
   }
   :global(.card-heading > svg) {
     flex: 0 0 auto;
-    color: #09090b;
+    color: var(--mobility-ink);
   }
   .driver-list {
     display: grid;
@@ -1159,9 +1202,9 @@
     min-width: 0;
     min-height: 4.35rem;
     padding: 0.48rem 0.55rem;
-    border: 1px solid #e4e4e7;
-    border-radius: 0.4rem;
-    background: #fafafa;
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-small);
+    background: var(--mobility-surface-muted);
   }
   .driver-topline {
     display: flex;
@@ -1173,28 +1216,28 @@
     display: inline-flex;
     align-items: center;
     gap: 0.38rem;
-    color: #09090b;
-    font-size: 0.66rem;
-    font-weight: 780;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-bold);
   }
   .driver-score {
     flex: 0 0 auto;
-    font-size: 1rem;
-    font-weight: 900;
+    font-size: var(--mobility-text-lg);
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: -0.04em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
-  :global(.driver-progress) {
+  :global(.analytics-card .driver-progress) {
     height: 0.38rem;
-    background: #e4e4e7;
+    background: var(--mobility-border);
   }
-  :global(.driver-progress [data-slot='progress-indicator']) {
-    background: var(--driver-score-color, var(--mobility-accent, #09090b));
+  :global(.analytics-card .driver-progress [data-slot='progress-indicator']) {
+    background: var(--driver-score-color, var(--mobility-accent));
   }
   .driver-note {
-    color: #71717a;
-    font-size: 0.56rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
     line-height: 1.25;
   }
   .detail-grid {
@@ -1202,21 +1245,21 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.55rem;
   }
-  :global(.insight-card) {
+  :global(.analytics-card .insight-card) {
     min-width: 0;
     margin-top: 0.8rem;
-    padding: 0.72rem;
-    border: 1px solid #e4e4e7;
-    border-radius: 0.42rem;
-    background: #fff;
-    color: #09090b;
-    box-shadow: 0 0.2rem 0.7rem rgb(16 24 32 / 5%);
+    padding: 0.85rem;
+    border: 1px solid var(--mobility-border);
+    border-radius: var(--mobility-radius-card);
+    background: var(--mobility-surface);
+    color: var(--mobility-ink);
+    box-shadow: var(--mobility-shadow-card);
   }
   .people-total {
     display: block;
     margin: 0.72rem 0 0.7rem;
-    color: #09090b;
-    font-size: 1.25rem;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xl);
     letter-spacing: -0.04em;
   }
   .age-bars {
@@ -1230,32 +1273,32 @@
   .age-row > div:first-child {
     display: flex;
     justify-content: space-between;
-    color: #71717a;
-    font-size: 0.57rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   .age-row strong {
-    color: #09090b;
+    color: var(--mobility-ink);
   }
   .age-track {
     height: 0.28rem;
     overflow: hidden;
     border-radius: 999px;
-    background: #d4d4d8;
+    background: var(--mobility-border-strong);
   }
   .age-track span {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--mobility-accent, #09090b);
+    background: var(--mobility-accent);
   }
   .demand-summary {
     display: grid;
     gap: 0.35rem;
     margin-top: 0.72rem;
     padding-top: 0.62rem;
-    border-top: 1px solid #e4e4e7;
-    color: #71717a;
-    font-size: 0.57rem;
+    border-top: 1px solid var(--mobility-border);
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   .demand-summary span {
     display: flex;
@@ -1263,7 +1306,7 @@
     gap: 0.5rem;
   }
   .demand-summary strong {
-    color: #09090b;
+    color: var(--mobility-ink);
     font-variant-numeric: tabular-nums;
   }
   .employment-metrics,
@@ -1271,8 +1314,8 @@
     display: grid;
     gap: 0.35rem;
     margin-top: 0.72rem;
-    color: #71717a;
-    font-size: 0.57rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   .employment-metrics span {
     display: flex;
@@ -1280,12 +1323,12 @@
     gap: 0.5rem;
   }
   .employment-metrics strong {
-    color: #09090b;
+    color: var(--mobility-ink);
     font-variant-numeric: tabular-nums;
   }
   .employment-breakdown {
     padding-top: 0.62rem;
-    border-top: 1px solid #e4e4e7;
+    border-top: 1px solid var(--mobility-border);
   }
   .employment-category {
     display: grid;
@@ -1299,9 +1342,9 @@
     gap: 0.5rem;
   }
   .employment-category-heading {
-    color: #09090b;
-    font-size: 0.6rem;
-    font-weight: 700;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-bold);
   }
   .employment-category-heading strong,
   .employment-subcategory-list strong {
@@ -1309,22 +1352,22 @@
   }
   :global(.employment-category [data-slot='progress']) {
     height: 0.3rem;
-    background: #e4e4e7;
+    background: var(--mobility-border);
   }
   :global(.employment-category [data-slot='progress-indicator']) {
-    background: var(--mobility-accent, #09090b);
+    background: var(--mobility-accent);
   }
   .employment-subcategory-list {
     display: grid;
     gap: 0.2rem;
     padding-left: 0.5rem;
-    color: #71717a;
-    font-size: 0.54rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   .employment-subcategory-list small,
   .ranking-description {
-    color: #71717a;
-    font-size: 0.54rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   .sustainability-grid {
     display: grid;
@@ -1339,17 +1382,17 @@
     margin-top: 0.72rem;
   }
   .vehicle-summary strong {
-    color: var(--mobility-text, #09090b);
-    font-size: 1.45rem;
-    font-weight: 900;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-2xl);
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: -0.04em;
     line-height: 1;
   }
   .card-heading-score {
     align-self: center;
-    color: var(--mobility-text, #09090b);
-    font-size: 1rem;
-    font-weight: 900;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-lg);
+    font-weight: var(--mobility-font-weight-bold);
     letter-spacing: -0.04em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -1371,34 +1414,34 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.58rem;
-    font-weight: 750;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
+    font-weight: var(--mobility-font-weight-bold);
   }
   .sustainability-factor-heading strong,
   .vehicle-category-heading strong {
-    color: var(--mobility-text, #09090b);
+    color: var(--mobility-ink);
     font-variant-numeric: tabular-nums;
   }
   .sustainability-factor-note {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.52rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
   :global(.sustainability-card [data-slot='progress']) {
     height: 0.32rem;
-    background: var(--mobility-surface-muted, #f4f4f5);
+    background: var(--mobility-surface-muted);
   }
   :global(.sustainability-card .sustainability-factor [data-slot='progress-indicator']) {
-    background: var(--mobility-accent, #09090b);
+    background: var(--mobility-accent);
   }
   :global(.sustainability-card .vehicle-category-row [data-slot='progress-indicator']) {
-    background: var(--mobility-accent, #09090b);
+    background: var(--mobility-accent);
   }
   .loading-sustainability-score {
     width: 5.2rem;
     height: 1.35rem;
     margin-top: 0.72rem;
-    border-radius: 0.3rem;
+    border-radius: var(--mobility-radius-small);
   }
   .loading-sustainability-score-short {
     width: 7rem;
@@ -1411,7 +1454,7 @@
   :global(.loading-sustainability-factor) {
     width: 100%;
     height: 1.25rem;
-    border-radius: 0.25rem;
+    border-radius: var(--mobility-radius-small);
   }
   .ranking-description {
     margin: 0.55rem 0 0;
@@ -1423,8 +1466,8 @@
     gap: 0.28rem;
     margin-top: 0.7rem;
   }
-  :global(.mini-row),
-  :global(.ranking-row) {
+  :global(.analytics-card .mini-row),
+  :global(.analytics-card .ranking-row) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1433,44 +1476,44 @@
     min-height: 0;
     padding: 0.45rem 0.5rem;
     border: 1px solid transparent;
-    border-radius: 0.32rem;
+    border-radius: var(--mobility-radius-small);
     background: transparent;
-    color: #09090b;
+    color: var(--mobility-ink);
     text-align: left;
   }
-  :global(.mini-row:hover),
-  :global(.mini-row:focus-visible),
-  :global(.ranking-row:hover),
-  :global(.ranking-row:focus-visible) {
-    border-color: #09090b;
-    background: #fff;
-    color: #09090b;
+  :global(.analytics-card .mini-row:hover),
+  :global(.analytics-card .mini-row:focus-visible),
+  :global(.analytics-card .ranking-row:hover),
+  :global(.analytics-card .ranking-row:focus-visible) {
+    border-color: var(--mobility-ink);
+    background: var(--mobility-surface);
+    color: var(--mobility-ink);
     outline: none;
   }
-  :global(.mini-row span),
-  :global(.ranking-row span) {
+  :global(.analytics-card .mini-row span),
+  :global(.analytics-card .ranking-row span) {
     display: grid;
     min-width: 0;
     gap: 0.12rem;
   }
-  :global(.mini-row strong),
-  :global(.ranking-row strong) {
+  :global(.analytics-card .mini-row strong),
+  :global(.analytics-card .ranking-row strong) {
     overflow: hidden;
-    color: #09090b;
-    font-size: 0.6rem;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  :global(.mini-row small),
-  :global(.ranking-row small) {
-    color: #71717a;
-    font-size: 0.54rem;
+  :global(.analytics-card .mini-row small),
+  :global(.analytics-card .ranking-row small) {
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
-  :global(.mini-row b),
-  :global(.ranking-row b) {
+  :global(.analytics-card .mini-row b),
+  :global(.analytics-card .ranking-row b) {
     flex: 0 0 auto;
-    color: #09090b;
-    font-size: 0.64rem;
+    color: var(--mobility-ink);
+    font-size: var(--mobility-text-xs);
   }
   :global(.ranking-card) {
     margin-bottom: 0.55rem;
@@ -1481,33 +1524,38 @@
     margin-top: 0.68rem;
     overflow-x: auto;
   }
-  :global(.category-tab) {
+  :global(.analytics-card .category-tab) {
     height: 1.7rem;
     padding: 0 0.48rem;
-    border-color: #d4d4d8;
-    background: #fff;
-    color: #71717a;
-    font-size: 0.56rem;
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface);
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-xs);
   }
-  :global(.category-tab.category-active),
-  :global(.category-tab:hover),
-  :global(.category-tab:focus-visible) {
-    border-color: #09090b;
-    background: var(--mobility-accent, #09090b);
-    color: #fff;
+  :global(.analytics-card .category-tab.category-active),
+  :global(.analytics-card .category-tab:hover),
+  :global(.analytics-card .category-tab:focus-visible) {
+    border-color: var(--mobility-ink);
+    background: var(--mobility-accent);
+    color: var(--mobility-on-accent);
     outline: none;
   }
   .analytics-state {
     padding: 1.2rem 0 0;
-    color: #71717a;
-    font-size: 0.72rem;
+    color: var(--mobility-muted);
+    font-size: var(--mobility-text-sm);
   }
   .analytics-error {
-    color: #09090b;
+    color: var(--mobility-ink);
   }
   :global(.analytics-card [data-slot='skeleton']) {
-    background-color: #f4f4f5;
-    background-image: linear-gradient(90deg, #f4f4f5 0%, #fafafa 50%, #f4f4f5 100%);
+    background-color: var(--mobility-surface-muted);
+    background-image: linear-gradient(
+      90deg,
+      var(--mobility-surface-muted) 0%,
+      var(--mobility-surface-soft) 50%,
+      var(--mobility-surface-muted) 100%
+    );
     background-size: 200% 100%;
   }
   :global(.loading-panel-heading) {
@@ -1522,7 +1570,7 @@
     width: 7rem;
     height: 1.45rem;
     margin: 0.72rem 0 0.7rem;
-    border-radius: 0.3rem;
+    border-radius: var(--mobility-radius-small);
   }
   .loading-age-copy {
     display: flex;
@@ -1601,7 +1649,7 @@
   :global(.loading-category-tab) {
     width: 3.1rem;
     height: 1.7rem;
-    border-radius: 0.35rem;
+    border-radius: var(--mobility-radius-small);
   }
   :global(.loading-title) {
     width: 8rem;
@@ -1617,7 +1665,7 @@
   :global(.loading-driver-score) {
     width: 2.4rem;
     height: 1rem;
-    border-radius: 0.2rem;
+    border-radius: var(--mobility-radius-small);
   }
   :global(.loading-progress) {
     height: 0.38rem;
@@ -1636,7 +1684,7 @@
       max-height: calc(100dvh - 1rem);
       align-self: flex-end;
       margin: 0.5rem;
-      border-radius: 0.55rem;
+      border-radius: var(--mobility-radius-panel);
     }
     .detail-grid {
       grid-template-columns: 1fr;
@@ -1650,18 +1698,18 @@
   }
 
   :global(.analytics-card) {
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-text, #09090b);
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface);
+    color: var(--mobility-ink);
     color-scheme: light;
-    box-shadow: 0 0.7rem 2.2rem rgb(16 24 32 / 12%);
+    box-shadow: var(--mobility-shadow-panel);
   }
 
   :global(.analytics-card .insight-card) {
-    border-color: var(--mobility-border, #e4e4e7);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-text, #09090b);
-    box-shadow: 0 0.2rem 0.7rem rgb(16 24 32 / 4%);
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface);
+    color: var(--mobility-ink);
+    box-shadow: var(--mobility-shadow-card);
   }
 
   :global(.analytics-card h2),
@@ -1674,7 +1722,7 @@
   :global(.analytics-card .ranking-row strong),
   :global(.analytics-card .mini-row b),
   :global(.analytics-card .ranking-row b) {
-    color: var(--mobility-text, #09090b);
+    color: var(--mobility-ink);
   }
 
   :global(.analytics-card .driver-note),
@@ -1683,55 +1731,55 @@
   :global(.analytics-card .mini-row small),
   :global(.analytics-card .ranking-row small),
   :global(.analytics-card .analytics-state) {
-    color: var(--mobility-muted, #71717a);
+    color: var(--mobility-muted);
   }
 
   :global(.analytics-card .close-button) {
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-accent, #09090b);
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface);
+    color: var(--mobility-accent);
   }
 
   :global(.analytics-card .close-button:hover),
   :global(.analytics-card .close-button:focus-visible) {
-    border-color: var(--mobility-focus, #3f3f46);
-    background: var(--mobility-accent-soft, #f4f4f5);
-    color: var(--mobility-accent, #09090b);
+    border-color: var(--mobility-accent-hover);
+    background: var(--mobility-accent-soft);
+    color: var(--mobility-accent);
   }
 
   :global(.analytics-card .driver-progress),
   :global(.analytics-card .age-track) {
-    background: var(--mobility-surface-muted, #f4f4f5);
+    background: var(--mobility-surface-muted);
   }
 
   :global(.analytics-card .driver-progress [data-slot='progress-indicator']),
   :global(.analytics-card .age-track span) {
-    background: var(--driver-score-color, var(--mobility-accent, #09090b));
+    background: var(--driver-score-color, var(--mobility-accent));
   }
 
   :global(.analytics-card .demand-summary) {
-    border-color: var(--mobility-border, #e4e4e7);
+    border-color: var(--mobility-border);
   }
 
   :global(.analytics-card .mini-row:hover),
   :global(.analytics-card .mini-row:focus-visible),
   :global(.analytics-card .ranking-row:hover),
   :global(.analytics-card .ranking-row:focus-visible) {
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface-soft, #fafafa);
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface-muted);
   }
 
   :global(.analytics-card .category-tab) {
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-muted, #71717a);
+    border-color: var(--mobility-border);
+    background: var(--mobility-surface);
+    color: var(--mobility-muted);
   }
 
   :global(.analytics-card .category-tab.category-active),
   :global(.analytics-card .category-tab:hover),
   :global(.analytics-card .category-tab:focus-visible) {
-    border-color: var(--mobility-accent, #09090b);
-    background: var(--mobility-accent, #09090b);
-    color: #ffffff;
+    border-color: var(--mobility-accent);
+    background: var(--mobility-accent);
+    color: var(--mobility-on-accent);
   }
 </style>

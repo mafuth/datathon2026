@@ -161,6 +161,21 @@ describe('island service demand map data', () => {
     expect(hexes.features.some((feature) => feature.properties.healthStatus === 'numeric')).toBe(true);
     expect(hexes.features.some((feature) => feature.properties.healthWeight > 0)).toBe(true);
     expect(buildServiceDemandHexes(geometry, [73, 3], services, residentialPoints)).toEqual(hexes);
+
+    // Facility edits reuse the housing field, but neither moved facilities nor new
+    // residential source rows may reuse stale heat values.
+    const movedServices = [{ ...services[0], coordinates: [73.004, 3.004] as [number, number] }];
+    const moved = buildServiceDemandHexes(geometry, [73, 3], movedServices, residentialPoints);
+    expect(moved).not.toEqual(hexes);
+    expect(moved).toEqual(
+      buildServiceDemandHexes(structuredClone(geometry), [73, 3], movedServices, structuredClone(residentialPoints))
+    );
+    const changedHousing = [residentialPoints[0]];
+    const updated = buildServiceDemandHexes(geometry, [73, 3], services, changedHousing);
+    expect(updated).not.toEqual(hexes);
+    expect(updated).toEqual(
+      buildServiceDemandHexes(structuredClone(geometry), [73, 3], services, structuredClone(changedHousing))
+    );
   });
 
   it('reduces facility heat intensity when demand is split across services', () => {

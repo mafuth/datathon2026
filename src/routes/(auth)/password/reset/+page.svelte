@@ -19,7 +19,9 @@
 
 <section class="space-y-6">
   <header class="space-y-1.5">
-    <h1 class="font-secondary text-[26px] leading-tight font-semibold tracking-tight">Choose a new password</h1>
+    <h1 class="font-secondary text-[length:var(--app-text-title)] leading-tight font-semibold tracking-tight">
+      Choose a new password
+    </h1>
     <p class="text-sm text-muted-foreground">
       Resetting password for
       <span class="font-medium text-foreground">{data.email}</span>.
@@ -31,21 +33,28 @@
     <Field.Error errors={resetUserPasswordForm.fields.token.issues()} />
 
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">New password</Field.Label>
+      <Field.Label for={`${formKey}-password`} class="text-xs font-medium tracking-tight text-muted-foreground"
+        >New password</Field.Label
+      >
       <PasswordInput
         autocomplete="new-password"
         class="h-10 bg-background text-sm dark:bg-background"
         {...resetUserPasswordForm.fields._password.as('password')}
+        id={`${formKey}-password`}
       />
       <Field.Error errors={resetUserPasswordForm.fields._password.issues()} />
     </Field.Field>
 
     <Field.Field class="gap-1.5">
-      <Field.Label class="text-xs font-medium tracking-tight text-muted-foreground">Confirm password</Field.Label>
+      <Field.Label
+        for={`${formKey}-password-confirmation`}
+        class="text-xs font-medium tracking-tight text-muted-foreground">Confirm password</Field.Label
+      >
       <PasswordInput
         autocomplete="new-password"
         class="h-10 bg-background text-sm dark:bg-background"
         {...resetUserPasswordForm.fields._passwordConfirmation.as('password')}
+        id={`${formKey}-password-confirmation`}
       />
       <Field.Error errors={resetUserPasswordForm.fields._passwordConfirmation.issues()} />
     </Field.Field>

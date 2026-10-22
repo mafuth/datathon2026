@@ -1,0 +1,309 @@
+/*
+ * Visual configuration for the whole application.
+ * Change fonts, type, palette, geometry and motion here; components consume these tokens.
+ * Mobility stays light on the map and in portals, independently of the app theme.
+ * Map and PDF colors are read from this first :root block at build time. Keep
+ * exported palette values as hex colors or simple var(--token) aliases.
+ */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-VariableFont.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/Sora-VariableFont.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Fonts and a shared scale. Small analytical labels have an 11px floor. */
+  --mobility-font-body: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --mobility-font-heading: 'Sora', 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --mobility-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  --mobility-font-weight-thin: 100;
+  --mobility-font-weight-extralight: 200;
+  --mobility-font-weight-light: 300;
+  --mobility-font-weight-normal: 400;
+  --mobility-font-weight-medium: 500;
+  --mobility-font-weight-semibold: 600;
+  --mobility-font-weight-bold: 700;
+  --mobility-font-weight-extrabold: 800;
+  --mobility-font-weight-black: 900;
+  --mobility-leading-none: 1;
+  --mobility-leading-tight: 1.2;
+  --mobility-leading-normal: 1.45;
+  --mobility-leading-snug: 1.375;
+  --mobility-leading-relaxed: 1.6;
+  --mobility-leading-loose: 2;
+  --mobility-tracking-tight: -0.035em;
+  --mobility-tracking-label: 0.06em;
+  --app-text-xs: 0.75rem;
+  --app-text-sm: 0.875rem;
+  --app-text-base: 1rem;
+  --app-text-lg: 1.125rem;
+  --app-text-xl: 1.25rem;
+  --app-text-2xl: 1.5rem;
+  --app-text-3xl: 1.875rem;
+  --app-text-4xl: 2.25rem;
+  --app-text-5xl: 3rem;
+  --app-text-6xl: 3.75rem;
+  --app-text-7xl: 4.5rem;
+  --app-text-8xl: 6rem;
+  --app-text-9xl: 8rem;
+  --app-text-title: 1.625rem;
+  --app-text-caption: var(--mobility-text-xs);
+  --app-text-control: var(--mobility-text-base);
+  --mobility-text-xs: 0.6875rem;
+  --mobility-text-sm: var(--app-text-xs);
+  --mobility-text-base: 0.8125rem;
+  --mobility-text-md: var(--app-text-sm);
+  --mobility-text-lg: var(--app-text-base);
+  --mobility-text-xl: var(--app-text-xl);
+  --mobility-text-2xl: var(--app-text-2xl);
+  --mobility-text-3xl: 2rem;
+  --mobility-text-display: 2.75rem;
+
+  /* Neutral chrome, readable text and the shared action color. */
+  --mobility-surface: #ffffff;
+  --mobility-surface-soft: #fafbf9;
+  --mobility-surface-muted: #f1f4f1;
+  --mobility-border: #dfe5e0;
+  --mobility-border-strong: #bdc9c0;
+  --mobility-ink: #1c2923;
+  --mobility-text: var(--mobility-ink);
+  --mobility-muted: #5f6c64;
+  --mobility-subtle: #6b766f;
+  --mobility-accent: #315d4c;
+  --mobility-accent-hover: #264b3d;
+  --mobility-accent-soft: #edf4ef;
+  --mobility-on-accent: #ffffff;
+  --mobility-focus: #52765d;
+  --mobility-overlay: rgb(20 32 25 / 38%);
+
+  /* Status colors include readable text, background and border pairs. */
+  --mobility-success: #315d4c;
+  --mobility-success-ink: #264b3d;
+  --mobility-success-soft: #edf4ef;
+  --mobility-success-border: #b9d1c1;
+  --mobility-warning: #a46d32;
+  --mobility-warning-ink: #79501f;
+  --mobility-warning-soft: #fbf3e7;
+  --mobility-warning-border: #e4cba9;
+  --mobility-danger: #b32942;
+  --mobility-danger-hover: #912139;
+  --mobility-danger-ink: #982139;
+  --mobility-danger-soft: #fff0f1;
+  --mobility-danger-border: #ebc1c7;
+  --mobility-info: #486995;
+  --mobility-info-ink: #365577;
+  --mobility-info-soft: #edf2fb;
+  --mobility-info-border: #bdcde3;
+
+  /* Chart, route and marker colors share meaning across every view. */
+  --mobility-chart-before: #94a3b8;
+  --mobility-chart-after: var(--mobility-accent);
+  --mobility-chart-health: #ad4b52;
+  --mobility-chart-education: #486995;
+  --mobility-chart-transport: #a46d32;
+  --mobility-chart-inbound: #52769c;
+  --mobility-chart-outbound: #b77938;
+  --mobility-chart-unserved: #7b688d;
+  --mobility-chart-children: #52769c;
+  --mobility-chart-working-age: #315d4c;
+  --mobility-chart-older: #a46d32;
+  --mobility-chart-unclassified: #94a3b8;
+  --mobility-chart-reference: #8b9ca9;
+  --mobility-chart-waiting: #b77938;
+  --mobility-chart-transfer: #7b688d;
+  --mobility-chart-grid: #e4eae5;
+  --mobility-chart-connector: #b8c4bb;
+  --mobility-chart-cost-1: #315d4c;
+  --mobility-chart-cost-2: #87a392;
+  --mobility-chart-cost-3: #a4b8a5;
+  --mobility-chart-cost-4: #8b9ca9;
+  --mobility-chart-cost-5: #c6d1c5;
+  --mobility-chart-cost-6: #e0e6df;
+  --mobility-transport-tone-low: #b8c9a7;
+  --mobility-transport-tone-high: #9b6f3b;
+  --mobility-route-ferry: #486995;
+  --mobility-route-air: #7b688d;
+  --mobility-route-bus: #a46d32;
+  --mobility-route-demand: #b32942;
+  --mobility-route-demand-low: #e7ad94;
+  --mobility-route-demand-mid: #d66a55;
+  --mobility-marker-hospital: #b84b58;
+  --mobility-marker-clinic: #bf6c4b;
+  --mobility-marker-pharmacy: #31847b;
+  --mobility-marker-school: #486995;
+  --mobility-marker-bus: #a46d32;
+  --mobility-marker-ferry: #397c9b;
+  --mobility-marker-airport: #7b688d;
+
+  /* MapLibre's paint values also read this file through theme-tokens.ts. */
+  --mobility-map-font: Noto Sans Regular;
+  --mobility-map-label-size: 11;
+  --mobility-map-demand-0: #edf7e7;
+  --mobility-map-demand-1: #dcefb9;
+  --mobility-map-demand-2: #f0efad;
+  --mobility-map-demand-3: #ffe099;
+  --mobility-map-demand-4: #ffc46f;
+  --mobility-map-demand-5: #ff9e51;
+  --mobility-map-demand-6: #ef6a40;
+  --mobility-map-demand-7: #d6433c;
+  --mobility-map-no-data: #eef2ec;
+  --mobility-map-score-0: #d56a53;
+  --mobility-map-score-1: #dba45e;
+  --mobility-map-score-2: #dfc56d;
+  --mobility-map-score-3: #9db47b;
+  --mobility-map-score-4: #5d9076;
+  --mobility-map-road: #ffffff;
+  --mobility-map-road-casing: #778078;
+  --mobility-map-text: #27312b;
+  --mobility-map-halo: #ffffff;
+  --mobility-map-water: #c4cbcd;
+  --mobility-map-land: #f3f5f1;
+  --mobility-map-outline: #26312a;
+
+  /* One geometry, spacing and motion rhythm for controls and panels. */
+  --mobility-space-1: 0.25rem;
+  --mobility-space-2: 0.5rem;
+  --mobility-space-3: 0.75rem;
+  --mobility-space-4: 1rem;
+  --mobility-space-5: 1.25rem;
+  --mobility-space-6: 1.5rem;
+  --mobility-space-8: 2rem;
+  --mobility-space-10: 2.5rem;
+  --mobility-radius-panel: 1rem;
+  --mobility-radius-card: 0.75rem;
+  --mobility-radius-control: 0.625rem;
+  --mobility-radius-small: 0.5rem;
+  --mobility-radius-pill: 999px;
+  --mobility-control-height: 2.25rem;
+  --mobility-control-height-small: 2rem;
+  --mobility-touch-target: 2.75rem;
+  --mobility-focus-width: 2px;
+  --mobility-focus-offset: 2px;
+  --mobility-shadow-panel: 0 8px 28px rgb(25 43 34 / 10%);
+  --mobility-shadow-card: 0 2px 6px rgb(25 43 34 / 4%);
+  --mobility-shadow-marker: 0 2px 6px rgb(25 43 34 / 24%);
+  --mobility-shadow-popup: 0 8px 28px rgb(25 43 34 / 16%);
+  --mobility-shadow-text: 0 1px 3px rgb(25 43 34 / 28%);
+  --mobility-duration-fast: 140ms;
+  --mobility-duration-enter: 220ms;
+  --mobility-duration-slow: 280ms;
+  --mobility-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --mobility-ease-move: cubic-bezier(0.77, 0, 0.175, 1);
+  --mobility-press-scale: 0.98;
+  --mobility-panel-enter-offset: 6px;
+  --app-container-gutter: var(--mobility-space-8);
+  --app-container-width: 1400px;
+  --app-scrollbar-size: var(--mobility-space-2);
+  --app-spacing-unit: var(--mobility-space-1);
+
+  /* shadcn/Tailwind role bindings: generic controls use this same theme. */
+  --background: var(--mobility-surface);
+  --foreground: var(--mobility-ink);
+  --muted: var(--mobility-surface-muted);
+  --muted-foreground: var(--mobility-muted);
+  --popover: var(--mobility-surface);
+  --popover-foreground: var(--mobility-ink);
+  --card: var(--mobility-surface);
+  --card-foreground: var(--mobility-ink);
+  --border: var(--mobility-border);
+  --input: var(--mobility-border-strong);
+  --primary: var(--mobility-accent);
+  --primary-foreground: var(--mobility-on-accent);
+  --secondary: var(--mobility-surface-muted);
+  --secondary-foreground: var(--mobility-ink);
+  --accent: var(--mobility-accent-soft);
+  --accent-foreground: var(--mobility-accent);
+  --destructive: var(--mobility-danger);
+  --destructive-foreground: var(--mobility-on-accent);
+  --ring: var(--mobility-focus);
+  --radius: var(--mobility-radius-control);
+  --sidebar-background: var(--mobility-surface-soft);
+  --sidebar-foreground: var(--mobility-ink);
+  --sidebar-primary: var(--mobility-accent);
+  --sidebar-primary-foreground: var(--mobility-on-accent);
+  --sidebar-accent: var(--mobility-accent-soft);
+  --sidebar-accent-foreground: var(--mobility-accent);
+  --sidebar-border: var(--mobility-border);
+  --sidebar-ring: var(--mobility-focus);
+  --brand-primary: var(--mobility-accent);
+  --brand-secondary: var(--mobility-chart-education);
+  --brand-tertiary: var(--mobility-chart-health);
+}
+
+.dark {
+  --background: #131a16;
+  --foreground: #f4f7f4;
+  --muted: #27312b;
+  --muted-foreground: #adb9b0;
+  --popover: #1c251f;
+  --popover-foreground: #f4f7f4;
+  --card: #1c251f;
+  --card-foreground: #f4f7f4;
+  --border: #39463d;
+  --input: #49584d;
+  --primary: #d3e7d8;
+  --primary-foreground: #20392b;
+  --secondary: #27312b;
+  --secondary-foreground: #f4f7f4;
+  --accent: #2c4033;
+  --accent-foreground: #e4f0e7;
+  --destructive: #f0a0ad;
+  --destructive-foreground: #501220;
+  --ring: #b2cfba;
+  --sidebar-background: #1c251f;
+  --sidebar-foreground: #e4ebe5;
+  --sidebar-primary: #d3e7d8;
+  --sidebar-primary-foreground: #20392b;
+  --sidebar-accent: #2c4033;
+  --sidebar-accent-foreground: #e4f0e7;
+  --sidebar-border: #39463d;
+  --sidebar-ring: #b2cfba;
+}
+
+/* Portal content is rendered outside .mobility-theme, so bind each owning root. */
+.mobility-theme,
+.proposal-builder-panel,
+.proposal-review-dialog,
+.proposal-delete-dialog,
+.proposal-transport-options {
+  --background: var(--mobility-surface);
+  --foreground: var(--mobility-ink);
+  --card: var(--mobility-surface);
+  --card-foreground: var(--mobility-ink);
+  --popover: var(--mobility-surface);
+  --popover-foreground: var(--mobility-ink);
+  --muted: var(--mobility-surface-muted);
+  --muted-foreground: var(--mobility-muted);
+  --border: var(--mobility-border);
+  --input: var(--mobility-border-strong);
+  --primary: var(--mobility-accent);
+  --primary-foreground: var(--mobility-on-accent);
+  --secondary: var(--mobility-accent-soft);
+  --secondary-foreground: var(--mobility-accent);
+  --accent: var(--mobility-accent-soft);
+  --accent-foreground: var(--mobility-accent);
+  --destructive: var(--mobility-danger);
+  --destructive-foreground: var(--mobility-on-accent);
+  --ring: var(--mobility-focus);
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mobility-duration-fast: 0ms;
+    --mobility-duration-enter: 0ms;
+    --mobility-duration-slow: 0ms;
+    --mobility-press-scale: 1;
+    --mobility-panel-enter-offset: 0px;
+  }
+}
