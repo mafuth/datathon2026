@@ -28,6 +28,8 @@ export type ConnectionNodeData = {
   detailIslandId?: string;
   connection?: ConnectionNetworkLink;
   referenceTo?: string;
+  simulateReady?: boolean;
+  routePathIndex?: number;
 };
 export type ConnectionEdgeData = {
   kind: 'network' | 'group';
@@ -35,6 +37,9 @@ export type ConnectionEdgeData = {
   connectionCount?: number;
   connections?: ConnectionNetworkLink[];
   connectionTypes?: string[];
+  routeActive?: boolean;
+  routeAnimating?: boolean;
+  routePathIndex?: number;
 };
 export type ConnectionGraphNode = Node<ConnectionNodeData, ConnectionNodeKind>;
 export type ConnectionGraphEdge = Edge<ConnectionEdgeData, 'smoothstep'>;
@@ -43,6 +48,7 @@ type GraphOptions = {
   network: ConnectionNetworkResponse | null;
   selectedIslandId: string | null;
   targetIslandId?: string | null;
+  routeAnimationComplete: boolean;
   view: ConnectionNetworkView;
   detailIslandId: string | null;
   explorationPath?: string[];
@@ -93,6 +99,8 @@ export function buildConnectionGraph(options: GraphOptions): {
   const focus = options.detailIslandId ?? start;
   const expanded = new Set([start, focus]);
   const corridorNext = new Map(corridor.steps.map((step) => [step.from, step]));
+  const corridorOrder = new Map(corridor.steps.map((step, index) => [step.group.id, index]));
+  const corridorIslandOrder = new Map(corridor.islands.map((id, index) => [id, index]));
   const targetPathOnly = Boolean(options.targetIslandId);
   const pathNext = new Map<string, string>();
   const path = [start, ...(options.explorationPath ?? []).filter((id) => id !== start)];
@@ -142,7 +150,9 @@ export function buildConnectionGraph(options: GraphOptions): {
       onSimulate:
         !root && start === 'island:640' && id === 'island:1442' && id === options.targetIslandId && options.onSimulate
           ? () => options.onSimulate!(id)
-          : undefined
+          : undefined,
+      simulateReady: options.routeAnimationComplete,
+      routePathIndex: options.targetIslandId ? corridorIslandOrder.get(id) : undefined
     });
   const validStop = (stopId: string | null, owner: string, mode: TransportMode) => {
     const stop = stopId ? index.stops.get(stopId) : undefined;
@@ -242,7 +252,16 @@ export function buildConnectionGraph(options: GraphOptions): {
         source: route.node.id,
         target: endpoint.node.id,
         type: 'smoothstep',
-        data: { kind: 'network', connection: link, connections: group.links, connectionCount: group.links.length },
+        data: {
+          kind: 'network',
+          connection: link,
+          connections: group.links,
+          connectionCount: group.links.length,
+          routeActive: Boolean(options.targetIslandId) && corridorOrder.has(group.id),
+          routeAnimating:
+            Boolean(options.targetIslandId) && corridorOrder.has(group.id) && !options.routeAnimationComplete,
+          routePathIndex: corridorOrder.get(group.id)
+        },
         markerEnd:
           link.directionality === 'bidirectional' || (link.directionality === 'forward' && !reversed)
             ? arrow

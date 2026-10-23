@@ -10,7 +10,8 @@
     view,
     initialized,
     focusNodeId = null,
-    onReady = () => {}
+    onReady = () => {},
+    onRouteAnimationComplete = () => {}
   }: {
     fitKey: string;
     nodes: ConnectionGraphNode[];
@@ -18,9 +19,12 @@
     initialized: boolean;
     focusNodeId?: string | null;
     onReady?: () => void;
+    onRouteAnimationComplete?: () => void;
   } = $props();
   const { fitView, setCenter } = useSvelteFlow<ConnectionGraphNode, ConnectionGraphEdge>();
   const SIDEBAR_FOCUS_ATTEMPTS = 12;
+  const FULLSCREEN_FOCUS_ZOOM = 0.7;
+  const FULLSCREEN_FOCUS_SCREEN_OFFSET = 500;
   let lastFitKey = '';
   let pendingFitKey = '';
   let focusToken = 0;
@@ -52,15 +56,52 @@
   }
 
   async function focusFullscreenTarget(currentNodes: ConnectionGraphNode[]): Promise<boolean> {
-    if (!focusNodeId) return true;
-    const target = currentNodes.find((node) => node.id === focusNodeId);
+    if (!focusNodeId) return false;
+    const target = currentNodes.find((node) => node.data.islandId === focusNodeId);
     if (!target) return false;
 
     await tick();
     await nextFrame();
     const width = target.width ?? target.initialWidth ?? 0;
     const height = target.height ?? target.initialHeight ?? 0;
-    return setCenter(target.position.x + width / 2, target.position.y + height / 2, { zoom: 0.95 });
+    const graphOffset = FULLSCREEN_FOCUS_SCREEN_OFFSET / FULLSCREEN_FOCUS_ZOOM;
+    return setCenter(target.position.x + width / 2 + graphOffset, target.position.y + height / 2, {
+      zoom: FULLSCREEN_FOCUS_ZOOM
+    });
+  }
+
+  async function animateFullscreenRoute(
+    currentNodes: ConnectionGraphNode[],
+    onViewportReady: () => void
+  ): Promise<boolean> {
+    const routeNodes = currentNodes
+      .filter((node) => node.data.routePathIndex !== undefined)
+      .sort((left, right) => (left.data.routePathIndex ?? 0) - (right.data.routePathIndex ?? 0));
+    if (routeNodes.length < 2) {
+      const focused = await focusFullscreenTarget(currentNodes);
+      if (focused) onViewportReady();
+      return focused;
+    }
+
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1600;
+    const first = routeNodes[0];
+    const center = (node: ConnectionGraphNode, offset = true): [number, number] => [
+      node.position.x +
+        (node.width ?? node.initialWidth ?? 0) / 2 +
+        (offset ? FULLSCREEN_FOCUS_SCREEN_OFFSET / FULLSCREEN_FOCUS_ZOOM : 0),
+      node.position.y + (node.height ?? node.initialHeight ?? 0) / 2
+    ];
+    const [startX, startY] = center(first);
+    if (!(await setCenter(startX, startY, { zoom: FULLSCREEN_FOCUS_ZOOM, duration: 0 }))) return false;
+    onViewportReady();
+
+    const lastRouteIndex = routeNodes.length - 1;
+    for (const [index, node] of routeNodes.slice(1).entries()) {
+      const [x, y] = center(node, index !== lastRouteIndex - 1);
+      if (!(await setCenter(x, y, { zoom: FULLSCREEN_FOCUS_ZOOM, duration }))) return false;
+    }
+
+    return true;
   }
 
   async function focusViewport(key: string, currentNodes: ConnectionGraphNode[], currentView: ConnectionNetworkView) {
@@ -68,14 +109,21 @@
     pendingFitKey = key;
     const token = ++focusToken;
 
-    let succeeded =
-      currentView === 'sidebar'
-        ? await focusSidebar(key, currentNodes, token)
-        : await fitView({ nodes: currentNodes, padding: 0.2, minZoom: 0.02, maxZoom: 1 });
-    if (succeeded && currentView === 'fullscreen') succeeded = await focusFullscreenTarget(currentNodes);
+    let succeeded: boolean;
+    if (currentView === 'sidebar') {
+      succeeded = await focusSidebar(key, currentNodes, token);
+    } else {
+      succeeded = await animateFullscreenRoute(currentNodes, () => {
+        if (currentFocusKey === key) onReady();
+      });
+    }
+    if (!succeeded && currentView === 'fullscreen') {
+      succeeded = await fitView({ nodes: currentNodes, padding: 0.2, minZoom: 0.02, maxZoom: 1 });
+    }
 
     if (succeeded && currentFocusKey === key) lastFitKey = key;
-    if (succeeded && currentFocusKey === key) onReady();
+    if (succeeded && currentView === 'sidebar' && currentFocusKey === key) onReady();
+    if (succeeded && currentView === 'fullscreen') onRouteAnimationComplete();
     if (pendingFitKey === key) pendingFitKey = '';
   }
 

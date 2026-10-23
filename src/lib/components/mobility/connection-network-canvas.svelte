@@ -32,9 +32,11 @@
     network: ConnectionNetworkResponse | null;
     selectedIslandId: string | null;
     targetIslandId?: string | null;
+    routeAnimationComplete?: boolean;
     view: ConnectionNetworkView;
     onIslandSelect?: (islandId: string) => void;
     onSimulate?: (destinationIslandId: string) => void;
+    onRouteAnimationComplete?: () => void;
   };
 
   let {
@@ -42,9 +44,11 @@
     network,
     selectedIslandId,
     targetIslandId = null,
+    routeAnimationComplete = true,
     view,
     onIslandSelect = () => {},
-    onSimulate
+    onSimulate,
+    onRouteAnimationComplete = () => {}
   }: Props = $props();
 
   let expansion = $state.raw<{ selection: string | null; islandId: string | null }>({
@@ -73,6 +77,7 @@
       network,
       selectedIslandId,
       targetIslandId,
+      routeAnimationComplete,
       view,
       detailIslandId,
       onIslandSelect,
@@ -103,7 +108,6 @@
   let fitKey = $derived(
     `${view}:${selectedIslandId ?? ''}:${targetIslandId ?? ''}:${network?.baselineVersion ?? ''}:${detailIslandId ?? ''}`
   );
-  let simulationNodeId = $derived(graph.nodes.find((node) => node.data.onSimulate)?.id ?? null);
   let flowInitialized = $state(false);
   let fittedKey = $state('');
 
@@ -175,7 +179,8 @@
           nodes={graph.nodes}
           {view}
           initialized={flowInitialized}
-          focusNodeId={view === 'fullscreen' ? simulationNodeId : null}
+          focusNodeId={view === 'fullscreen' ? selectedIslandId : null}
+          {onRouteAnimationComplete}
           onReady={() => (fittedKey = fitKey)}
         />
         {#if inspectedLink}

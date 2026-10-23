@@ -38,6 +38,7 @@
       variant="default"
       size="sm"
       type="button"
+      disabled={data.simulateReady === false}
       aria-label="Simulate on map"
       onclick={(event) => {
         event.stopPropagation();

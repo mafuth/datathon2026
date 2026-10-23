@@ -6,6 +6,7 @@
   import { Input } from '$components/ui/input';
 
   import ConnectionNetworkCanvas from './connection-network-canvas.svelte';
+  import { getConnectionIndex, islandCorridor } from './connection-network-index';
 
   type Props = {
     profile: IslandProfile | null;
@@ -33,6 +34,7 @@
   let destinationSearchOpen = $state(false);
   let destinationIslandId = $state<string | null>(null);
   let destinationSourceId = $state<string | null>(null);
+  let routeAnimationComplete = $state(true);
   let destinationOptions = $derived(
     (network?.islandDirectory ?? network?.islands ?? [])
       .filter((island) =>
@@ -40,10 +42,15 @@
       )
       .slice(0, 8)
   );
+  let destinationRoute = $derived.by(() => {
+    if (!network || !selectedIslandId || !destinationIslandId || selectedIslandId === destinationIslandId) return null;
+    return islandCorridor(getConnectionIndex(network), selectedIslandId, destinationIslandId);
+  });
 
   function selectDestination(island: { id: string; name: string; atollName: string }): void {
     destinationSearch = `${island.atollName} ${island.name}`;
     destinationIslandId = island.id;
+    routeAnimationComplete = false;
     destinationSearchOpen = false;
   }
 
@@ -59,6 +66,17 @@
     destinationIslandId = null;
     destinationSearchOpen = false;
   });
+
+  $effect(() => {
+    const route = destinationRoute;
+    if (!route?.available || route.steps.length === 0) {
+      routeAnimationComplete = true;
+    }
+  });
+
+  function completeRouteAnimation(): void {
+    routeAnimationComplete = true;
+  }
 </script>
 
 <div class={['connection-network', { 'connection-network-fullscreen-shell': view === 'fullscreen' }]}>
@@ -120,6 +138,8 @@
         {network}
         {selectedIslandId}
         targetIslandId={destinationIslandId}
+        {routeAnimationComplete}
+        onRouteAnimationComplete={completeRouteAnimation}
         {view}
         {onIslandSelect}
         {onSimulate}

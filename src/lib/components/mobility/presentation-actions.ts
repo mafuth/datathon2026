@@ -13,6 +13,7 @@ export type PresentationActionRuntime = {
 
 const DEFAULT_TARGET_TIMEOUT = 3500;
 const FOCUS_TARGET_TIMEOUT = 7000;
+const CONNECTION_ROUTE_TARGET_TIMEOUT = 120_000;
 
 export function presentationTarget(id: string): HTMLElement | null {
   return (
@@ -281,7 +282,13 @@ export async function runPresentationAction(
     window.setTimeout(() => serviceMarker.classList.remove('presentation-click-pulse'), 280);
     return true;
   }
-  if (action.type === 'wait-for-target') return (await waitForPresentationTarget(action.target)) !== null;
+  if (action.type === 'wait-for-target')
+    return (
+      (await waitForPresentationTarget(
+        action.target,
+        action.target === 'simulate-journey' ? CONNECTION_ROUTE_TARGET_TIMEOUT : DEFAULT_TARGET_TIMEOUT
+      )) !== null
+    );
   if (action.type === 'wait-for-map-idle') return runtime.waitForMapIdle?.() ?? false;
   if (action.type === 'wait-for-tab') return waitForPresentationTab(action.target);
   if (action.type === 'wait-for-proposal-state') return runtime.waitForProposalState?.(action.state) ?? false;
@@ -300,9 +307,11 @@ export async function runPresentationAction(
   }
   let target = await waitForPresentationTarget(
     action.target,
-    action.target === 'baarah-health-centre' || action.target === 'tree-top-marker'
-      ? FOCUS_TARGET_TIMEOUT
-      : DEFAULT_TARGET_TIMEOUT,
+    action.target === 'simulate-journey'
+      ? CONNECTION_ROUTE_TARGET_TIMEOUT
+      : action.target === 'baarah-health-centre' || action.target === 'tree-top-marker'
+        ? FOCUS_TARGET_TIMEOUT
+        : DEFAULT_TARGET_TIMEOUT,
     action.type === 'click' || action.type === 'input' || action.type === 'key'
   );
   if (!target) return false;
