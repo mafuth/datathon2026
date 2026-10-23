@@ -17,7 +17,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Proposal consuming roots stay light, including beneath a dark application shell. */
-:is(.proposal-builder-panel, .proposal-financial-panel) {
+:is(.proposal-builder-panel, .proposal-workspace, .proposal-financial-panel, .presentation-recommendation-card) {
   color-scheme: light;
   --background: #fff;
   --foreground: #09090b;
@@ -38,44 +38,66 @@
   --ring: #3f3f46;
   --destructive: #dc2626;
   --destructive-foreground: #fafafa;
+  --mobility-on-accent: #fafafa;
+  --mobility-accent-hover: #27272a;
+  --mobility-warning: #d97706;
+  --mobility-warning-ink: #92400e;
+  --mobility-warning-border: #fcd34d;
+  --mobility-warning-soft: #fffbeb;
+  --mobility-danger-ink: #b91c1c;
+  --mobility-success-border: #86efac;
+  --mobility-chart-before: #a1a1aa;
+  --mobility-chart-after: #18181b;
+  --mobility-chart-grid: #d4d4d8;
+  --mobility-chart-connector: #71717a;
+  --mobility-chart-cost-1: #18181b;
+  --mobility-chart-cost-2: #71717a;
+  --mobility-chart-cost-3: #a1a1aa;
+  --mobility-chart-cost-4: #52525b;
+  --mobility-chart-cost-5: #d4d4d8;
+  --mobility-chart-cost-6: #e4e4e7;
+  --mobility-radius-panel: 0.75rem;
+  --mobility-text-md: 0.88rem;
+  --mobility-text-2xl: 1.6rem;
+  --mobility-font-weight-bold: 800;
+  --mobility-leading-relaxed: 1.65;
+  --mobility-shadow-text: 0 1px 1px rgb(0 0 0 / 18%);
   background: var(--card);
   color: var(--card-foreground);
 }
 
-/* Unlayered root overrides also win over primitives' explicit dark variants. */
-:is(.proposal-builder-panel, .proposal-financial-panel)
-  :is([data-slot='button'], [data-slot='input'], [data-slot='tabs-trigger']) {
-  background-color: var(--background);
-  color: var(--foreground);
-  border-color: var(--input);
-}
-
-:is(.proposal-builder-panel, .proposal-financial-panel)
-  [data-slot='button']:is(:hover, [aria-expanded='true'], [aria-pressed='true']) {
-  background-color: var(--muted);
-  color: var(--foreground);
-}
-
-:is(.proposal-builder-panel, .proposal-financial-panel) [data-slot='tabs-list'] {
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-}
-
-:is(.proposal-builder-panel, .proposal-financial-panel) [data-slot='tabs-trigger'] {
-  background-color: transparent;
-  color: var(--muted-foreground);
-  border-color: transparent;
-}
-
-:is(.proposal-builder-panel, .proposal-financial-panel)
-  [data-slot='tabs-trigger']:is([data-active], [data-state='active']) {
-  background-color: var(--background);
-  color: var(--foreground);
-  border-color: var(--border);
-}
-
-:is(.proposal-builder-panel, .proposal-financial-panel) [aria-invalid='true'] {
+:is(.proposal-builder-panel, .proposal-workspace, .proposal-financial-panel, .presentation-recommendation-card)
+  [aria-invalid='true'] {
   border-color: var(--destructive);
+}
+
+:is(.proposal-builder-panel, .proposal-workspace, .proposal-financial-panel, .presentation-recommendation-card) {
+  --mobility-surface: var(--card);
+  --mobility-surface-soft: var(--background);
+  --mobility-surface-muted: var(--muted);
+  --mobility-border: var(--border);
+  --mobility-border-strong: var(--input);
+  --mobility-text: var(--foreground);
+  --mobility-muted: var(--muted-foreground);
+  --mobility-accent: var(--primary);
+  --mobility-accent-soft: var(--accent);
+  --mobility-focus: var(--ring);
+  --mobility-radius-card: var(--radius);
+  --mobility-radius-control: calc(var(--radius) - 2px);
+  --mobility-radius-small: calc(var(--radius) - 3px);
+  --mobility-shadow-card: 0 0.7rem 2.2rem rgb(24 24 27 / 10%);
+  --mobility-shadow-panel: 0 0.7rem 2.2rem rgb(24 24 27 / 12%);
+  --mobility-font-body: var(--font-primary);
+  --mobility-font-heading: var(--font-secondary);
+  --mobility-font-weight-normal: 500;
+  --mobility-font-weight-medium: 600;
+  --mobility-font-weight-semibold: 700;
+  --mobility-text-xs: 0.68rem;
+  --mobility-text-sm: 0.78rem;
+  --mobility-text-base: 0.88rem;
+  --mobility-text-lg: 1.1rem;
+  --mobility-leading-tight: 1.2;
+  --mobility-leading-normal: 1.45;
 }
 
 :root {
@@ -216,6 +238,13 @@
     cursor:
       url('/cursor-small.png') 5 5,
       auto !important;
+  }
+
+  body.presentation-cursor-hidden,
+  body.presentation-cursor-hidden *,
+  body.presentation-cursor-hidden *::before,
+  body.presentation-cursor-hidden *::after {
+    cursor: none !important;
   }
 
   *:focus-visible {

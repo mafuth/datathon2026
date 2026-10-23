@@ -433,7 +433,12 @@
     in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
     out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
   >
-    <Card.Root class="analytics-card" role="dialog" aria-label="National accessibility analytics">
+    <Card.Root
+      class="analytics-card"
+      role="dialog"
+      aria-label="National accessibility analytics"
+      data-presentation-target="national-analytics"
+    >
       <div class="analytics-scroll">
         <div class="analytics-heading">
           <div>
@@ -454,6 +459,7 @@
           <Button
             bind:ref={closeButton}
             class="close-button"
+            data-presentation-target="national-analytics-close"
             variant="ghost"
             size="icon"
             aria-label="Close analytics"
@@ -877,7 +883,7 @@
             </div>
           </Card.Root>
 
-          <Card.Root class="insight-card ranking-card" size="sm">
+          <Card.Root class="insight-card ranking-card" size="sm" data-presentation-target="high-inbound-demand">
             <div class="card-heading">
               <div>
                 <h3>High inbound demand origins</h3>
@@ -908,7 +914,7 @@
             </div>
           </Card.Root>
 
-          <Card.Root class="insight-card ranking-card" size="sm">
+          <Card.Root class="insight-card ranking-card" size="sm" data-presentation-target="most-inaccessible-islands">
             <div class="card-heading">
               <div>
                 <h3>Most inaccessible islands</h3>

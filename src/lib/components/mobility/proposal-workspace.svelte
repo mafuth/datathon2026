@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { IslandMapService, IslandServiceChange, ServiceDemandCategory } from './island-services';
   import type { ProposalTransportOperation, ProposalTransportPlan } from '$lib/mobility/proposal-transport';
-  import type { ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
   import type { AddServiceSelection } from '$lib/mobility/service-catalog';
   import type { Snippet } from 'svelte';
 
@@ -13,12 +12,11 @@
   import Search from '@lucide/svelte/icons/search';
   import Undo2 from '@lucide/svelte/icons/undo-2';
 
-  import { formatProposalMoney } from '$lib/mobility/proposal-planning';
-
   import { Badge } from '$components/ui/badge';
   import { Button } from '$components/ui/button';
   import * as Card from '$components/ui/card';
   import { Input } from '$components/ui/input';
+  import { Skeleton } from '$components/ui/skeleton';
   import * as Tabs from '$components/ui/tabs';
 
   import ProposalTransportPlanner from './proposal-transport-planner.svelte';
@@ -48,10 +46,6 @@
     onRedo?: () => void;
     onReset?: () => void;
     canReset?: boolean;
-    storageMessage?: string | null;
-    restoreBlocked?: boolean;
-    onRetryRestore?: () => void;
-    onStartFresh?: () => void;
     query?: string;
     serviceFilter?: ProposalServiceFilter;
     pending?: boolean;
@@ -68,10 +62,7 @@
     transportPlans?: readonly ProposalTransportPlan[];
     transportEditorOperation?: ProposalTransportOperation | null;
     builderTab?: 'services' | 'transport';
-    onPreviewTransport?: (operation: ProposalTransportOperation) => void | Promise<void>;
-    stagedTransportPreview?: ScenarioPreviewResponse | null;
-    onConfirmTransport?: () => void | Promise<void>;
-    onCancelTransport?: () => void;
+    onApplyTransport?: (operation: ProposalTransportOperation) => void | Promise<void>;
     onEditTransport?: (operationId: string) => void;
     onRemoveTransport?: (operationId: string) => void;
   };
@@ -86,10 +77,6 @@
     onRedo = () => {},
     onReset = () => {},
     canReset = false,
-    storageMessage = null,
-    restoreBlocked = false,
-    onRetryRestore = () => {},
-    onStartFresh = () => {},
     query = $bindable(''),
     serviceFilter = $bindable<ProposalServiceFilter>('all'),
     pending = false,
@@ -106,10 +93,7 @@
     transportPlans = [],
     transportEditorOperation = null,
     builderTab = $bindable<'services' | 'transport'>('services'),
-    onPreviewTransport = () => {},
-    stagedTransportPreview = null,
-    onConfirmTransport = () => {},
-    onCancelTransport = () => {},
+    onApplyTransport = () => {},
     onEditTransport = () => {},
     onRemoveTransport = () => {}
   }: Props = $props();
@@ -143,44 +127,50 @@
   <Card.Header class="proposal-header">
     <div class="proposal-heading">
       <div>
-        <Card.Title>Draft proposal</Card.Title>
+        <Card.Title class="proposal-title">Draft proposal</Card.Title>
         <Card.Description>Plan the changes for this island.</Card.Description>
       </div>
-      <Badge variant="outline">{mappedServices.length} services</Badge>
     </div>
     {@render mapControls?.()}
   </Card.Header>
 
   <Card.Content class="proposal-content">
-    <Tabs.Root bind:value={builderTab}>
+    <Tabs.Root bind:value={builderTab} class="proposal-builder-tabs">
       <Tabs.List aria-label="Proposal builder section">
         <Tabs.Trigger value="services">Services</Tabs.Trigger>
-        <Tabs.Trigger value="transport">Transport</Tabs.Trigger>
+        <Tabs.Trigger value="transport" data-presentation-target="proposal-transport-tab">Transport</Tabs.Trigger>
       </Tabs.List>
     </Tabs.Root>
 
     <div class="proposal-history" role="group" aria-label="Proposal history">
-      <Button variant="outline" size="sm" disabled={pending || readOnly || !canUndo} onclick={onUndo}
-        ><Undo2 data-icon="inline-start" />Undo</Button
+      <Button
+        class="proposal-history-button"
+        variant="outline"
+        size="sm"
+        disabled={pending || readOnly || !canUndo}
+        onclick={onUndo}><Undo2 data-icon="inline-start" />Undo</Button
       >
-      <Button variant="outline" size="sm" disabled={pending || readOnly || !canRedo} onclick={onRedo}
-        ><Redo2 data-icon="inline-start" />Redo</Button
+      <Button
+        class="proposal-history-button"
+        variant="outline"
+        size="sm"
+        disabled={pending || readOnly || !canRedo}
+        onclick={onRedo}><Redo2 data-icon="inline-start" />Redo</Button
       >
-      <Button variant="ghost" size="sm" disabled={pending || readOnly || !canReset} onclick={onReset}
-        ><RotateCcw data-icon="inline-start" />Reset</Button
+      <Button
+        class="proposal-reset-button"
+        variant="destructive"
+        size="sm"
+        disabled={pending || readOnly || !canReset}
+        onclick={onReset}><RotateCcw data-icon="inline-start" />Reset</Button
       >
     </div>
 
-    {#if storageMessage}<p class="proposal-status" role="status">{storageMessage}</p>{/if}
-    {#if pending}<p class="proposal-status" role="status">Updating proposal…</p>{/if}
+    {#if pending}<div class="proposal-loading" role="status" aria-label="Updating proposal">
+        <Skeleton class="proposal-loading-line" /><Skeleton class="proposal-loading-line proposal-loading-line-short" />
+      </div>{/if}
     {#if error}<p class="proposal-error" role="alert">{error}</p>{/if}
     {#if message && !error}<p class="proposal-status" role="status">{message}</p>{/if}
-    {#if restoreBlocked}
-      <div class="proposal-status-actions">
-        <Button variant="outline" size="sm" disabled={pending} onclick={onRetryRestore}>Retry restore</Button>
-        <Button variant="outline" size="sm" disabled={pending} onclick={onStartFresh}>Start fresh</Button>
-      </div>
-    {/if}
 
     {#if builderTab === 'transport'}
       <section class="proposal-section" aria-labelledby="transport-heading">
@@ -195,27 +185,9 @@
           {selectedIslandId}
           pending={pending || readOnly}
           initialOperation={transportEditorOperation}
-          {onPreviewTransport}
+          {onApplyTransport}
         />
       </section>
-
-      {#if stagedTransportPreview}
-        <section class="proposal-confirmation" aria-live="polite">
-          <div><strong>Route ready</strong><span>Review the updated totals before applying it.</span></div>
-          <div class="confirmation-values">
-            <span>Upfront <strong>{formatProposalMoney(stagedTransportPreview.costs.capital)}</strong></span><span
-              >Annual <strong>{formatProposalMoney(stagedTransportPreview.costs.annual)}</strong></span
-            >
-          </div>
-          <div class="confirmation-actions">
-            <Button variant="ghost" size="sm" onclick={onCancelTransport}>Cancel</Button><Button
-              size="sm"
-              disabled={pending}
-              onclick={() => void onConfirmTransport()}>Confirm route</Button
-            >
-          </div>
-        </section>
-      {/if}
 
       {#if transportPlans.length}
         <section class="proposal-section route-list" aria-labelledby="route-list-heading">
@@ -246,14 +218,7 @@
         </section>
       {/if}
     {:else}
-      <section class="proposal-section" aria-labelledby="services-heading">
-        <div class="section-heading">
-          <div>
-            <h3 id="services-heading">Services</h3>
-            <p>Add or adjust services on the map.</p>
-          </div>
-          <Badge variant="secondary">{visibleServices.length} shown</Badge>
-        </div>
+      <section class="proposal-section" aria-label="Services">
         <ServicePalette pending={pending || readOnly} {activeSelection} {onStartAddService} />
 
         {#if addActive}<div class="mode-banner" role="status">
@@ -274,15 +239,13 @@
             aria-label="Search services"
           />
         </div>
-        <Tabs.Root bind:value={serviceFilter}>
+        <Tabs.Root bind:value={serviceFilter} class="proposal-filter-tabs">
           <Tabs.List aria-label="Filter services">
             <Tabs.Trigger value="all">All</Tabs.Trigger><Tabs.Trigger value="health">Health</Tabs.Trigger><Tabs.Trigger
               value="education">Education</Tabs.Trigger
             ><Tabs.Trigger value="transport">Transport</Tabs.Trigger>
           </Tabs.List>
         </Tabs.Root>
-        <p class="service-count">{visibleServices.length} of {mappedServices.length} services</p>
-
         {#if visibleServices.length === 0}<p class="empty-state">No services match this search.</p>{:else}
           <ul class="service-list" aria-label="Services on selected island">
             {#each visibleServices as service (service.id)}
@@ -292,7 +255,7 @@
               <li>
                 <Button
                   variant="ghost"
-                  class="service-row"
+                  class={`service-row service-row-${service.serviceType}`}
                   aria-label={`Show ${serviceLabel(service)} on the map`}
                   onclick={() => onSelectService(service)}
                   ><span class="service-icon"><Icon aria-hidden="true" /></span><span class="service-copy"
@@ -317,14 +280,30 @@
     max-height: 100%;
     flex-direction: column;
     overflow: hidden;
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface, #fff);
-    color: var(--mobility-text, #09090b);
-    box-shadow: none;
+    border-color: var(--border);
+    border-radius: 0.55rem;
+    background: var(--card);
+    color: var(--card-foreground);
+    box-shadow: 0 0.7rem 2.2rem rgb(24 24 27 / 10%);
   }
   :global(.proposal-header),
   :global(.proposal-content) {
     min-width: 0;
+  }
+  :global(.proposal-workspace) {
+    color-scheme: light;
+  }
+  :global(.proposal-workspace [data-slot='tabs-list']) {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    background: var(--muted);
+  }
+  :global(.proposal-workspace [data-slot='tabs-trigger']) {
+    min-width: 0;
+  }
+  :global(.proposal-workspace .proposal-section [data-slot='tabs-list']) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   :global(.proposal-header) {
     display: grid;
@@ -334,8 +313,6 @@
   .proposal-heading,
   .section-heading,
   .proposal-history,
-  .confirmation-actions,
-  .confirmation-values,
   .mode-banner {
     display: flex;
     align-items: center;
@@ -346,16 +323,16 @@
     justify-content: space-between;
   }
   .proposal-heading :global([data-slot='card-title']) {
-    font-size: 1.2rem;
-    letter-spacing: -0.03em;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.045em;
   }
   .proposal-heading :global([data-slot='card-description']),
   .section-heading p,
   .route-copy span,
   .service-copy span,
-  .proposal-status,
-  .service-count {
-    color: var(--mobility-muted, #71717a);
+  .proposal-status {
+    color: var(--muted-foreground);
     font-size: 0.68rem;
   }
   :global(.proposal-content) {
@@ -371,21 +348,48 @@
     border-block: 1px solid var(--mobility-border, #e4e4e7);
     padding: 0.5rem 0;
   }
+  .proposal-history :global(.proposal-history-button) {
+    border-color: var(--input);
+    background: var(--card);
+    color: var(--foreground);
+  }
+  .proposal-history :global(.proposal-history-button:hover:not(:disabled)) {
+    border-color: var(--ring);
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  .proposal-history :global(.proposal-reset-button) {
+    margin-left: auto;
+    border-color: var(--destructive);
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+  }
+  .proposal-history :global(.proposal-reset-button:hover:not(:disabled)) {
+    background: color-mix(in srgb, var(--destructive) 85%, black);
+    color: var(--destructive-foreground);
+  }
   .proposal-history :global(button:last-child) {
     margin-left: auto;
   }
   .proposal-status,
-  .proposal-error,
-  .service-count {
+  .proposal-error {
     margin: 0;
   }
   .proposal-error {
-    color: var(--mobility-danger-ink, #a42318);
+    color: var(--destructive);
     font-size: 0.7rem;
   }
-  .proposal-status-actions {
-    display: flex;
-    gap: 0.5rem;
+  .proposal-loading {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.35rem 0;
+  }
+  :global(.proposal-loading-line) {
+    height: 0.55rem;
+    width: 70%;
+  }
+  :global(.proposal-loading-line-short) {
+    width: 38%;
   }
   .proposal-section {
     display: grid;
@@ -413,7 +417,32 @@
     pointer-events: none;
   }
   .service-search :global(input) {
+    border-color: var(--input);
+    background: var(--card);
+    color: var(--foreground);
     padding-left: 2rem;
+  }
+  .service-search :global(input)::placeholder {
+    color: var(--muted-foreground);
+  }
+  .service-search :global(input:focus-visible) {
+    border-color: var(--ring);
+    background: var(--card);
+  }
+  :global(.proposal-builder-tabs [data-slot='tabs-trigger'][data-state='active']),
+  :global(.proposal-filter-tabs [data-slot='tabs-trigger'][data-state='active']) {
+    border-color: var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    box-shadow: 0 1px 2px rgb(24 24 27 / 10%);
+  }
+  :global(.proposal-builder-tabs [data-slot='tabs-trigger']),
+  :global(.proposal-filter-tabs [data-slot='tabs-trigger']) {
+    color: var(--muted-foreground);
+  }
+  :global(.proposal-builder-tabs [data-slot='tabs-trigger']:hover),
+  :global(.proposal-filter-tabs [data-slot='tabs-trigger']:hover) {
+    color: var(--foreground);
   }
   .service-list {
     display: grid;
@@ -431,6 +460,17 @@
     gap: 0.6rem;
     padding: 0.5rem 0.25rem;
     text-align: left;
+    border: 1px solid transparent;
+    border-bottom-color: var(--border);
+    border-radius: 0.45rem;
+  }
+  :global(.service-row:hover) {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  :global(.service-row:focus-visible) {
+    border-color: var(--ring);
+    background: var(--card);
   }
   .service-icon {
     display: grid;
@@ -439,8 +479,20 @@
     flex: 0 0 auto;
     place-items: center;
     border-radius: 0.35rem;
-    background: var(--mobility-surface-muted, #f4f4f5);
-    color: var(--mobility-accent, #09090b);
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  :global(.service-row-health) .service-icon {
+    color: #a33f4c;
+    background: #fff1f2;
+  }
+  :global(.service-row-education) .service-icon {
+    color: #3f5f91;
+    background: #eff6ff;
+  }
+  :global(.service-row-transport) .service-icon {
+    color: #9a641e;
+    background: #fff7ed;
   }
   .service-copy,
   .route-copy {
@@ -466,19 +518,20 @@
   .empty-state {
     margin: 0;
     padding: 1rem 0;
-    color: var(--mobility-muted, #71717a);
+    color: var(--muted-foreground);
     font-size: 0.72rem;
     text-align: center;
   }
   .mode-banner {
     justify-content: space-between;
-    border-block: 1px solid var(--mobility-border, #e4e4e7);
-    padding: 0.5rem 0;
-    color: var(--mobility-muted, #71717a);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.65rem;
+    color: var(--muted-foreground);
     font-size: 0.68rem;
   }
   .route-list {
-    border-top: 1px solid var(--mobility-border, #e4e4e7);
+    border-top: 1px solid var(--border);
     padding-top: 0.75rem;
   }
   .route-row {
@@ -486,38 +539,12 @@
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 0.35rem;
-    border-bottom: 1px solid var(--mobility-border, #e4e4e7);
+    border-bottom: 1px solid var(--border);
     padding: 0.6rem 0;
   }
   .route-copy :global([data-slot='badge']) {
     width: fit-content;
     font-size: 0.58rem;
-  }
-  .proposal-confirmation {
-    display: grid;
-    gap: 0.65rem;
-    border-block: 1px solid var(--mobility-border, #e4e4e7);
-    padding: 0.75rem 0;
-  }
-  .proposal-confirmation > div:first-child {
-    display: grid;
-    gap: 0.15rem;
-  }
-  .proposal-confirmation > div:first-child span,
-  .confirmation-values span {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.65rem;
-  }
-  .confirmation-values {
-    gap: 1rem;
-  }
-  .confirmation-values strong {
-    display: block;
-    color: var(--mobility-text, #09090b);
-    font-size: 0.72rem;
-  }
-  .confirmation-actions {
-    justify-content: space-between;
   }
   @media (max-width: 64rem) {
     :global(.proposal-workspace) {

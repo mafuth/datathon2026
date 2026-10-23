@@ -103,7 +103,9 @@
   let fitKey = $derived(
     `${view}:${selectedIslandId ?? ''}:${targetIslandId ?? ''}:${network?.baselineVersion ?? ''}:${detailIslandId ?? ''}`
   );
+  let simulationNodeId = $derived(graph.nodes.find((node) => node.data.onSimulate)?.id ?? null);
   let flowInitialized = $state(false);
+  let fittedKey = $state('');
 
   const nodeTypes = {
     root: ConnectionRootNode,
@@ -117,7 +119,10 @@
 
 <SvelteFlowProvider>
   <div class={['connection-network-layout', { 'connection-network-fullscreen-layout': view === 'fullscreen' }]}>
-    <div class={['connection-network-canvas', { 'connection-network-fullscreen-canvas': view === 'fullscreen' }]}>
+    <div
+      class={['connection-network-canvas', { 'connection-network-fullscreen-canvas': view === 'fullscreen' }]}
+      data-presentation-target={fittedKey === fitKey ? 'connection-network-viewport' : undefined}
+    >
       <SvelteFlow
         colorMode="light"
         id={`island-connection-network-${view}`}
@@ -165,7 +170,14 @@
             maskStrokeWidth={2}
           />
         {/if}
-        <ConnectionNetworkFitView {fitKey} nodes={graph.nodes} {view} initialized={flowInitialized} />
+        <ConnectionNetworkFitView
+          {fitKey}
+          nodes={graph.nodes}
+          {view}
+          initialized={flowInitialized}
+          focusNodeId={view === 'fullscreen' ? simulationNodeId : null}
+          onReady={() => (fittedKey = fitKey)}
+        />
         {#if inspectedLink}
           <Panel position="bottom-left">
             <div class="connection-evidence nodrag nopan">

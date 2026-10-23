@@ -8,10 +8,11 @@
   type Props = {
     serviceType: ServiceType;
     label: string;
+    presentationTarget?: string;
     onSelect?: () => void;
   };
 
-  let { serviceType, label, onSelect = () => {} }: Props = $props();
+  let { serviceType, label, presentationTarget, onSelect = () => {} }: Props = $props();
 
   let markerColor = $derived(
     serviceType === 'health' ? '#bf4f55' : serviceType === 'education' ? '#4b6fa8' : '#b47a3c'
@@ -27,6 +28,7 @@
   type="button"
   class="service-marker"
   data-service-marker
+  data-presentation-target={presentationTarget}
   style={`--marker-color: ${markerColor}`}
   aria-label={label}
   title={label}

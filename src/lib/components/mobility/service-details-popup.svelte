@@ -85,7 +85,7 @@
   }
 </script>
 
-<Card.Root class="service-details-popup" size="sm">
+<Card.Root class="service-details-popup" size="sm" data-presentation-target="service-popup">
   <Card.Header class="service-popup-header">
     <div class="service-popup-heading">
       <span class={`service-popup-service-icon service-popup-service-icon-${service.serviceType}`} aria-hidden="true">
@@ -179,6 +179,7 @@
       <div class="service-popup-action-row">
         <Button
           class="service-popup-outline-action"
+          data-presentation-target="upgrade-service"
           variant="outline"
           size="sm"
           disabled={!upgrade}

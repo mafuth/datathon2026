@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "presentation-script-v1",
+  "title": "Baarah to Care",
+  "durationSeconds": 270,
+  "steps": [
+    {
+      "id": "opening",
+      "speech": {
+        "text": "",
+        "pause": "normal",
+        "presenterNote": "Look at the judges, not the screen. Make eye contact before touching the map."
+      },
+      "actions": [
+        { "type": "wait", "ms": 700 },
+        { "type": "wait-for-map-idle" }
+      ]
+    },
+    {
+      "id": "baarah-search",
+      "speech": {
+        "text": "Last year, my mom had a stroke while she was in Haa Alifu Baarah.",
+        "pause": "normal"
+      },
+      "actions": [
+        { "type": "click", "target": "island-search" },
+        { "type": "input", "target": "island-search", "text": "baar", "textVariants": ["baara", "baar"] },
+        { "type": "key", "target": "island-search", "key": "Enter" },
+        { "type": "wait-for-target", "target": "island-details-tab" },
+        { "type": "wait-for-map-idle" }
+      ]
+    },
+    {
+      "id": "baarah-health-centre",
+      "speech": {
+        "text": "Baarah has a health centre. But that health centre cannot provide all the care my mother needs.",
+        "pause": "pause"
+      },
+      "actions": [
+        { "type": "focus-service", "target": "baarah-health-centre" },
+        { "type": "wait-for-target", "target": "service-popup" },
+        { "type": "wait", "ms": 450 }
+      ]
+    },
+    {
+      "id": "resident-demand",
+      "speech": {
+        "text": "We estimate that 414 out of 1,141 people need health care outside Baarah. 61 of them are elderly people.",
+        "pause": "normal",
+        "presenterNote": "Point to the elderly count in Resident demand allocation."
+      },
+      "actions": [
+        { "type": "hover", "target": "resident-demand-elderly" },
+        { "type": "wait", "ms": 1100 }
+      ]
+    },
+    {
+      "id": "mother",
+      "speech": {
+        "text": "That number is easy to read on a screen. I put a face to it.",
+        "pause": "normal",
+        "presenterNote": "Look at the judges."
+      },
+      "actions": [{ "type": "wait", "ms": 900 }]
+    },
+    {
+      "id": "mother-face",
+      "speech": {
+        "text": "My mother.",
+        "pause": "long",
+        "presenterNote": "Look at the judges."
+      },
+      "actions": [{ "type": "wait", "ms": 1000 }]
+    },
+    {
+      "id": "connection-network",
+      "speech": {
+        "text": "At 7:35, she left Baarah. But she did not go straight to an airport.",
+        "pause": "normal"
+      },
+      "actions": [
+        { "type": "click", "target": "connection-network-fullscreen" },
+        { "type": "click", "target": "connection-destination-search" },
+        { "type": "input", "target": "connection-destination-search", "text": "hulhumal" },
+        { "type": "key", "target": "connection-destination-search", "key": "Enter" },
+        { "type": "wait-for-target", "target": "connection-network-viewport" },
+        { "type": "wait-for-target", "target": "simulate-journey" },
+        { "type": "click", "target": "simulate-journey" },
+        { "type": "wait-for-journey-section", "sectionId": "ferry-baarah-vashafaru" }
+      ]
+    },
+    {
+      "id": "ferry-stops",
+      "speech": {
+        "text": "The ferry took her through Vashafaru first. The ferry continued through Dhihdhoo. Every stop meant waiting for the next connection.",
+        "pause": "normal",
+        "presenterNote": "Let the route animation play."
+      },
+      "actions": [{ "type": "wait-for-journey-section", "sectionId": "ferry-vashafaru-dhihdhoo" }]
+    },
+    {
+      "id": "airport",
+      "speech": {
+        "text": "At 11:00, she boarded another ferry. At 11:25, she finally reached Hanimaadhoo Airport. An airport is not a hospital.",
+        "pause": "pause"
+      },
+      "actions": [{ "type": "wait-for-journey-section", "sectionId": "weather-delay-hanimaadhoo" }]
+    },
+    {
+      "id": "flight",
+      "speech": {
+        "text": "Then she flew to Hulhule.",
+        "pause": "normal"
+      },
+      "actions": [{ "type": "wait-for-journey-section", "sectionId": "flight-takeoff" }]
+    },
+    {
+      "id": "landing",
+      "speech": {
+        "text": "When she landed, it was raining.",
+        "pause": "pause"
+      },
+      "actions": [{ "type": "wait-for-journey-section", "sectionId": "flight-landing-handoff" }]
+    },
+    {
+      "id": "tree-top",
+      "speech": {
+        "text": "After the ferries, the flight, and all that waiting, she still had to stand in a queue for treatment.",
+        "pause": "normal",
+        "presenterNote": "Point to where connections matter most."
+      },
+      "actions": [
+        { "type": "wait-for-journey-section", "sectionId": "ambulance-tree-top" },
+        { "type": "pause-journey" },
+        { "type": "focus-service", "target": "tree-top-marker" },
+        { "type": "hover", "target": "inbound-care-value" },
+        { "type": "wait", "ms": 1000 }
+      ]
+    },
+    {
+      "id": "gap",
+      "speech": {
+        "text": "That is the gap in access. Reaching the island is not the same as reaching care.",
+        "pause": "long"
+      },
+      "actions": [
+        { "type": "click", "target": "island-analytics-close" },
+        { "type": "wait-for-map-idle" },
+        { "type": "wait-for-target", "target": "island-search" }
+      ]
+    },
+    {
+      "id": "health-demand",
+      "speech": {
+        "text": "We make that pressure visible. This is not just a route on a map. It is my mother's journey. It is the ferries, the airport, the waiting, and the care she was still trying to reach. We make that whole chain visible.",
+        "pause": "normal",
+        "presenterNote": "Point to the Health demand percentage."
+      },
+      "actions": [
+        { "type": "click", "target": "island-search" },
+        { "type": "input", "target": "island-search", "text": "baar", "textVariants": ["baara", "baar"] },
+        { "type": "key", "target": "island-search", "key": "Enter" },
+        { "type": "click", "target": "island-details-tab" },
+        { "type": "wait-for-tab", "target": "island-details-tab" },
+        { "type": "scroll", "target": "health-demand-card", "amount": 420 },
+        { "type": "hover", "target": "health-demand-percent", "cursorOffset": [0, 16] }
+      ]
+    },
+    {
+      "id": "chain-visible",
+      "speech": {
+        "text": "Not to make the journey look simple. To show where it becomes difficult.",
+        "pause": "long"
+      },
+      "actions": [{ "type": "wait", "ms": 1000 }]
+    },
+    {
+      "id": "national-pattern",
+      "speech": {
+        "text": "My mother is one person. But the data shows that this problem is bigger than one family. Baarah is not the only island where demand and access are out of balance.",
+        "pause": "long",
+        "presenterNote": "Look at the judges."
+      },
+      "actions": [
+        { "type": "click", "target": "island-analytics-close" },
+        { "type": "wait-for-map-idle" },
+        { "type": "click", "target": "national-score-details" },
+        { "type": "wait-for-target", "target": "national-analytics-close" },
+        { "type": "scroll", "target": "high-inbound-demand", "amount": 360 },
+        { "type": "hover", "target": "high-inbound-demand" },
+        { "type": "scroll", "target": "most-inaccessible-islands", "amount": 320 },
+        { "type": "hover", "target": "most-inaccessible-islands" }
+      ]
+    },
+    {
+      "id": "proposal-start",
+      "speech": {
+        "text": "That is what we are building: a way to see the gap before another family has to live through it. Let us test a proposal to help this scenario.",
+        "pause": "normal"
+      },
+      "actions": [
+        { "type": "click", "target": "national-analytics-close" },
+        { "type": "wait-for-target", "target": "island-search" },
+        { "type": "click", "target": "island-search" },
+        { "type": "input", "target": "island-search", "text": "baar", "textVariants": ["baara", "baar"] },
+        { "type": "key", "target": "island-search", "key": "Enter" },
+        { "type": "click", "target": "create-proposal" },
+        { "type": "wait-for-proposal-state", "state": "ready" }
+      ]
+    },
+    {
+      "id": "proposal-recommendation",
+      "speech": {
+        "text": "We could upgrade the health centre in Baarah to a hospital. But before we spend that money, our data wizards double-check the choice.",
+        "pause": "normal",
+        "presenterNote": "Look at the judges while the recommendation loads."
+      },
+      "actions": [
+        { "type": "focus-service", "target": "baarah-health-centre" },
+        { "type": "wait-for-target", "target": "service-popup" },
+        { "type": "click", "target": "upgrade-service" },
+        { "type": "wait-for-recommendation" },
+        { "type": "click", "target": "recommendation-card" },
+        { "type": "wait-for-target", "target": "apply-recommended-changes" }
+      ]
+    },
+    {
+      "id": "proposal-apply",
+      "speech": {
+        "text": "Our data wizards found a better idea: add a reverse ferry route and recalculate the network.",
+        "pause": "normal"
+      },
+      "actions": [
+        { "type": "click", "target": "apply-recommended-changes" },
+        { "type": "wait-for-proposal-state", "state": "settled" }
+      ]
+    },
+    {
+      "id": "proposal-download",
+      "speech": {
+        "text": "With one additional ferry, we do not have to spend huge amounts upgrading a health centre for 61 people. We reduce the journey time and save a huge sum of money.",
+        "pause": "long"
+      },
+      "actions": [
+        { "type": "wait-for-proposal-state", "state": "settled" },
+        { "type": "hover", "target": "proposal-title" },
+        { "type": "scroll", "target": "download-proposal", "amount": 420 },
+        { "type": "click", "target": "download-proposal" }
+      ]
+    }
+  ]
+}

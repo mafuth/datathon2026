@@ -47,9 +47,15 @@
     helipad: Helicopter
   };
 
+  const TRANSPORT_PALETTE_SUBTYPES = new Set<AddableServiceSubtype>(['airport', 'bus_stop', 'jetty']);
+
   const paletteGroups = SERVICE_TYPE_OPTIONS.map((category) => ({
     ...category,
-    entries: SERVICE_CATALOG.filter((entry) => entry.serviceType === category.value)
+    entries: SERVICE_CATALOG.filter(
+      (entry) =>
+        entry.serviceType === category.value &&
+        (category.value !== 'transport' || TRANSPORT_PALETTE_SUBTYPES.has(entry.subtype))
+    )
   }));
 
   function selectionFor(entry: ServiceCatalogEntry): AddServiceSelection {
@@ -78,7 +84,6 @@
       <p class="service-palette-title">Place a service</p>
       <p class="service-palette-hint">Drag an icon onto the map</p>
     </div>
-    <span class="service-palette-mark" aria-hidden="true">+</span>
   </div>
 
   <div class="service-palette-groups">
@@ -148,19 +153,6 @@
     color: var(--mobility-muted, #71717a);
     font-size: 0.57rem;
     line-height: 1.25;
-  }
-
-  .service-palette-mark {
-    display: grid;
-    width: 1.55rem;
-    height: 1.55rem;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--mobility-text, #09090b);
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1;
   }
 
   .service-palette-groups {

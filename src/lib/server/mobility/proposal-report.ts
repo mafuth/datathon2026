@@ -20,6 +20,12 @@ const SURFACE = color(244, 244, 244);
 const PAPER = color(255, 255, 255);
 const MARGIN = 44;
 
+export type ProposalReportIsland = {
+  id: string;
+  name: string;
+  geoJson: string;
+};
+
 function printable(value: string, font: PDFFont): string {
   return [
     ...value
@@ -164,7 +170,8 @@ export function proposalReportChartEvidence(preview: ScenarioPreviewResponse) {
 
 export async function buildProposalReport(
   input: ScenarioPreviewRequest,
-  preview: ScenarioPreviewResponse
+  preview: ScenarioPreviewResponse,
+  reportIslands: readonly ProposalReportIsland[] = []
 ): Promise<Uint8Array> {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
@@ -183,6 +190,10 @@ export async function buildProposalReport(
   let y = 0;
   const width = PageSizes.A4[0] - MARGIN * 2;
   const charts = proposalReportChartEvidence(preview);
+  const transportOperations = input.operations.filter(
+    (operation) => operation.kind === 'add_bus_service' || operation.kind === 'add_ferry_service'
+  );
+  const transportPlans = new Map(preview.transportPlans.map((plan) => [plan.operationId, plan]));
 
   function newPage(): void {
     if (started) page = document.addPage(PageSizes.A4);
@@ -624,9 +635,15 @@ export async function buildProposalReport(
   if (input.operations.length === 0)
     text('No interventions are accepted. This brief describes the unchanged baseline.', 10);
   for (const operation of preview.operations) text(`• ${operation.message}`, 10);
-  for (const plan of preview.transportPlans) {
+  for (const operation of transportOperations) {
+    const plan = transportPlans.get(operation.operationId);
     ensure(90);
-    text(plan.label, 11, true);
+    text(plan?.label ?? `${operation.kind.replace('add_', '').replace('_service', '')} service`, 11, true);
+    text(`Operation ${operation.operationId}`, 8, false, MUTED);
+    if (!plan) {
+      text('Transport plan details are unavailable for this accepted operation.', 9, false, MUTED);
+      continue;
+    }
     text(
       `${plan.vehicleCount} proposed vehicle(s)  |  ${plan.distanceKm.toFixed(2)} km modeled route  |  ${plan.headwayMinutes}-minute proposed headway`,
       9
@@ -707,7 +724,8 @@ export async function buildProposalReport(
 
   newPage();
   text('PLANNED LOCATIONS', 9, true, MUTED);
-  text('Schematic proposal locations', 20, true);
+  text('Related-area schematic proposal locations', 20, true);
+  text(`Selected island: ${preview.island.name}`, 9, false, MUTED);
   const validCoordinate = (point: unknown): point is [number, number] =>
     Array.isArray(point) &&
     point.length >= 2 &&
@@ -715,17 +733,66 @@ export async function buildProposalReport(
     Number.isFinite(point[1]) &&
     Math.abs(point[0]) <= 180 &&
     Math.abs(point[1]) <= 90;
+  const geometryRings = (source: unknown): unknown[][] => {
+    if (!source || typeof source !== 'object') return [];
+    const value = source as { type?: unknown; coordinates?: unknown; geometry?: unknown; features?: unknown[] };
+    if (value.type === 'Feature') return geometryRings(value.geometry);
+    if (value.type === 'FeatureCollection' && Array.isArray(value.features))
+      return value.features.flatMap((feature) => geometryRings(feature));
+    if (value.type === 'Polygon' && Array.isArray(value.coordinates)) return value.coordinates as unknown[][];
+    if (value.type === 'MultiPolygon' && Array.isArray(value.coordinates))
+      return value.coordinates.flatMap((polygon) => (Array.isArray(polygon) ? (polygon as unknown[][]) : []));
+    return [];
+  };
   const changedServices = preview.services.filter((service) => service.change && service.change !== 'unchanged');
-  const outlineRings = (preview.baseline.hexes?.features ?? preview.hexes.features)
-    .flatMap((feature) => feature.geometry.coordinates)
-    .map((ring) => ring.filter(validCoordinate))
-    .filter((ring) => ring.length > 2);
+  const islandOutlines = reportIslands.flatMap((island) => {
+    try {
+      return geometryRings(JSON.parse(island.geoJson) as unknown).map((ring) => ({
+        islandId: island.id,
+        ring: ring.filter(validCoordinate)
+      }));
+    } catch {
+      return [];
+    }
+  });
+  const outlineRings = (
+    islandOutlines.length > 0
+      ? islandOutlines
+      : (preview.baseline.hexes?.features ?? preview.hexes.features).flatMap((feature) =>
+          feature.geometry.coordinates.map((ring) => ({
+            islandId: preview.selectedIslandId,
+            ring: ring.filter(validCoordinate)
+          }))
+        )
+  ).filter((outline) => outline.ring.length > 2);
   const routeLines = preview.transportPlans
     .flatMap((plan) => plan.geometry.coordinates)
     .map((line) => line.filter(validCoordinate))
     .filter((line) => line.length > 1);
+  const routeCoordinates = routeLines.flat();
+  const routeBounds = routeCoordinates.length
+    ? {
+        minimumX: Math.min(...routeCoordinates.map(([longitude]) => longitude)),
+        maximumX: Math.max(...routeCoordinates.map(([longitude]) => longitude)),
+        minimumY: Math.min(...routeCoordinates.map(([, latitude]) => latitude)),
+        maximumY: Math.max(...routeCoordinates.map(([, latitude]) => latitude))
+      }
+    : null;
+  const routeMargin = 0.35;
+  const focusedOutlineRings = outlineRings.filter(
+    (outline) =>
+      outline.islandId === preview.selectedIslandId ||
+      (routeBounds &&
+        outline.ring.some(
+          ([longitude, latitude]) =>
+            longitude >= routeBounds.minimumX - routeMargin &&
+            longitude <= routeBounds.maximumX + routeMargin &&
+            latitude >= routeBounds.minimumY - routeMargin &&
+            latitude <= routeBounds.maximumY + routeMargin
+        ))
+  );
   const coordinates = [
-    ...outlineRings.flat(),
+    ...focusedOutlineRings.flatMap((outline) => outline.ring),
     ...routeLines.flat(),
     ...changedServices.flatMap((service) => (validCoordinate(service.coordinates) ? [service.coordinates] : []))
   ];
@@ -760,9 +827,14 @@ export async function buildProposalReport(
       x: originX + (longitude - minimumX) * scale,
       y: originY + (latitude - minimumY) * scale
     });
-    for (const ring of outlineRings)
-      for (let index = 1; index < ring.length; index += 1)
-        page.drawLine({ start: project(ring[index - 1]), end: project(ring[index]), color: BEFORE, thickness: 0.45 });
+    for (const outline of focusedOutlineRings)
+      for (let index = 1; index < outline.ring.length; index += 1)
+        page.drawLine({
+          start: project(outline.ring[index - 1]),
+          end: project(outline.ring[index]),
+          color: outline.islandId === preview.selectedIslandId ? BEFORE : RULE,
+          thickness: outline.islandId === preview.selectedIslandId ? 0.8 : 0.35
+        });
     for (const line of routeLines)
       for (let index = 1; index < line.length; index += 1)
         page.drawLine({
@@ -779,7 +851,7 @@ export async function buildProposalReport(
     }
     y = boxBottom - 16;
     text(
-      'Legend: thin grey line = available island outline; dashed black line = proposed transport plan; outlined circle = changed service.',
+      'Legend: light grey lines = all island outlines; darker grey line = selected island; dashed black line = proposed transport plan; outlined circle = changed service.',
       8,
       true,
       INK
@@ -808,7 +880,14 @@ export async function buildProposalReport(
       9
     );
   }
-  for (const plan of preview.transportPlans) text(`${plan.label} (proposed transport plan)`, 9, true);
+  for (const operation of transportOperations) {
+    const plan = transportPlans.get(operation.operationId);
+    text(
+      `${plan?.label ?? operation.operationId} (accepted ${operation.kind.replace('add_', '').replace('_service', '')} transport operation)`,
+      9,
+      true
+    );
+  }
 
   section('Itemised cost basis');
   for (const item of preview.costs.items) {
@@ -878,7 +957,13 @@ export async function buildProposalReport(
           costs: preview.costs,
           impact: preview.impact,
           services: preview.services,
+          transportOperations,
           transportPlans: preview.transportPlans,
+          map: {
+            islandCount: reportIslands.length,
+            selectedIslandId: preview.selectedIslandId,
+            islands: reportIslands.map(({ id, name }) => ({ id, name }))
+          },
           charts,
           limitations: preview.limitations
         },

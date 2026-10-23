@@ -34,6 +34,7 @@
   {#if data.onSimulate}
     <Button
       class="connection-simulate-button"
+      data-presentation-target="simulate-journey"
       variant="default"
       size="sm"
       type="button"

@@ -46,6 +46,7 @@
   {:else}
     <Input
       class="island-search-input"
+      data-presentation-target="island-search"
       bind:value={query}
       placeholder="Search island..."
       aria-label="Search for an island"

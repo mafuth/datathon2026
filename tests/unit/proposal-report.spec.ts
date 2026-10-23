@@ -38,7 +38,17 @@ function fixture(): { input: ScenarioPreviewRequest; preview: ScenarioPreviewRes
     selectedIslandId: 'island-1',
     proposal,
     operations: [
-      { operationId: 'school', kind: 'add_service', serviceType: 'education', subtype: 'school', coordinates: [73, 3] }
+      { operationId: 'school', kind: 'add_service', serviceType: 'education', subtype: 'school', coordinates: [73, 3] },
+      {
+        operationId: 'route',
+        kind: 'add_bus_service',
+        routeId: 'school-route',
+        headwayMinutes: 30,
+        startHour: 6,
+        endHour: 22,
+        serviceDaysPerWeek: 7,
+        vehicleCount: 1
+      }
     ]
   };
   const baseline: IslandServicesResponse = {
@@ -126,6 +136,13 @@ function fixture(): { input: ScenarioPreviewRequest; preview: ScenarioPreviewRes
           serviceId: 'new-school',
           status: 'applied',
           message: 'Add New School'
+        },
+        {
+          operationId: 'route',
+          kind: 'add_bus_service',
+          serviceId: '',
+          status: 'applied',
+          message: 'Add School connector'
         }
       ],
       serviceChanges: { 'new-school': 'added' },
@@ -214,7 +231,7 @@ describe('proposal report', () => {
     expect(labels).toContain('Where the 10-year allowance goes');
     expect(labels).toContain('Ranked horizontal composition bars');
     expect(labels).not.toContain('treemap');
-    expect(labels).toContain('Schematic proposal locations');
+    expect(labels).toContain('All-island schematic proposal locations');
     expect(labels).toContain('available island outline');
     expect(labels).toContain('New School (added; school)');
     expect(labels).toContain('School connector (proposed transport plan)');
@@ -234,5 +251,51 @@ describe('proposal report', () => {
     expect(contents(pdf).map(text).join('\n')).toContain(
       'Incomplete composition: no positive known costs can be charted'
     );
+  });
+
+  it('includes every supplied island in the schematic map evidence', async () => {
+    const { input, preview } = fixture();
+    const pdf = await PDFDocument.load(
+      await buildProposalReport(input, preview, [
+        {
+          id: 'island-1',
+          name: 'Test Island',
+          geoJson: JSON.stringify({
+            type: 'Polygon',
+            coordinates: [
+              [
+                [72.99, 2.99],
+                [73.01, 2.99],
+                [73.01, 3.01],
+                [72.99, 2.99]
+              ]
+            ]
+          })
+        },
+        {
+          id: 'island-2',
+          name: 'Second Island',
+          geoJson: JSON.stringify({
+            type: 'Polygon',
+            coordinates: [
+              [
+                [73.2, 3.2],
+                [73.22, 3.2],
+                [73.22, 3.22],
+                [73.2, 3.2]
+              ]
+            ]
+          })
+        }
+      ])
+    );
+    expect(attachment(pdf, 'proposal-evidence.json').map).toMatchObject({
+      islandCount: 2,
+      selectedIslandId: 'island-1',
+      islands: expect.arrayContaining([
+        expect.objectContaining({ id: 'island-1', name: 'Test Island' }),
+        expect.objectContaining({ id: 'island-2', name: 'Second Island' })
+      ])
+    });
   });
 });

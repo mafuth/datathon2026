@@ -13,6 +13,7 @@
 <div class="proposal-launcher">
   <Button
     class="proposal-launcher-button"
+    data-presentation-target="create-proposal"
     variant="outline"
     size="icon"
     type="button"

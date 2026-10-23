@@ -3,11 +3,8 @@ import type { ProposalCosts, ProposalSettings } from '$lib/mobility/proposal-pla
 import type { ProposalTransportOptions } from '$lib/mobility/proposal-transport';
 import type { ScenarioOperation, ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
 
-import * as v from 'valibot';
-
 import { DEFAULT_PROPOSAL_SETTINGS, proposalAllowance } from '$lib/mobility/proposal-planning';
 import { snapToProposalBusRoute } from '$lib/mobility/proposal-transport';
-import { scenarioPreviewRequestSchema } from '$lib/mobility/scenario-contracts';
 
 import { pointWithinGeometryGrace } from './island-geometry';
 
@@ -133,6 +130,7 @@ export class ProposalWorkspace {
     }
     if (this.baseline?.island.id === baseline.island.id && this.baseline.baselineVersion === baseline.baselineVersion) {
       this.baseline = baseline;
+      if (this.staged) this.cancel();
       if (this.staged || (this.current && this.quoteMatchesSettings(this.accepted))) return;
       await this.refresh();
       return;
@@ -148,26 +146,6 @@ export class ProposalWorkspace {
     this.settings = { ...DEFAULT_PROPOSAL_SETTINGS, name: `${baseline.island.name} access proposal` };
     this.error = null;
     this.message = null;
-    try {
-      const saved = localStorage.getItem(this.storageKey());
-      if (saved) {
-        const parsed = v.safeParse(scenarioPreviewRequestSchema, JSON.parse(saved));
-        if (
-          parsed.success &&
-          parsed.output.selectedIslandId === baseline.island.id &&
-          parsed.output.baselineVersion === baseline.baselineVersion
-        ) {
-          this.operations = parsed.output.operations;
-          if (parsed.output.proposal) this.settings = parsed.output.proposal;
-          this.message = 'Your saved proposal has been restored.';
-        } else {
-          this.message =
-            'The saved draft uses different baseline data. Start a new proposal with the current evidence.';
-        }
-      }
-    } catch {
-      this.message = 'Draft storage is unavailable. Keep this page open while editing.';
-    }
     await this.refresh();
   }
 
@@ -228,7 +206,6 @@ export class ProposalWorkspace {
   }
 
   suspend(): void {
-    this.save();
     this.cancelRequest();
     this.cancelTransportOptions();
     this.cancelExport();
@@ -243,17 +220,6 @@ export class ProposalWorkspace {
     this.exportError = null;
   }
 
-  private storageKey(): string {
-    return `mobility-proposal-v1:${this.baseline?.island.id ?? ''}`;
-  }
-  private save(): void {
-    if (!this.baseline) return;
-    try {
-      localStorage.setItem(this.storageKey(), JSON.stringify(this.body(this.operations)));
-    } catch {
-      this.message = 'Draft storage is unavailable. Keep this page open while editing.';
-    }
-  }
   private body(operations: readonly ScenarioOperation[]) {
     return {
       baselineVersion: this.baseline?.baselineVersion,
@@ -303,7 +269,6 @@ export class ProposalWorkspace {
         this.operations = [...nextOperations];
         this.accepted = preview;
         this.current = true;
-        this.save();
       } catch (error) {
         if (token === this.requestToken) this.error = error instanceof Error ? error.message : 'Evaluation failed.';
       } finally {
@@ -331,13 +296,9 @@ export class ProposalWorkspace {
     const revision = ++this.settingsRevision;
     this.settings = { ...settings };
     this.current = false;
-    this.save();
-    if (this.staged) this.staged = { ...this.staged, preview: null, error: null };
-    const staged = this.staged;
+    this.cancel();
     await this.refresh();
-    if (staged && revision === this.settingsRevision && this.current && this.staged === staged) {
-      await this.stageOperations(staged.operations, staged.label, staged.coordinates, staged.suggestions);
-    }
+    if (revision !== this.settingsRevision) return;
   }
 
   async updatePendingEstimate(estimate: { capital: number; annual: number; basis: string }): Promise<void> {
@@ -460,7 +421,6 @@ export class ProposalWorkspace {
     this.suggestions = [];
     this.current = true;
     this.error = null;
-    this.save();
     return true;
   }
 

@@ -1,3 +1,4 @@
+import type { ProposalReportIsland } from './proposal-report';
 import type { IslandMapService, IslandServiceChange } from '$components/mobility/island-services';
 import type { ConnectionNetworkResponse } from '$lib/mobility/connection-network-contracts';
 import type { ScenarioPreviewRequest, ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
@@ -113,8 +114,10 @@ export class MobilityFacade {
     return request;
   }
 
-  async getIslandServices(islandId: string) {
-    const snapshot = await loadScoringSnapshot({ includeResidentialDemandPoints: true });
+  async getIslandServices(islandId: string, options: { includeResidentialDemandPoints?: boolean } = {}) {
+    const snapshot = await loadScoringSnapshot({
+      includeResidentialDemandPoints: options.includeResidentialDemandPoints ?? true
+    });
     return { ...(await getIslandServices(islandId, snapshot)), baselineVersion: proposalBaselineVersion(snapshot) };
   }
 
@@ -125,7 +128,9 @@ export class MobilityFacade {
 
   async previewScenario(input: ScenarioPreviewRequest): Promise<ScenarioPreviewResponse> {
     const [snapshot, islandRow] = await Promise.all([
-      loadScoringSnapshot({ includeResidentialDemandPoints: true }),
+      // Proposal results do not need the optional residential heatmap points.
+      // Loading them here blocks every upgrade on a large artifact parse.
+      loadScoringSnapshot({ includeResidentialDemandPoints: false }),
       loadIslandContext(input.selectedIslandId)
     ]);
     if (!islandRow)
@@ -181,16 +186,24 @@ export class MobilityFacade {
       serviceChanges: changesForServices(projectedServices, projection.changes, projection.deleted),
       limitations: [
         ...services.limitations,
-        'Draft changes are not persisted on the server; the browser may autosave operations locally.',
+        'Draft changes are calculated for this proposal session only and are not persisted.',
         'Draft scoring remains a partial planning estimate and is not an approved policy score.'
       ]
     };
   }
 
   async createProposalReport(input: ScenarioPreviewRequest): Promise<Uint8Array> {
-    const preview = await this.previewScenario(input);
+    const [preview, snapshot] = await Promise.all([
+      this.previewScenario(input),
+      loadScoringSnapshot({ includeResidentialDemandPoints: false })
+    ]);
+    const reportIslands: ProposalReportIsland[] = snapshot.islands.map((island) => ({
+      id: island.id,
+      name: island.name,
+      geoJson: island.geoJson
+    }));
     const { buildProposalReport } = await import('./proposal-report');
-    return buildProposalReport(input, preview);
+    return buildProposalReport(input, preview, reportIslands);
   }
 }
 

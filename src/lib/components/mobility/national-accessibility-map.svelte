@@ -16,6 +16,7 @@
   import { cubicOut } from 'svelte/easing';
   import { prefersReducedMotion } from 'svelte/motion';
   import { SvelteMap } from 'svelte/reactivity';
+  import * as v from 'valibot';
 
   import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -32,19 +33,13 @@
   import type { ClusterMarkerData } from './service-marker-clustering';
   import type { ConnectionNetworkResponse } from '$lib/mobility/connection-network-contracts';
   import type { PresentationCoordinate, PresentationStory } from '$lib/mobility/presentation-contracts';
-  import type { ProposalDraft } from '$lib/mobility/proposal-draft';
+  import type { PresentationScript } from '$lib/mobility/presentation-script-contracts';
   import type { ProposalSettings } from '$lib/mobility/proposal-planning';
   import type { ProposalTransportOperation, ProposalTransportOptions } from '$lib/mobility/proposal-transport';
   import type { ScenarioOperation, ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
   import type { AddServiceSelection } from '$lib/mobility/service-catalog';
 
-  import {
-    readProposalDefaults,
-    readProposalDraft,
-    restoreProposalDefaults,
-    saveProposalDefaults,
-    saveProposalDraft
-  } from '$lib/mobility/proposal-draft';
+  import { presentationScriptSchema } from '$lib/mobility/presentation-script-contracts';
   import { DEFAULT_PROPOSAL_SETTINGS } from '$lib/mobility/proposal-planning';
   import { transportDistanceKm, transportMinimumFleet } from '$lib/mobility/proposal-transport';
   import { SERVICE_DRAG_MIME, serviceCatalogEntry } from '$lib/mobility/service-catalog';
@@ -67,7 +62,10 @@
   } from './national-accessibility-map-style';
   import NationalAnalyticsCard from './national-analytics-card.svelte';
   import NationalScoreCard from './national-score-card.svelte';
+  import { runPresentationAction, wait } from './presentation-actions';
   import { PresentationController } from './presentation-controller.svelte';
+  import PresentationCursor from './presentation-cursor.svelte';
+  import PresentationReader from './presentation-reader.svelte';
   import PresentationRecommendationCard from './presentation-recommendation-card.svelte';
   import PresentationTimeline from './presentation-timeline.svelte';
   import ProposalFinancialSummary from './proposal-financial-summary.svelte';
@@ -184,6 +182,7 @@
   const PROPOSAL_TRANSPORT_SOURCE_ID = 'proposal-transport-routes';
   const PROPOSAL_TRANSPORT_LINE_LAYER_ID = 'proposal-transport-lines';
   const BAARAH_ISLAND_ID = 'island:640';
+  const BAARAH_HEALTH_CENTRE_SERVICE_ID = 'manual:google-maps:baarashu-health-centre';
   const HANIMAADHOO_ISLAND_ID = 'island:684';
   const RECOMMENDED_FERRY_SPEED_KPH = 30;
   const RECOMMENDED_FERRY_HEADWAY_MINUTES = 240;
@@ -222,6 +221,8 @@
     'steps'
   ] as const;
   const MALDIVES_CENTER: Coordinate = [73.2, 3.4];
+  const DESTINATION_ISLAND_ID = 'island:1442';
+  const TREE_TOP_SERVICE_ID = 'facility:health:362';
   const SERVICE_MARKER_LEGEND = [
     { label: 'Health', color: SERVICE_MARKER_COLORS.health, icon: Hospital },
     { label: 'Education', color: SERVICE_MARKER_COLORS.education, icon: School },
@@ -298,6 +299,18 @@
   let presentationStory = $state.raw<PresentationStory | null>(null);
   let presentationFrame: number | null = null;
   let presentationRun = 0;
+  let presentationAutoPlay = $state(false);
+  let presentationAdvanceTimer: number | null = null;
+  let readerScript = $state.raw<PresentationScript | null>(null);
+  let readerActive = $state(false);
+  let readerCardVisible = $state(false);
+  let readerPlaying = $state(false);
+  let readerStepIndex = $state(0);
+  let readerActionIndex = $state(0);
+  let readerRemainingSeconds = $state(270);
+  let readerActionError = $state<string | null>(null);
+  let readerActionRun = 0;
+  let readerTimer: number | null = null;
   let islandProfile = $state<IslandProfile | null>(null);
   let islandProfileLoading = $state(false);
   let islandProfileError = $state<string | null>(null);
@@ -317,23 +330,15 @@
   let draftCursor = $state(0);
   let draftPreview = $state.raw<ScenarioPreviewResponse | null>(null);
   let proposalExporting = $state(false);
+  let proposalExportComplete = $state(false);
   let proposalView = $state<'baseline' | 'proposal'>('proposal');
-  let draftStorageMessage = $state<string | null>(null);
-  let draftRestoreBlocked = $state(false);
   let proposalRequest = 0;
-  const sessionDrafts = new SvelteMap<string, ProposalDraft>();
-  let displayedServices = $derived.by(() => {
-    const displayed = proposalMode && proposalView === 'proposal' ? (draftPreview ?? islandServices) : islandServices;
-    if (!displayed || !proposalMode || proposalView !== 'proposal' || !draftPreview) return displayed;
-    return { ...displayed, hexes: proposalDeltaHexes(draftPreview.baseline.hexes, displayed.hexes) };
-  });
   let proposalSettings = $state<ProposalSettings>({ ...DEFAULT_PROPOSAL_SETTINGS });
   let editableProposal = $derived(
     proposalMode &&
       proposalView === 'proposal' &&
       !proposalPending &&
       !islandServicesLoading &&
-      !draftRestoreBlocked &&
       Boolean(islandServices?.baselineVersion)
   );
   let moveServiceId = $state<string | null>(null);
@@ -346,13 +351,29 @@
   let recommendationStarting = $state(false);
   let recommendationKey: string | null = null;
   let recommendationRequest = 0;
+  let recommendationAbortController: AbortController | null = null;
+  const recommendationOptionsCache = new SvelteMap<string, ProposalTransportOptions>();
+  const recommendationOptionsRequests = new SvelteMap<string, Promise<ProposalTransportOptions>>();
+  type BaarahRecommendationCacheEntry = {
+    recommendation: ProposalRecommendation;
+    operation: ProposalTransportOperation;
+  };
+  const baarahRecommendationCache = new SvelteMap<string, BaarahRecommendationCacheEntry>();
+  const BAARAH_RECOMMENDATION_CACHE_LIMIT = 16;
+  const BAARAH_RECOMMENDATION_CACHE_DELAY_MS = 500;
+  const BAARAH_RECOMMENDATION_STORAGE_KEY = 'mobility:baarah-recommendations:v1';
   let recommendationUndoOperations = $state.raw<ScenarioOperation[] | null>(null);
   let transportEditorOperation = $state.raw<ProposalTransportOperation | null>(null);
-  let stagedTransportOperations = $state.raw<ScenarioOperation[] | null>(null);
-  let stagedTransportPreview = $state.raw<ScenarioPreviewResponse | null>(null);
-  let stagedTransportReplacementOperationId = $state<string | null>(null);
+  let proposalPreview = $derived(draftPreview);
+  let proposalHeatmapHexes = $state.raw<IslandServiceHexes | null>(null);
+  let proposalHeatmapTask = 0;
+  let displayedServices = $derived.by(() => {
+    const displayed =
+      proposalMode && proposalView === 'proposal' ? (proposalPreview ?? islandServices) : islandServices;
+    if (!displayed || !proposalMode || proposalView !== 'proposal' || !proposalPreview) return displayed;
+    return { ...displayed, hexes: proposalHeatmapHexes ?? displayed.hexes };
+  });
   let proposalBuilderTab = $state<'services' | 'transport'>('services');
-  let recommendationReplacementOperationId = $state<string | null>(null);
   let suppressMapClickUntil = 0;
   // MapLibre marker instances are imperative bookkeeping, not rendered Svelte state.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -363,7 +384,9 @@
   let demandRevealTimer: number | null = null;
   let demandRevealToken = 0;
   let demandRevealProgress = 1;
+  let lastProposalHeatmapHexes: IslandServiceHexes | null = null;
   let serviceFocusToken = 0;
+  let islandFocusRequest = 0;
   let activeServicePopup: MountedServicePopup | null = null;
   let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
   let selectedIslandLoading = $derived(
@@ -383,10 +406,13 @@
   function selectIslandById(id: string, centroid?: Coordinate): void {
     if (proposalPending) return;
     if (proposalMode && selectedIslandId === id) return;
+    if (presentation.active) clearPresentation();
+    const focusRequest = ++islandFocusRequest;
     if (proposalMode && selectedIslandId && selectedIslandId !== id) {
       closeServicePopup();
       stopMoveMode();
       stopAddServiceMode();
+      clearTransportEditState();
       draftOperations = [];
       draftCursor = 0;
       draftPreview = null;
@@ -402,21 +428,57 @@
     void loadIslandServices(id);
 
     const island = islandCollection.features.find((feature) => feature.properties.id === id);
-    void focusIsland({
-      id,
-      name: island?.properties.name ?? selectedIsland?.name ?? 'Island',
-      atollName: island?.properties.atollName ?? selectedIsland?.atollName ?? '',
-      centroid: island?.properties.centroid ?? centroid,
-      score: island?.properties.score ?? selectedIsland?.overall.score ?? null
-    });
+    const islandCentroid = island?.properties.centroid;
+    void focusIsland(
+      {
+        id,
+        name: island?.properties.name ?? selectedIsland?.name ?? 'Island',
+        atollName: island?.properties.atollName ?? selectedIsland?.atollName ?? '',
+        centroid: isValidCoordinate(islandCentroid) ? islandCentroid : centroid,
+        score: island?.properties.score ?? selectedIsland?.overall.score ?? null
+      },
+      850,
+      () => focusRequest === islandFocusRequest && selectedIslandId === id
+    );
 
     if (!analyticsData) void loadAnalytics();
   }
 
+  function isValidCoordinate(value: unknown): value is Coordinate {
+    if (!Array.isArray(value) || value.length < 2) return false;
+    const [longitude, latitude] = value;
+    return (
+      typeof longitude === 'number' &&
+      Number.isFinite(longitude) &&
+      longitude >= -180 &&
+      longitude <= 180 &&
+      typeof latitude === 'number' &&
+      Number.isFinite(latitude) &&
+      latitude >= -90 &&
+      latitude <= 90
+    );
+  }
+
+  function isValidMapCenter(value: unknown): boolean {
+    if (isValidCoordinate(value)) return true;
+    if (!value || typeof value !== 'object') return false;
+    const center = value as { lng?: unknown; lat?: unknown };
+    return (
+      typeof center.lng === 'number' &&
+      Number.isFinite(center.lng) &&
+      center.lng >= -180 &&
+      center.lng <= 180 &&
+      typeof center.lat === 'number' &&
+      Number.isFinite(center.lat) &&
+      center.lat >= -90 &&
+      center.lat <= 90
+    );
+  }
+
   function collectCoordinates(value: unknown, points: Coordinate[]): void {
     if (!Array.isArray(value)) return;
-    if (typeof value[0] === 'number' && typeof value[1] === 'number') {
-      points.push([value[0], value[1]]);
+    if (isValidCoordinate(value)) {
+      points.push(value);
       return;
     }
     for (const child of value) collectCoordinates(child, points);
@@ -458,6 +520,69 @@
     return { top: 155, right: 370, bottom: 135, left: 350 };
   }
 
+  function safeCameraPadding(padding: { top: number; right: number; bottom: number; left: number }) {
+    const width = Math.max(1, mapElement?.clientWidth ?? 1);
+    const height = Math.max(1, mapElement?.clientHeight ?? 1);
+    const horizontal = padding.left + padding.right;
+    const vertical = padding.top + padding.bottom;
+    const scale = Math.min(
+      1,
+      horizontal > 0 ? Math.max(0, width - 32) / horizontal : 1,
+      vertical > 0 ? Math.max(0, height - 32) / vertical : 1
+    );
+    return {
+      top: padding.top * scale,
+      right: padding.right * scale,
+      bottom: padding.bottom * scale,
+      left: padding.left * scale
+    };
+  }
+
+  async function waitForMapIdle(timeout = 2200): Promise<boolean> {
+    const started = performance.now();
+    while (!mapInstance && performance.now() - started < timeout) await wait(80);
+    const map = mapInstance;
+    if (!map) return false;
+
+    return new Promise((resolve) => {
+      let timer: number | null = null;
+      let settled = false;
+      let onIdle: () => void;
+      let onMoveEnd: () => void;
+      const finish = (result: boolean) => {
+        if (settled) return;
+        settled = true;
+        if (timer !== null) window.clearTimeout(timer);
+        map.off('idle', onIdle);
+        map.off('moveend', onMoveEnd);
+        resolve(result);
+      };
+      onIdle = () => finish(true);
+      onMoveEnd = () => finish(true);
+
+      map.on('idle', onIdle);
+      map.on('moveend', onMoveEnd);
+      timer = window.setTimeout(() => finish(!map.isMoving()), timeout);
+      if (!map.isMoving()) window.setTimeout(() => finish(true), 80);
+    });
+  }
+
+  async function resetMapToNational(): Promise<boolean> {
+    if (!mapInstance) return false;
+    const reducedMotion = prefersReducedMotion.current;
+    try {
+      mapInstance.easeTo({
+        center: MALDIVES_CENTER,
+        zoom: 5.2,
+        duration: reducedMotion ? 0 : 650,
+        essential: !reducedMotion
+      });
+    } catch {
+      return false;
+    }
+    return waitForMapIdle();
+  }
+
   function boundsFitAtCurrentZoom(
     bounds: [Coordinate, Coordinate],
     padding: { top: number; right: number; bottom: number; left: number }
@@ -482,7 +607,10 @@
   }
 
   function returnToNational(): void {
+    islandFocusRequest += 1;
     if (proposalMode) closeProposalMode();
+    closeServicePopup();
+    analyticsOpen = false;
     selectedIslandId = null;
     islandAnalyticsOpen = false;
     islandProfile = null;
@@ -493,65 +621,106 @@
     islandServicesLoading = false;
     islandServicesRequest += 1;
     resetSelectedIslandOverlay();
+    void resetMapToNational();
   }
 
-  function focusIsland(
+  async function focusIsland(
     island: IslandSearchOption,
     duration = 850,
     isCurrent: () => boolean = () => true
   ): Promise<boolean> {
-    if (!mapInstance || !island.centroid) return Promise.resolve(false);
+    if (!mapInstance) return false;
     const map = mapInstance;
     const reducedMotion = prefersReducedMotion.current;
+    map.stop();
     const feature = islandCollection.features.find((candidate) => candidate.properties.id === island.id);
     const bounds = feature ? islandBounds(feature) : null;
+    if (!bounds && !isValidCoordinate(island.centroid)) return false;
 
     if (bounds) {
-      const padding = islandCameraPadding();
-      const camera = mapInstance.cameraForBounds(bounds, {
-        padding,
-        maxZoom: 14
-      });
+      const padding = safeCameraPadding(islandCameraPadding());
+      let camera: ReturnType<typeof map.cameraForBounds> | null = null;
+      try {
+        camera = map.cameraForBounds(bounds, { padding, maxZoom: 14 });
+      } catch {
+        // Keep the fallback camera path below.
+      }
       const currentZoom = mapInstance.getZoom();
 
-      if (camera?.center) {
+      if (camera?.center && isValidMapCenter(camera.center)) {
         const fittedZoom = camera.zoom ?? currentZoom;
         const keepCurrentZoom = fittedZoom < currentZoom && boundsFitAtCurrentZoom(bounds, padding);
         if (!isCurrent()) return Promise.resolve(false);
+        map.stop();
         map.easeTo({
           center: camera.center,
           zoom: keepCurrentZoom ? currentZoom : fittedZoom,
           duration: reducedMotion ? 0 : duration,
           essential: !reducedMotion
         });
-        return Promise.resolve(true);
+        await waitForMapIdle();
+        return isCurrent();
       }
     }
 
-    if (!isCurrent()) return Promise.resolve(false);
+    if (bounds) {
+      try {
+        if (!isCurrent()) return false;
+        map.stop();
+        map.fitBounds(bounds, {
+          padding: safeCameraPadding(islandCameraPadding()),
+          maxZoom: 14,
+          duration: reducedMotion ? 0 : duration
+        });
+        await waitForMapIdle();
+        return isCurrent();
+      } catch {
+        // Fall through to the centroid when the bounds cannot be applied.
+      }
+    }
+
+    if (!isValidCoordinate(island.centroid)) return false;
+    if (!isCurrent()) return false;
+    map.stop();
     map.flyTo({
-      center: island.centroid!,
+      center: island.centroid,
       zoom: Math.max(map.getZoom(), 10),
       duration: reducedMotion ? 0 : duration,
       essential: !reducedMotion
     });
-    return Promise.resolve(true);
+    await waitForMapIdle();
+    return isCurrent();
   }
 
-  function focusService(service: IslandMapService): void {
+  async function focusService(
+    service: IslandMapService,
+    presentationFocus = false,
+    openPopup = true
+  ): Promise<boolean> {
     const coordinates = service.coordinates;
-    if (!mapInstance || !coordinates) return;
+    if (!mapInstance || !isValidCoordinate(coordinates)) return false;
 
     closeServicePopup();
     const focusToken = serviceFocusToken;
     const reducedMotion = prefersReducedMotion.current;
-    mapInstance.easeTo({
-      center: coordinates,
-      padding: proposalMode ? islandCameraPadding() : { top: 0, right: 0, bottom: 0, left: 0 },
-      zoom: Math.max(mapInstance.getZoom(), 15.5),
-      duration: reducedMotion ? 0 : 650,
-      essential: !reducedMotion
-    });
+    try {
+      mapInstance.easeTo({
+        center: coordinates,
+        padding:
+          presentationFocus || proposalMode
+            ? safeCameraPadding(islandCameraPadding())
+            : { top: 0, right: 0, bottom: 0, left: 0 },
+        zoom: Math.min(mapInstance.getMaxZoom(), Math.max(mapInstance.getZoom(), 16)),
+        duration: reducedMotion ? 0 : 650,
+        essential: !reducedMotion
+      });
+    } catch {
+      return false;
+    }
+
+    await waitForMapIdle();
+
+    if (!openPopup) return true;
 
     const openFocusedService = () => {
       if (focusToken !== serviceFocusToken || !mapInstance) return;
@@ -559,6 +728,7 @@
     };
     if (mapInstance.getZoom() > SERVICE_MARKER_CLUSTER_MAX_ZOOM) openFocusedService();
     else mapInstance.once('idle', openFocusedService);
+    return true;
   }
 
   function selectSearchIsland(island: IslandSearchOption): void {
@@ -850,18 +1020,17 @@
     return islandServices?.services.find((service) => service.id === operation.serviceId)?.serviceType === 'health';
   }
 
-  function clearStagedTransportPreview(): void {
-    stagedTransportOperations = null;
-    stagedTransportPreview = null;
-    stagedTransportReplacementOperationId = null;
+  function clearTransportEditState(): void {
+    proposalPending = false;
   }
 
   async function applyDraftOperation(operation: ScenarioOperation): Promise<void> {
     if (!editableProposal) return;
-    clearStagedTransportPreview();
+    clearTransportEditState();
     recommendationUndoOperations = null;
-    recommendationReplacementOperationId = null;
     const startsRecommendation = isBaarahHospitalUpgrade(operation);
+    const sourcePreview = draftPreview;
+    const expectedProposalRequest = proposalRequest + 1;
     if (startsRecommendation) {
       proposalRecommendation = null;
       recommendationOperation = null;
@@ -873,9 +1042,27 @@
       recommendationStarting = false;
       return;
     }
-    const applied = await previewDraftHistory(nextOperations, nextOperations.length);
+    const previewPromise = previewDraftHistory(nextOperations, nextOperations.length, false);
+    if (startsRecommendation && selectedIslandId && islandServices?.baselineVersion) {
+      void prepareBaarahRecommendation({
+        upgrade: operation,
+        currentOperations: nextOperations,
+        sourcePreview,
+        sourcePreviewPromise: previewPromise,
+        islandId: selectedIslandId,
+        version: islandServices.baselineVersion,
+        expectedProposalRequest
+      });
+    } else if (startsRecommendation) {
+      recommendationStarting = false;
+    }
+    const applied = await previewPromise;
     if (!applied) {
-      if (startsRecommendation) recommendationStarting = false;
+      if (startsRecommendation) {
+        recommendationRequest += 1;
+        recommendationAbortController?.abort();
+        recommendationStarting = false;
+      }
       return;
     }
     if (operation.kind === 'move_service') stopMoveMode();
@@ -891,11 +1078,13 @@
     islandId: string,
     baselineVersion: string,
     operations: ScenarioOperation[],
-    settings: ProposalSettings = proposalSettings
+    settings: ProposalSettings = proposalSettings,
+    signal?: AbortSignal
   ): Promise<ScenarioPreviewResponse> {
+    const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(60_000)]) : AbortSignal.timeout(60_000);
     const response = await fetch('/api/v1/scenarios/preview', {
       method: 'POST',
-      signal: AbortSignal.timeout(60_000),
+      signal: requestSignal,
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ baselineVersion, selectedIslandId: islandId, operations, proposal: settings })
     });
@@ -917,25 +1106,14 @@
     return preview;
   }
 
-  function autosaveDraft(): void {
-    if (!selectedIslandId || !islandServices?.baselineVersion || draftRestoreBlocked) return;
-    const draft: ProposalDraft = {
-      version: 1,
-      selectedIslandId,
-      baselineVersion: islandServices.baselineVersion,
-      operations: $state.snapshot(draftOperations),
-      proposal: $state.snapshot(proposalSettings),
-      cursor: draftCursor,
-      savedAt: new Date().toISOString()
-    };
-    sessionDrafts.set(selectedIslandId, draft);
-    draftStorageMessage = saveProposalDraft(draft) ?? 'Draft autosaved in this browser.';
-  }
-
-  async function previewDraftHistory(operations: ScenarioOperation[], cursor: number): Promise<boolean> {
+  async function previewDraftHistory(
+    operations: ScenarioOperation[],
+    cursor: number,
+    startRecommendation = true
+  ): Promise<ScenarioPreviewResponse | null> {
     const islandId = selectedIslandId;
     const version = islandServices?.baselineVersion;
-    if (!proposalMode || !islandId || !version || proposalPending || draftRestoreBlocked) return false;
+    if (!proposalMode || !islandId || !version || proposalPending) return null;
     const request = ++proposalRequest;
     proposalPending = true;
     proposalError = null;
@@ -944,20 +1122,19 @@
     stopAddServiceMode();
     try {
       const preview = await requestDraftPreview(islandId, version, operations.slice(0, cursor));
-      if (request !== proposalRequest || selectedIslandId !== islandId || !proposalMode) return false;
+      if (request !== proposalRequest || selectedIslandId !== islandId || !proposalMode) return null;
       draftOperations = operations;
       draftCursor = cursor;
+      scheduleProposalHeatmap(preview.baseline.hexes, preview.hexes);
       draftPreview = preview;
       islandServices = preview.baseline;
-      islandServicesCache.set(islandId, preview.baseline);
       proposalLastMessage = `${cursor} applied edit${cursor === 1 ? '' : 's'}. ${preview.operations.at(-1)?.message ?? 'Baseline restored.'}`;
-      autosaveDraft();
       syncProposalTransportLayers();
-      void prepareBaarahRecommendation();
-      return true;
+      if (startRecommendation) void prepareBaarahRecommendation();
+      return preview;
     } catch (error) {
       if (request === proposalRequest) proposalError = error instanceof Error ? error.message : 'Draft update failed.';
-      return false;
+      return null;
     } finally {
       if (request === proposalRequest) proposalPending = false;
     }
@@ -982,12 +1159,122 @@
     return seconds > 0 ? Math.round(seconds / 60) : null;
   }
 
-  async function prepareBaarahRecommendation(): Promise<void> {
+  function recommendationOptions(islandId: string, version: string): Promise<ProposalTransportOptions> {
+    const key = `${islandId}:${version}`;
+    const cached = recommendationOptionsCache.get(key);
+    if (cached) return Promise.resolve(cached);
+    const pending = recommendationOptionsRequests.get(key);
+    if (pending) return pending;
+    const request = fetch(`/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`)
+      .then(async (response) => {
+        const payload = (await response.json()) as ProposalTransportOptions | { error?: string };
+        if (!response.ok || 'error' in payload)
+          throw new Error('error' in payload ? payload.error : 'Transport options are unavailable.');
+        const options = payload as ProposalTransportOptions;
+        if (options.islandId !== islandId) throw new Error('Transport options belong to a different island.');
+        recommendationOptionsCache.set(key, options);
+        return options;
+      })
+      .finally(() => recommendationOptionsRequests.delete(key));
+    recommendationOptionsRequests.set(key, request);
+    return request;
+  }
+
+  function baarahRecommendationKey(
+    islandId: string,
+    version: string,
+    operations: readonly ScenarioOperation[],
+    settings: ProposalSettings
+  ): string {
+    return JSON.stringify([version, islandId, operations, settings], (key, value: unknown) =>
+      key === 'operationId' ? undefined : value
+    );
+  }
+
+  function baarahRecommendationHash(value: string): string {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function readStoredBaarahRecommendation(key: string): BaarahRecommendationCacheEntry | null {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+      const stored = JSON.parse(localStorage.getItem(BAARAH_RECOMMENDATION_STORAGE_KEY) ?? '{}') as Record<
+        string,
+        BaarahRecommendationCacheEntry
+      >;
+      return stored[baarahRecommendationHash(key)] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  function persistBaarahRecommendation(key: string, entry: BaarahRecommendationCacheEntry): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const stored = JSON.parse(localStorage.getItem(BAARAH_RECOMMENDATION_STORAGE_KEY) ?? '{}') as Record<
+        string,
+        BaarahRecommendationCacheEntry
+      >;
+      const hash = baarahRecommendationHash(key);
+      stored[hash] = entry;
+      const hashes = Object.keys(stored);
+      while (hashes.length > BAARAH_RECOMMENDATION_CACHE_LIMIT) delete stored[hashes.shift()!];
+      localStorage.setItem(BAARAH_RECOMMENDATION_STORAGE_KEY, JSON.stringify(stored));
+    } catch {
+      // Browser storage may be disabled or full; memory caching still applies.
+    }
+  }
+
+  function cachedBaarahRecommendation(key: string): BaarahRecommendationCacheEntry | null {
+    const cached = baarahRecommendationCache.get(key);
+    if (cached) {
+      baarahRecommendationCache.delete(key);
+      baarahRecommendationCache.set(key, cached);
+      return cached;
+    }
+    const stored = readStoredBaarahRecommendation(key);
+    if (stored) {
+      cacheBaarahRecommendation(key, stored);
+      return stored;
+    }
+    return null;
+  }
+
+  function cacheBaarahRecommendation(key: string, entry: BaarahRecommendationCacheEntry): void {
+    baarahRecommendationCache.delete(key);
+    baarahRecommendationCache.set(key, entry);
+    while (baarahRecommendationCache.size > BAARAH_RECOMMENDATION_CACHE_LIMIT) {
+      const oldest = baarahRecommendationCache.keys().next().value;
+      if (oldest === undefined) break;
+      baarahRecommendationCache.delete(oldest);
+    }
+    persistBaarahRecommendation(key, entry);
+  }
+
+  type BaarahRecommendationContext = {
+    upgrade: ScenarioOperation;
+    currentOperations: ScenarioOperation[];
+    sourcePreview: ScenarioPreviewResponse | null;
+    sourcePreviewPromise?: Promise<ScenarioPreviewResponse | null>;
+    islandId: string;
+    version: string;
+    expectedProposalRequest?: number;
+  };
+
+  async function prepareBaarahRecommendation(context?: BaarahRecommendationContext): Promise<void> {
     const requestToken = ++recommendationRequest;
-    const upgrade = activeBaarahHospitalUpgrade();
-    const islandId = selectedIslandId;
-    const version = islandServices?.baselineVersion;
-    if (!upgrade || !islandId || !version || !draftPreview) {
+    const upgrade = context?.upgrade ?? activeBaarahHospitalUpgrade();
+    const islandId = context?.islandId ?? selectedIslandId;
+    const version = context?.version ?? islandServices?.baselineVersion;
+    const sourcePreview = context?.sourcePreview ?? draftPreview;
+    if (!upgrade || !islandId || !version || (!sourcePreview && !context?.sourcePreviewPromise)) {
+      recommendationAbortController?.abort();
+      recommendationAbortController = null;
       if (!upgrade) {
         proposalRecommendation = null;
         recommendationOperation = null;
@@ -997,23 +1284,41 @@
       }
       return;
     }
-    const currentOperations = draftOperations.slice(0, draftCursor);
-    const sourcePreview = draftPreview;
-    const sourceCosts = sourcePreview.costs;
-    const key = `${version}:${JSON.stringify(currentOperations)}:${upgrade.operationId}`;
-    if (recommendationKey === key && proposalRecommendation) return;
+    const currentOperations = context?.currentOperations ?? draftOperations.slice(0, draftCursor);
+    const key = baarahRecommendationKey(islandId, version, currentOperations, proposalSettings);
+    if (recommendationKey === key && recommendationPending) return;
+    recommendationAbortController?.abort();
+    const cached = cachedBaarahRecommendation(key);
+    if (cached) {
+      recommendationKey = key;
+      recommendationStarting = false;
+      recommendationPending = true;
+      recommendationAbortController = null;
+      await new Promise<void>((resolve) => window.setTimeout(resolve, BAARAH_RECOMMENDATION_CACHE_DELAY_MS));
+      if (recommendationRequest !== requestToken || recommendationKey !== key || !proposalMode) {
+        if (recommendationRequest === requestToken && recommendationKey === key) recommendationPending = false;
+        return;
+      }
+      proposalRecommendation = cached.recommendation;
+      recommendationOperation = { ...cached.operation, operationId: operationId() };
+      recommendationPending = false;
+      return;
+    }
+    const abortController = new AbortController();
+    recommendationAbortController = abortController;
     recommendationPending = true;
     recommendationStarting = false;
     recommendationKey = key;
     try {
-      const optionsResponse = await fetch(
-        `/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(BAARAH_ISLAND_ID)}`,
-        { cache: 'no-store' }
-      );
-      const optionsPayload = (await optionsResponse.json()) as ProposalTransportOptions | { error?: string };
-      if (!optionsResponse.ok || 'error' in optionsPayload)
-        throw new Error('error' in optionsPayload ? optionsPayload.error : 'Transport options are unavailable.');
-      const options = optionsPayload as ProposalTransportOptions;
+      const storyPromise = presentationStory
+        ? Promise.resolve(presentationStory)
+        : fetch('/api/v1/presentation/story', { signal: abortController.signal }).then(async (response) => {
+            if (!response.ok) throw new Error('The current presentation journey is unavailable.');
+            const story = (await response.json()) as PresentationStory;
+            presentationStory = story;
+            return story;
+          });
+      const [options, story] = await Promise.all([recommendationOptions(BAARAH_ISLAND_ID, version), storyPromise]);
       const pairs = options.origins.flatMap((origin) =>
         options.destinations
           .filter((destination) => destination.islandId === HANIMAADHOO_ISLAND_ID)
@@ -1026,9 +1331,6 @@
       const pair = pairs.sort((a, b) => a.distanceKm - b.distanceKm)[0];
       if (!pair) throw new Error('Recorded Baarah and Hanimaadhoo landing places are required.');
       const { origin, destination, distanceKm } = pair;
-      const storyResponse = await fetch('/api/v1/presentation/story', { cache: 'no-store' });
-      if (!storyResponse.ok) throw new Error('The current presentation journey is unavailable.');
-      const story = (await storyResponse.json()) as PresentationStory;
       const currentJourneyMinutes = presentationJourneyMinutes(story);
       if (!currentJourneyMinutes) throw new Error('The current presentation journey has no usable timing evidence.');
       const recommendedJourneyMinutes = Math.round(
@@ -1055,20 +1357,33 @@
       if (upgradeIndex < 0) return;
       const recommendedOperations = currentOperations.slice();
       recommendedOperations[upgradeIndex] = ferryOperation;
-      const recommendedPreview = await requestDraftPreview(islandId, version, recommendedOperations);
+      const recommendedPreview = await requestDraftPreview(
+        islandId,
+        version,
+        recommendedOperations,
+        proposalSettings,
+        abortController.signal
+      );
+      const resolvedSourcePreview = sourcePreview ?? (await context?.sourcePreviewPromise);
+      if (!resolvedSourcePreview) throw new Error('The original proposal preview was unavailable.');
       if (
         recommendationRequest !== requestToken ||
         recommendationKey !== key ||
-        activeBaarahHospitalUpgrade()?.operationId !== upgrade.operationId
+        selectedIslandId !== islandId ||
+        !proposalMode ||
+        (context?.expectedProposalRequest !== undefined && proposalRequest > context.expectedProposalRequest) ||
+        (context?.expectedProposalRequest === undefined &&
+          activeBaarahHospitalUpgrade()?.operationId !== upgrade.operationId)
       )
         return;
+      const sourceCosts = resolvedSourcePreview.costs;
       if (!sourceCosts.complete || !recommendedPreview.costs.complete)
         throw new Error('Complete cost allowances are required before comparing this recommendation.');
       const originalCapital = sourceCosts.capital;
       const originalAnnual = sourceCosts.annual;
       const recommendedCapital = recommendedPreview.costs.capital;
       const recommendedAnnual = recommendedPreview.costs.annual;
-      proposalRecommendation = {
+      const recommendation: ProposalRecommendation = {
         accessibilityImprovementPercent: Math.max(
           0,
           Math.round(((currentJourneyMinutes - recommendedJourneyMinutes) / currentJourneyMinutes) * 100)
@@ -1082,7 +1397,12 @@
         recommendedAnnual,
         annualSavings: Math.max(0, originalAnnual - recommendedAnnual)
       };
+      proposalRecommendation = recommendation;
       recommendationOperation = ferryOperation;
+      cacheBaarahRecommendation(key, {
+        recommendation,
+        operation: ferryOperation
+      });
     } catch (error) {
       if (recommendationRequest === requestToken && recommendationKey === key) {
         proposalRecommendation = null;
@@ -1092,27 +1412,31 @@
       }
     } finally {
       if (recommendationRequest === requestToken && recommendationKey === key) recommendationPending = false;
+      if (recommendationAbortController === abortController) recommendationAbortController = null;
     }
   }
 
-  function applyBaarahRecommendation(): void {
+  async function applyBaarahRecommendation(): Promise<void> {
     const upgrade = activeBaarahHospitalUpgrade();
     if (!upgrade || recommendationOperation?.kind !== 'add_ferry_service' || !editableProposal) return;
-    transportEditorOperation = recommendationOperation;
-    recommendationReplacementOperationId = upgrade.operationId;
-    proposalBuilderTab = 'transport';
-    proposalLastMessage = 'Review the recommended ferry chain and schedule, then add it to the proposal.';
+    await applyTransportOperation(recommendationOperation, upgrade.operationId);
   }
 
-  async function previewTransportOperation(operation: ProposalTransportOperation): Promise<void> {
+  async function applyTransportOperation(
+    operation: ProposalTransportOperation,
+    replacementOperationId: string | null = null
+  ): Promise<void> {
+    if (!selectedIslandId || !islandServices?.baselineVersion) {
+      proposalError = 'Select an island before applying a transport change.';
+      return;
+    }
     const operations = draftOperations.slice(0, draftCursor);
     const editingId = transportEditorOperation?.operationId;
-    const replacedOperationId = recommendationReplacementOperationId;
+    const replacedOperationId = replacementOperationId;
     if (replacedOperationId && !operations.some((entry) => entry.operationId === replacedOperationId)) {
       proposalError =
         'The hospital upgrade changed while the recommendation was being reviewed. Reopen the recommendation.';
       transportEditorOperation = null;
-      recommendationReplacementOperationId = null;
       return;
     }
     const replacement = { ...operation, operationId: editingId ?? operation.operationId } as ProposalTransportOperation;
@@ -1122,69 +1446,33 @@
       (entry) => entry.operationId !== editingId && entry.operationId !== replacedOperationId
     );
     nextOperations.splice(Math.min(Math.max(targetIndex, 0), nextOperations.length), 0, replacement);
-    stagedTransportReplacementOperationId = replacedOperationId;
-    stagedTransportOperations = nextOperations;
-    proposalPending = true;
-    proposalError = null;
-    try {
-      stagedTransportPreview = await requestDraftPreview(
-        selectedIslandId,
-        islandServices?.baselineVersion ?? '',
-        nextOperations
-      );
-      proposalLastMessage =
-        'Transport change ready for confirmation. Review the updated proposal totals, then confirm or cancel.';
-    } catch (error) {
-      stagedTransportOperations = null;
-      stagedTransportPreview = null;
-      proposalError = error instanceof Error ? error.message : 'The transport proposal could not be previewed.';
-    } finally {
-      proposalPending = false;
-    }
-  }
-
-  async function confirmTransportPreview(): Promise<void> {
-    if (!stagedTransportOperations) return;
-    const operations = stagedTransportOperations;
     const previousOperations = draftOperations.slice(0, draftCursor);
-    const replacedOperationId = stagedTransportReplacementOperationId;
-    const applied = await previewDraftHistory(operations, operations.length);
+    const applied = await previewDraftHistory(nextOperations, nextOperations.length);
     if (!applied) return;
     recommendationUndoOperations = previousOperations;
-    stagedTransportOperations = null;
-    stagedTransportPreview = null;
-    stagedTransportReplacementOperationId = null;
     transportEditorOperation = null;
-    recommendationReplacementOperationId = null;
     proposalRecommendation = null;
     recommendationOperation = null;
     recommendationKey = null;
     proposalLastMessage = replacedOperationId
-      ? 'Recommended ferry confirmed and the hospital upgrade removed.'
-      : 'Transport route confirmed in the proposal.';
-  }
-
-  function cancelTransportPreview(): void {
-    clearStagedTransportPreview();
-    proposalLastMessage = 'Transport change cancelled.';
+      ? 'Recommended ferry applied and the hospital upgrade removed.'
+      : 'Transport route added to the proposal.';
   }
 
   function editTransportOperation(operationId: string): void {
-    clearStagedTransportPreview();
+    clearTransportEditState();
     const operation = draftOperations.slice(0, draftCursor).find((entry) => entry.operationId === operationId);
     if (operation?.kind === 'add_bus_service' || operation?.kind === 'add_ferry_service') {
       transportEditorOperation = operation;
-      recommendationReplacementOperationId = null;
     }
   }
 
   function removeTransportOperation(operationId: string): void {
-    clearStagedTransportPreview();
+    clearTransportEditState();
     const operations = draftOperations.slice(0, draftCursor);
     const nextOperations = operations.filter((entry) => entry.operationId !== operationId);
     recommendationUndoOperations = operations;
     transportEditorOperation = null;
-    recommendationReplacementOperationId = null;
     void previewDraftHistory(nextOperations, nextOperations.length);
   }
 
@@ -1199,22 +1487,10 @@
 
   async function updateProposalSettings(settings: ProposalSettings): Promise<void> {
     if (!editableProposal || proposalPending) return;
+    clearTransportEditState();
     proposalSettings = settings;
-    autosaveDraft();
     const refreshed = await previewDraftHistory([...draftOperations], draftCursor);
     if (!refreshed) proposalError = proposalError ?? 'Budget limits could not be updated.';
-  }
-
-  function saveCurrentProposalDefaults(): void {
-    const error = saveProposalDefaults($state.snapshot(proposalSettings));
-    draftStorageMessage = error ?? 'Proposal settings saved as browser defaults.';
-  }
-
-  function restoreCurrentProposalDefaults(): void {
-    const defaults = restoreProposalDefaults();
-    proposalSettings = { ...defaults, name: `${islandServices?.island.name ?? 'Island'} access proposal` };
-    draftStorageMessage = 'Built-in proposal defaults restored.';
-    void updateProposalSettings(proposalSettings);
   }
 
   function changeDraftHistory(direction: -1 | 1): void {
@@ -1230,81 +1506,13 @@
     void previewDraftHistory([...draftOperations], cursor);
   }
 
-  async function restoreProposalDraft(baseline: IslandServicesResponse): Promise<void> {
-    const islandId = baseline.island.id;
-    const request = ++proposalRequest;
-    const current = () => request === proposalRequest && proposalMode && selectedIslandId === islandId;
-    const sessionDraft = sessionDrafts.get(islandId);
-    const saved = sessionDraft ? { status: 'ready' as const, draft: sessionDraft } : readProposalDraft(islandId);
-    if (saved.status === 'unavailable') draftStorageMessage = saved.message;
-    if (saved.status === 'invalid') {
-      draftRestoreBlocked = true;
-      proposalError = saved.message;
-      return;
-    }
-    if (saved.status !== 'ready') return;
-    const draft = saved.draft;
-    if (!baseline.baselineVersion || baseline.baselineVersion !== draft.baselineVersion) {
-      draftRestoreBlocked = true;
-      proposalError =
-        'The saved draft uses a different baseline version. It has been preserved but cannot be restored.';
-      return;
-    }
-    proposalPending = true;
-    proposalLastMessage = 'Replaying saved draft against current server data…';
-    try {
-      // Validate the redo branch too. Never trust cached services, scores or geometry.
-      const restoredSettings = draft.proposal ?? readProposalDefaults();
-      const full = await requestDraftPreview(islandId, draft.baselineVersion, draft.operations, restoredSettings);
-      if (!current()) return;
-      const preview =
-        draft.cursor === draft.operations.length
-          ? full
-          : await requestDraftPreview(
-              islandId,
-              draft.baselineVersion,
-              draft.operations.slice(0, draft.cursor),
-              restoredSettings
-            );
-      if (!current()) return;
-      proposalSettings = restoredSettings;
-      draftOperations = draft.operations;
-      draftCursor = draft.cursor;
-      draftPreview = preview;
-      islandServices = preview.baseline;
-      islandServicesCache.set(islandId, preview.baseline);
-      proposalLastMessage = `Restored ${draft.cursor} applied edits by replaying against current data. The baseline version is a schema identifier, not a content checksum.`;
-      autosaveDraft();
-      void prepareBaarahRecommendation();
-    } catch (error) {
-      if (!current()) return;
-      draftRestoreBlocked = true;
-      proposalError = `Saved draft could not be restored and has been preserved. ${error instanceof Error ? error.message : 'Preview unavailable.'}`;
-      proposalLastMessage = null;
-    } finally {
-      if (current()) proposalPending = false;
-    }
-  }
-
-  function startFreshDraft(): void {
-    if (!draftRestoreBlocked || proposalPending || !islandServices?.baselineVersion) return;
-    draftRestoreBlocked = false;
-    clearStagedTransportPreview();
-    draftOperations = [];
-    draftCursor = 0;
-    draftPreview = null;
-    proposalError = null;
-    proposalLastMessage = 'Started a new draft.';
-    autosaveDraft();
-  }
-
   function resetProposalDraft(): void {
     if (!editableProposal || proposalPending || !selectedIslandId) return;
     if (!window.confirm('Reset this proposal? All draft changes and custom cost estimates will be removed.')) return;
     closeServicePopup();
     stopMoveMode();
     stopAddServiceMode();
-    clearStagedTransportPreview();
+    clearTransportEditState();
     draftOperations = [];
     draftCursor = 0;
     draftPreview = null;
@@ -1315,21 +1523,16 @@
     recommendationStarting = false;
     recommendationKey = null;
     recommendationUndoOperations = null;
-    recommendationReplacementOperationId = null;
     transportEditorOperation = null;
     proposalSettings = { ...DEFAULT_PROPOSAL_SETTINGS };
-    draftRestoreBlocked = false;
-    draftStorageMessage = null;
     proposalError = null;
     proposalLastMessage = 'Draft reset. Island defaults restored.';
-    sessionDrafts.delete(selectedIslandId);
-    autosaveDraft();
   }
 
   function proposalTransportCollection() {
     return {
       type: 'FeatureCollection' as const,
-      features: (proposalView === 'proposal' ? (draftPreview?.transportPlans ?? []) : []).flatMap((plan) =>
+      features: (proposalView === 'proposal' ? (proposalPreview?.transportPlans ?? []) : []).flatMap((plan) =>
         plan.geometry.coordinates.map((coordinates, index) => ({
           type: 'Feature' as const,
           id: `${plan.operationId}:${index}`,
@@ -1508,7 +1711,9 @@
   ): void {
     if (!mapInstance || !maplibreMarkerConstructor) return;
     if (activeServicePopup) closeServicePopup();
-    const visibleServices = filterServicesToSelectedIsland(services);
+    const visibleServices = filterServicesToSelectedIsland(services).filter((service) =>
+      isValidCoordinate(service.coordinates)
+    );
     serviceMarkerServices = new SvelteMap<string, IslandMapService>(
       visibleServices.flatMap((service) => (service.coordinates ? [[service.id, service] as const] : []))
     );
@@ -1537,9 +1742,16 @@
       props: {
         serviceType: service.serviceType,
         label: serviceMarkerLabel(service),
+        presentationTarget:
+          service.id === 'facility:health:362'
+            ? 'tree-top-marker'
+            : selectedIslandId === BAARAH_ISLAND_ID && service.id === BAARAH_HEALTH_CENTRE_SERVICE_ID
+              ? 'baarah-health-centre'
+              : undefined,
         onSelect: () => {
           const current = serviceMarkerServices.get(service.id);
-          if (current) openServicePopup(current);
+          if (!current) return;
+          openServicePopup(current);
         }
       }
     });
@@ -1835,6 +2047,20 @@
     };
   }
 
+  function scheduleProposalHeatmap(baseline: IslandServiceHexes, projected: IslandServiceHexes): void {
+    const task = ++proposalHeatmapTask;
+    proposalHeatmapHexes = lastProposalHeatmapHexes ?? baseline;
+    const update = () => {
+      if (task !== proposalHeatmapTask || !proposalMode || !draftPreview) return;
+      proposalHeatmapHexes = proposalDeltaHexes(baseline, projected);
+    };
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+    };
+    if (idleWindow.requestIdleCallback) idleWindow.requestIdleCallback(update, { timeout: 250 });
+    else window.setTimeout(update, 0);
+  }
+
   function demandColorExpression(category: IslandDemandCategory): unknown[] {
     if (proposalMode && proposalView === 'proposal' && draftPreview) {
       const deltaProperty = demandDeltaProperty(category);
@@ -1975,6 +2201,7 @@
 
   function startDemandHeatmapReveal(hexes: IslandServiceHexes, islandId: string): void {
     stopDemandHeatmapReveal();
+    lastProposalHeatmapHexes = hexes;
     setSourceData('selected-service-hexes', hexes);
 
     if (prefersReducedMotion.current || hexes.features.length === 0) {
@@ -2068,12 +2295,11 @@
   async function loadIslandServices(id: string): Promise<void> {
     const requestId = ++islandServicesRequest;
     proposalRequest += 1;
+    clearTransportEditState();
     proposalPending = false;
     draftPreview = null;
     draftOperations = [];
     draftCursor = 0;
-    draftRestoreBlocked = false;
-    draftStorageMessage = null;
     proposalError = null;
     proposalLastMessage = null;
     islandServices = null;
@@ -2089,16 +2315,23 @@
         renderServiceMarkers(cachedServices);
         return;
       }
-      const response = await fetch(`/api/v1/islands/${encodeURIComponent(id)}/services`, { cache: 'no-store' });
+      const fastProposalServices = proposalMode ? '?includeResidentialDemandPoints=false' : '';
+      const response = await fetch(`/api/v1/islands/${encodeURIComponent(id)}/services${fastProposalServices}`, {
+        cache: 'no-store'
+      });
       if (!response.ok) throw new Error(`Island services request failed with status ${response.status}`);
       const data = (await response.json()) as IslandServicesResponse;
       if (requestId !== islandServicesRequest) return;
-      islandServicesCache.set(id, data);
+      if (!proposalMode) islandServicesCache.set(id, data);
       islandServices = data;
+      if (id === BAARAH_ISLAND_ID) {
+        void recommendationOptions(BAARAH_ISLAND_ID, data.baselineVersion ?? 'unknown').catch(() => {
+          // The recommendation request will retry if the transport options are unavailable during warm-up.
+        });
+      }
       applySelectedIslandMask(id);
       startDemandHeatmapReveal(data.hexes, id);
       renderServiceMarkers(data);
-      if (proposalMode) await restoreProposalDraft(data);
     } catch (error) {
       if (requestId === islandServicesRequest) {
         islandServicesError = error instanceof Error ? error.message : 'Island services could not be loaded.';
@@ -2154,10 +2387,14 @@
     // Comparison switches use settled opacity, so animation cannot imply a change in pressure.
     if (proposalMode) {
       stopDemandHeatmapReveal();
-      setSourceData('selected-service-hexes', displayedServices.hexes);
+      if (displayedServices.hexes !== lastProposalHeatmapHexes) {
+        setSourceData('selected-service-hexes', displayedServices.hexes);
+        lastProposalHeatmapHexes = displayedServices.hexes;
+      }
       setDemandHexOpacity(SELECTED_DEMAND_HEX_OPACITY, 1);
     }
     renderServiceMarkers(displayedServices);
+    syncProposalTransportLayers();
   });
 
   async function openAnalytics(): Promise<void> {
@@ -2538,7 +2775,12 @@
       const scoreFields: ScoreFieldCollection = {
         type: 'FeatureCollection',
         features: islands.features.flatMap((island) => {
-          if (island.properties.scoreStatus !== 'numeric' || island.properties.score === null) return [];
+          if (
+            island.properties.scoreStatus !== 'numeric' ||
+            island.properties.score === null ||
+            !isValidCoordinate(island.properties.centroid)
+          )
+            return [];
           return {
             type: 'Feature',
             id: island.id,
@@ -2567,6 +2809,7 @@
   async function downloadProposalPdf(): Promise<void> {
     if (!selectedIslandId || !islandServices?.baselineVersion || proposalPending || proposalExporting) return;
     proposalExporting = true;
+    proposalExportComplete = false;
     proposalError = null;
     try {
       const response = await fetch('/api/v1/scenarios/report.pdf', {
@@ -2575,6 +2818,7 @@
         body: JSON.stringify({
           baselineVersion: islandServices.baselineVersion,
           selectedIslandId,
+          // Export the current accepted proposal operation history.
           operations: draftOperations.slice(0, draftCursor),
           proposal: proposalSettings
         })
@@ -2610,6 +2854,7 @@
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      proposalExportComplete = true;
     } catch (error) {
       proposalError = error instanceof Error ? error.message : 'PDF export failed.';
     } finally {
@@ -2627,27 +2872,34 @@
     proposalLastMessage = null;
     draftOperations = [];
     proposalRecommendation = null;
+    proposalExportComplete = false;
     recommendationOperation = null;
     ignoredRecommendationOperationId = null;
     recommendationPending = false;
     recommendationStarting = false;
     recommendationKey = null;
     recommendationUndoOperations = null;
-    recommendationReplacementOperationId = null;
     transportEditorOperation = null;
     proposalBuilderTab = 'services';
     addServiceDraft = null;
     stopMoveMode();
-    const defaults = readProposalDefaults();
+    clearTransportEditState();
     proposalSettings = {
-      ...defaults,
+      ...DEFAULT_PROPOSAL_SETTINGS,
       name: `${islandServices?.island.name ?? 'Island'} access proposal`
     };
     proposalMode = true;
     proposalView = 'proposal';
     void loadIslandServices(selectedIslandId);
     const feature = islandCollection.features.find((island) => island.id === selectedIslandId);
-    if (feature) void focusIsland(feature.properties);
+    if (feature) {
+      const focusRequest = ++islandFocusRequest;
+      void focusIsland(
+        feature.properties,
+        850,
+        () => focusRequest === islandFocusRequest && selectedIslandId === feature.properties.id
+      );
+    }
   }
 
   function visibleJourneyCoordinates(
@@ -2670,18 +2922,23 @@
   function presentationCollection(story: PresentationStory, sectionIndex: number, progress = 1) {
     return {
       type: 'FeatureCollection' as const,
-      features: story.sections.slice(0, sectionIndex + 1).map((section, index) => ({
-        type: 'Feature' as const,
-        id: section.id,
-        properties: { mode: section.mode, branch: section.branch },
-        geometry: {
-          ...section.geometry,
-          coordinates:
-            index === sectionIndex
-              ? visibleJourneyCoordinates(section.geometry.coordinates, progress)
-              : section.geometry.coordinates
-        }
-      }))
+      features: story.sections.slice(0, sectionIndex + 1).flatMap((section, index) => {
+        const coordinates = section.geometry.coordinates.filter(isValidCoordinate);
+        if (coordinates.length === 0) return [];
+        const lineCoordinates = coordinates.length === 1 ? [coordinates[0], coordinates[0]] : coordinates;
+        return [
+          {
+            type: 'Feature' as const,
+            id: section.id,
+            properties: { mode: section.mode, branch: section.branch },
+            geometry: {
+              ...section.geometry,
+              coordinates:
+                index === sectionIndex ? visibleJourneyCoordinates(lineCoordinates, progress) : lineCoordinates
+            }
+          }
+        ];
+      })
     };
   }
 
@@ -2737,30 +2994,98 @@
     const story = presentationStory;
     const section = story.sections[presentation.sectionIndex];
     if (!section) return;
+    const coordinates = section.geometry.coordinates.filter(isValidCoordinate);
+    if (coordinates.length === 0) return;
     const run = ++presentationRun;
     presentation.setProgress(0);
     ensurePresentationLayers();
     (mapInstance.getSource(PRESENTATION_SOURCE_ID) as GeoJSONSource).setData(
       presentationCollection(presentationStory, presentation.sectionIndex, 0)
     );
-    const longitudes = section.geometry.coordinates.map((coordinate) => coordinate[0]);
-    const latitudes = section.geometry.coordinates.map((coordinate) => coordinate[1]);
+    const longitudes = coordinates.map((coordinate) => coordinate[0]);
+    const latitudes = coordinates.map((coordinate) => coordinate[1]);
     const bounds: [Coordinate, Coordinate] = [
       [Math.min(...longitudes), Math.min(...latitudes)],
       [Math.max(...longitudes), Math.max(...latitudes)]
     ];
-    mapInstance.fitBounds(bounds, {
-      padding: section.camera.padding,
-      maxZoom: section.camera.maxZoom,
-      duration: prefersReducedMotion.current ? 0 : 800
-    });
-    const duration = prefersReducedMotion.current || section.mode === 'wait' || section.mode === 'handoff' ? 0 : 2600;
+    const isPointSection = coordinates.every(
+      (coordinate) => coordinate[0] === coordinates[0][0] && coordinate[1] === coordinates[0][1]
+    );
+    try {
+      if (isPointSection) {
+        mapInstance.easeTo({
+          center: coordinates[0],
+          zoom: Math.min(
+            mapInstance.getMaxZoom(),
+            section.id === 'flight-landing-handoff' ? 14.5 : section.camera.maxZoom
+          ),
+          duration: prefersReducedMotion.current ? 0 : 420,
+          essential: !prefersReducedMotion.current
+        });
+      } else {
+        mapInstance.fitBounds(bounds, {
+          padding: safeCameraPadding(section.camera.padding),
+          maxZoom: section.camera.maxZoom,
+          duration: prefersReducedMotion.current ? 0 : 420
+        });
+      }
+    } catch {
+      try {
+        mapInstance.easeTo({
+          center: coordinates[0],
+          zoom: Math.min(mapInstance.getMaxZoom(), section.camera.maxZoom),
+          duration: prefersReducedMotion.current ? 0 : 300,
+          essential: !prefersReducedMotion.current
+        });
+      } catch {
+        // Route geometry remains useful even if the camera cannot move.
+      }
+    }
+    const duration = prefersReducedMotion.current
+      ? 0
+      : section.mode === 'wait'
+        ? 500
+        : section.mode === 'handoff'
+          ? 800
+          : section.mode === 'aircraft'
+            ? 2400
+            : section.mode === 'ferry'
+              ? 1800
+              : section.mode === 'ambulance'
+                ? 1400
+                : section.mode === 'bus'
+                  ? 1500
+                  : section.mode === 'walk'
+                    ? 1200
+                    : 1400;
+    const sectionPause = prefersReducedMotion.current
+      ? 0
+      : section.mode === 'wait' || section.mode === 'handoff'
+        ? 700
+        : 500;
     const started = performance.now();
+    let arrivalCameraStarted = false;
     const animate = (time: number) => {
       if (run !== presentationRun || !presentation.active) return;
       const progress = duration === 0 ? 1 : Math.min(1, (time - started) / duration);
       presentation.setProgress(progress);
-      const coordinate = pointAlongLine(section.geometry.coordinates, progress);
+      if (section.mode === 'aircraft' && progress >= 0.72 && !arrivalCameraStarted) {
+        arrivalCameraStarted = true;
+        const arrival = coordinates[coordinates.length - 1];
+        if (arrival) {
+          try {
+            mapInstance?.easeTo({
+              center: arrival,
+              zoom: Math.min(mapInstance.getMaxZoom(), 13.5),
+              duration: prefersReducedMotion.current ? 0 : 900,
+              essential: !prefersReducedMotion.current
+            });
+          } catch {
+            // Keep the route animation running if an optional arrival camera is rejected.
+          }
+        }
+      }
+      const coordinate = pointAlongLine(coordinates, progress);
       (mapInstance?.getSource(PRESENTATION_SOURCE_ID) as GeoJSONSource | undefined)?.setData(
         presentationCollection(story, presentation.sectionIndex, progress)
       );
@@ -2771,28 +3096,50 @@
       });
       if (progress < 1) {
         presentationFrame = requestAnimationFrame(animate);
-      } else if (presentation.sectionIndex === story.sections.length - 1) {
+      } else if (presentation.sectionIndex === story.sections.length - 1 && !readerActive) {
         completePresentation();
+      } else if (readerActive && section.id === 'ambulance-tree-top') {
+        presentationAutoPlay = false;
+        if (presentationAdvanceTimer !== null) window.clearTimeout(presentationAdvanceTimer);
+        presentationAdvanceTimer = null;
+      } else if (presentationAutoPlay) {
+        presentationAdvanceTimer = window.setTimeout(() => {
+          presentationAdvanceTimer = null;
+          if (run !== presentationRun || !presentation.active) return;
+          presentation.next(story.sections.length);
+          showPresentationSection();
+        }, sectionPause);
       }
     };
     presentationFrame = requestAnimationFrame(animate);
   }
 
   async function startPresentation(destinationIslandId: string): Promise<void> {
-    if (selectedIslandId !== 'island:640' || destinationIslandId !== 'island:1442') return;
+    if (selectedIslandId !== BAARAH_ISLAND_ID || destinationIslandId !== DESTINATION_ISLAND_ID) return;
     const response = await fetch('/api/v1/presentation/story');
     if (!response.ok) return;
     presentationStory = (await response.json()) as PresentationStory;
     islandAnalyticsOpen = false;
     resetSelectedIslandOverlay();
     selectedIslandId = null;
+    presentationAutoPlay = !readerActive;
     presentation.start();
     showPresentationSection();
   }
 
+  async function startPresentationShortcut(): Promise<void> {
+    if (readerActive) stopReader();
+    if (presentation.active) clearPresentation();
+    if (proposalMode) closeProposalMode();
+    await startReaderSession(false);
+  }
+
   function clearPresentation(): void {
     presentation.exit();
+    presentationAutoPlay = false;
     presentationRun += 1;
+    if (presentationAdvanceTimer !== null) window.clearTimeout(presentationAdvanceTimer);
+    presentationAdvanceTimer = null;
     if (presentationFrame !== null) cancelAnimationFrame(presentationFrame);
     presentationFrame = null;
     if (mapInstance?.getLayer(PRESENTATION_POINT_LAYER_ID)) mapInstance.removeLayer(PRESENTATION_POINT_LAYER_ID);
@@ -2803,8 +3150,223 @@
 
   function completePresentation(): void {
     clearPresentation();
-    selectIslandById('island:1442');
+    selectIslandById(DESTINATION_ISLAND_ID);
   }
+
+  async function loadReaderScript(): Promise<PresentationScript | null> {
+    try {
+      const response = await fetch('/presentation/presentation-script.json', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Reader script could not be loaded.');
+      return v.parse(presentationScriptSchema, await response.json());
+    } catch (error) {
+      console.error('Presentation reader script failed:', error);
+      readerActionError = 'The reader script could not be loaded.';
+      return null;
+    }
+  }
+
+  async function runReaderStep(): Promise<void> {
+    const script = readerScript;
+    const step = script?.steps[readerStepIndex];
+    if (!script || !step || !readerPlaying) return;
+    const run = ++readerActionRun;
+    readerActionError = null;
+    for (let index = readerActionIndex; index < step.actions.length; index += 1) {
+      const action = step.actions[index];
+      if (run !== readerActionRun || !readerPlaying || !readerActive) return;
+      const completed = await runPresentationAction(action, {
+        panMap: (delta, duration) => {
+          if (!mapInstance || (delta[0] === 0 && delta[1] === 0)) return;
+          mapInstance.panBy(delta, { duration, essential: true });
+        },
+        focusService: (target) => focusReaderService(target),
+        waitForMapIdle: () => waitForMapIdle(),
+        waitForProposalState,
+        waitForJourneySection: (sectionId) => waitForReaderJourneySection(sectionId),
+        pauseJourney: pauseReaderJourney,
+        waitForProposalExport,
+        waitForRecommendation
+      });
+      if (!completed) {
+        readerActionError = `Scene target is unavailable: ${'target' in action ? action.target : action.type}`;
+        return;
+      }
+      readerActionIndex = index + 1;
+    }
+    readerActionIndex = 0;
+  }
+
+  async function waitForReaderJourneySection(sectionId: string): Promise<boolean> {
+    const started = performance.now();
+    while (performance.now() - started < 24_000) {
+      const targetIndex = presentationStory?.sections.findIndex((section) => section.id === sectionId) ?? -1;
+      if (targetIndex >= 0 && presentation.active) {
+        presentationAutoPlay = false;
+        while (presentation.sectionIndex < targetIndex) {
+          if (presentation.sectionProgress < 1) {
+            await wait(120);
+            continue;
+          }
+          presentation.next(presentationStory?.sections.length ?? 0);
+          showPresentationSection();
+        }
+        if (presentation.sectionIndex === targetIndex && presentation.sectionProgress === 0) showPresentationSection();
+        return true;
+      }
+      await wait(120);
+    }
+    return false;
+  }
+
+  async function pauseReaderJourney(): Promise<void> {
+    const started = performance.now();
+    while (presentation.active && presentation.sectionProgress < 1 && performance.now() - started < 5000)
+      await wait(100);
+    clearPresentation();
+    if (selectedIslandId !== DESTINATION_ISLAND_ID) selectIslandById(DESTINATION_ISLAND_ID);
+  }
+
+  async function waitForProposalExport(): Promise<boolean> {
+    const started = performance.now();
+    while (performance.now() - started < 12_000) {
+      if (proposalExportComplete) return true;
+      if (!proposalExporting && proposalError) return false;
+      await wait(150);
+    }
+    return false;
+  }
+
+  async function waitForRecommendation(): Promise<boolean> {
+    const started = performance.now();
+    while (performance.now() - started < 12_000) {
+      if (proposalRecommendation && !recommendationPending && !recommendationStarting) return true;
+      if (proposalError) return false;
+      await wait(150);
+    }
+    return false;
+  }
+
+  async function waitForProposalState(state: 'ready' | 'settled' | 'transport'): Promise<boolean> {
+    const started = performance.now();
+    while (performance.now() - started < 10_000) {
+      const ready =
+        proposalMode &&
+        selectedIslandId === BAARAH_ISLAND_ID &&
+        !islandServicesLoading &&
+        !proposalPending &&
+        Boolean(islandServices?.baselineVersion);
+      const settled =
+        ready && Boolean(draftPreview?.costs) && Boolean(draftPreview?.impact) && draftOperations.length > 0;
+      if (
+        (state === 'ready' && ready) ||
+        (state === 'settled' && settled) ||
+        (state === 'transport' && proposalBuilderTab === 'transport')
+      )
+        return true;
+      if (proposalError) return false;
+      await wait(120);
+    }
+    return false;
+  }
+
+  async function focusReaderService(target: string): Promise<boolean> {
+    const started = performance.now();
+
+    while (performance.now() - started < 8000) {
+      if (islandServicesLoading || islandServices?.island.id !== selectedIslandId) {
+        await wait(150);
+        continue;
+      }
+      const service =
+        target === 'tree-top-marker'
+          ? serviceMarkerServices.get(TREE_TOP_SERVICE_ID)
+          : serviceMarkerServices.get(BAARAH_HEALTH_CENTRE_SERVICE_ID);
+      if (service) {
+        return focusService(service, true, false);
+      }
+      await wait(150);
+    }
+    return false;
+  }
+
+  async function startReaderSession(showCard: boolean): Promise<void> {
+    if (readerActive) return;
+    const script = await loadReaderScript();
+    if (!script) return;
+    clearPresentation();
+    closeProposalMode();
+    returnToNational();
+    readerScript = script;
+    readerStepIndex = 0;
+    readerActionIndex = 0;
+    readerRemainingSeconds = script.durationSeconds;
+    readerActionError = null;
+    readerCardVisible = showCard;
+    readerActive = true;
+    readerPlaying = true;
+    void runReaderStep();
+  }
+
+  async function startReader(): Promise<void> {
+    await startReaderSession(true);
+  }
+
+  function stopReader(): void {
+    readerActionRun += 1;
+    readerActive = false;
+    readerCardVisible = false;
+    readerPlaying = false;
+    if (readerTimer !== null) window.clearInterval(readerTimer);
+    readerTimer = null;
+    readerScript = null;
+    clearPresentation();
+    returnToNational();
+  }
+
+  function toggleReader(): void {
+    readerPlaying = !readerPlaying;
+    if (readerPlaying) void runReaderStep();
+    else readerActionRun += 1;
+  }
+
+  function nextReaderStep(): void {
+    if (!readerScript || readerStepIndex >= readerScript.steps.length - 1) return;
+    readerActionRun += 1;
+    readerStepIndex += 1;
+    readerActionIndex = 0;
+    readerActionError = null;
+    if (readerPlaying) void runReaderStep();
+  }
+
+  function previousReaderStep(): void {
+    if (!readerScript || readerStepIndex === 0) return;
+    readerActionRun += 1;
+    readerStepIndex -= 1;
+    readerActionIndex = 0;
+    readerActionError = null;
+    if (readerPlaying) void runReaderStep();
+  }
+
+  $effect(() => {
+    if (!readerActive || !readerScript || readerTimer !== null) return;
+    readerTimer = window.setInterval(() => {
+      if (!readerPlaying) return;
+      readerRemainingSeconds = Math.max(0, readerRemainingSeconds - 1);
+      if (readerRemainingSeconds === 0) {
+        readerPlaying = false;
+        readerActionRun += 1;
+      }
+    }, 1000);
+  });
+
+  $effect(() => {
+    const cursorLocked = readerActive || presentation.active;
+    document.body.classList.toggle('presentation-cursor-hidden', cursorLocked);
+
+    return () => {
+      document.body.classList.remove('presentation-cursor-hidden');
+    };
+  });
 
   function exitPresentation(): void {
     clearPresentation();
@@ -2821,10 +3383,48 @@
     showPresentationSection();
   }
 
+  function handleReaderKey(event: KeyboardEvent): void {
+    if (!readerActive || isEditableKeyboardTarget(event.target)) return;
+    if (!['ArrowRight', 'ArrowLeft', ' '].includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === 'ArrowRight') nextReaderStep();
+    else if (event.key === 'ArrowLeft') previousReaderStep();
+    else toggleReader();
+  }
+
+  function isEditableKeyboardTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) return false;
+    return target.isContentEditable || target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+  }
+
+  function handleGlobalPresentationKey(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (readerActive) stopReader();
+      else if (presentation.active) exitPresentation();
+      else if (moveServiceId) stopMoveMode();
+      else if (addServiceDraft) stopAddServiceMode();
+      return;
+    }
+
+    if (isEditableKeyboardTarget(event.target) || !event.shiftKey || event.ctrlKey || event.altKey || event.metaKey)
+      return;
+
+    const key = event.key.toLowerCase();
+    if (key === 'l') {
+      event.preventDefault();
+      void startReader();
+    } else if (key === 'p') {
+      event.preventDefault();
+      void startPresentationShortcut();
+    }
+  }
+
   function closeProposalMode(): void {
     proposalRequest += 1;
     islandServicesRequest += 1;
     proposalPending = false;
+    clearTransportEditState();
     closeServicePopup();
     stopMoveMode();
     proposalMode = false;
@@ -2836,7 +3436,6 @@
     draftCursor = 0;
     draftPreview = null;
     transportEditorOperation = null;
-    recommendationReplacementOperationId = null;
     proposalBuilderTab = 'services';
     addServiceDraft = null;
     if (mapInstance?.getLayer(PROPOSAL_TRANSPORT_LINE_LAYER_ID))
@@ -2880,9 +3479,10 @@
 
 <svelte:window
   onkeydown={(event) => {
+    handleGlobalPresentationKey(event);
+    if (event.defaultPrevented) return;
+    if (readerActive) return handleReaderKey(event);
     if (presentation.active) return handlePresentationKey(event);
-    if (event.key === 'Escape' && moveServiceId) stopMoveMode();
-    else if (event.key === 'Escape' && addServiceDraft) stopAddServiceMode();
   }}
 />
 
@@ -2890,6 +3490,7 @@
   <div
     bind:this={mapElement}
     class="map-canvas"
+    data-presentation-target="map-canvas"
     role="application"
     aria-label={selectedIslandId
       ? 'Selected island demand and residential access map'
@@ -2969,6 +3570,17 @@
         loading={!mapReady || analyticsLoading}
       />
     </div>
+  {/if}
+
+  {#if selectedIslandId && !proposalMode}
+    <button
+      class="national-view-button"
+      data-presentation-target="national-view"
+      type="button"
+      onclick={returnToNational}
+    >
+      Back to national view
+    </button>
   {/if}
 
   <NationalAnalyticsCard
@@ -3060,10 +3672,23 @@
     />
   {/if}
 
+  {#if readerActive || presentation.active}
+    <PresentationCursor active={readerActive || presentation.active} />
+  {/if}
+
+  {#if readerActive && readerScript && readerCardVisible}
+    <PresentationReader
+      script={readerScript}
+      stepIndex={readerStepIndex}
+      remainingSeconds={readerRemainingSeconds}
+      error={readerActionError}
+    />
+  {/if}
+
   {#if proposalMode}
     <div class="proposal-panels">
       {#if selectedIslandId}
-        {#if !recommendationReplacementOperationId && (proposalRecommendation || recommendationPending || recommendationStarting)}
+        {#if proposalRecommendation || recommendationPending || recommendationStarting}
           <PresentationRecommendationCard
             recommendation={proposalRecommendation}
             pending={recommendationPending || recommendationStarting}
@@ -3073,12 +3698,10 @@
         {/if}
         <ProposalFinancialSummary
           settings={proposalSettings}
-          costs={draftPreview?.costs ?? null}
+          costs={proposalPreview?.costs ?? null}
           disabled={!editableProposal}
           onSettingsChange={(settings) => void updateProposalSettings(settings)}
-          onSaveDefaults={saveCurrentProposalDefaults}
-          onRestoreDefaults={restoreCurrentProposalDefaults}
-          impact={draftPreview?.impact ?? null}
+          impact={proposalPreview?.impact ?? null}
           pending={proposalPending || islandServicesLoading}
           exporting={proposalExporting}
           error={proposalError ?? islandServicesError}
@@ -3095,12 +3718,6 @@
           onRedo={() => changeDraftHistory(1)}
           onReset={resetProposalDraft}
           canReset={draftOperations.length > 0}
-          storageMessage={draftStorageMessage}
-          restoreBlocked={draftRestoreBlocked}
-          onRetryRestore={() => {
-            if (selectedIslandId) void loadIslandServices(selectedIslandId);
-          }}
-          onStartFresh={startFreshDraft}
           bind:query={proposalQuery}
           bind:serviceFilter={proposalServiceFilter}
           pending={proposalPending || islandServicesLoading}
@@ -3116,13 +3733,10 @@
           onStartAddService={startAddService}
           onCancelAdd={stopAddServiceMode}
           selectedIslandId={selectedIslandId ?? ''}
-          transportPlans={draftPreview?.transportPlans ?? []}
+          transportPlans={proposalPreview?.transportPlans ?? []}
           {transportEditorOperation}
-          {stagedTransportPreview}
           bind:builderTab={proposalBuilderTab}
-          onPreviewTransport={previewTransportOperation}
-          onConfirmTransport={confirmTransportPreview}
-          onCancelTransport={cancelTransportPreview}
+          onApplyTransport={applyTransportOperation}
           onEditTransport={editTransportOperation}
           onRemoveTransport={removeTransportOperation}
         />
@@ -3552,6 +4166,40 @@
     width: 13px;
     height: 13px;
     stroke: currentColor;
+  }
+
+  .national-view-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 4;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid #d4d4d8;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #18181b;
+    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
+    font-size: 0.65rem;
+    font-weight: 750;
+  }
+
+  .national-view-button:hover,
+  .national-view-button:focus-visible {
+    border-color: #18181b;
+    background: #f4f4f5;
+  }
+
+  :global(.presentation-click-pulse) {
+    animation: presentation-click-pulse 280ms ease-out;
+  }
+
+  @keyframes presentation-click-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgb(24 24 27 / 42%);
+    }
+    100% {
+      box-shadow: 0 0 0 0.8rem rgb(24 24 27 / 0%);
+    }
   }
 
   @media (max-width: 640px) {

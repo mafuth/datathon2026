@@ -118,6 +118,7 @@
   {:else}
     <button
       class="why-score-button"
+      data-presentation-target="national-score-details"
       type="button"
       aria-label={`Why ${presentation.percent}?`}
       onclick={onAnalyticsOpen}

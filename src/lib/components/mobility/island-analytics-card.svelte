@@ -67,6 +67,11 @@
     await tick();
     onSimulate?.(destinationIslandId);
   }
+
+  function closeAnalytics(): void {
+    connectionNetworkFullscreen = false;
+    onClose();
+  }
   let inboundDemandExpanded = $state(false);
   let scoreMetrics = $derived(islandScoreMetrics(island));
   let scoreHighlights = $derived(islandScoreHighlights(scoreMetrics));
@@ -195,7 +200,12 @@
     in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
     out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
   >
-    <Card.Root class="island-analytics-card" role="dialog" aria-label="Island score analytics">
+    <Card.Root
+      class="island-analytics-card"
+      role="dialog"
+      aria-label="Island score analytics"
+      data-presentation-target="island-analytics"
+    >
       <div class="analytics-scroll">
         <div class="analytics-heading">
           <div>
@@ -213,8 +223,13 @@
               </h2>
             {/if}
           </div>
-          <Button class="close-button" variant="ghost" size="icon" aria-label="Close island analytics" onclick={onClose}
-            ><X size={18} strokeWidth={2.2} /></Button
+          <Button
+            class="close-button"
+            data-presentation-target="island-analytics-close"
+            variant="ghost"
+            size="icon"
+            aria-label="Close island analytics"
+            onclick={closeAnalytics}><X size={18} strokeWidth={2.2} /></Button
           >
         </div>
 
@@ -281,7 +296,7 @@
               <Tabs.List class="analytics-tab-list" aria-label="Island analytics sections">
                 <Tabs.Trigger value="accessibility">Access</Tabs.Trigger>
                 <Tabs.Trigger value="people">People &amp; services</Tabs.Trigger>
-                <Tabs.Trigger value="network">Model detail</Tabs.Trigger>
+                <Tabs.Trigger value="network" data-presentation-target="island-details-tab">Model detail</Tabs.Trigger>
               </Tabs.List>
 
               <Tabs.Content value="accessibility" class="analytics-tab-panel">
@@ -306,6 +321,7 @@
                       {/if}
                       <Button
                         class="connection-network-toggle"
+                        data-presentation-target="connection-network-fullscreen"
                         variant="ghost"
                         size="icon"
                         type="button"
@@ -634,12 +650,12 @@
                   </Card.Root>
 
                   <div class="demand-grid">
-                    <Card.Root class="insight-card demand-card" size="sm">
+                    <Card.Root class="insight-card demand-card" size="sm" data-presentation-target="health-demand-card">
                       <div class="card-heading demand-heading">
                         <div>
                           <h3>Health demand</h3>
                         </div>
-                        <strong class="demand-percentage"
+                        <strong class="demand-percentage" data-presentation-target="health-demand-percent"
                           >{percentage(profile.demand.health.demand.demandPercent)}</strong
                         >
                       </div>

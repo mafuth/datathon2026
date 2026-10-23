@@ -1,9 +1,6 @@
 <script lang="ts">
   import type { ProposalRecommendation } from './proposal-workspace.svelte';
 
-  import Sparkles from '@lucide/svelte/icons/sparkles';
-
-  import { Badge } from '$components/ui/badge';
   import { Button } from '$components/ui/button';
   import * as Card from '$components/ui/card';
 
@@ -15,41 +12,66 @@
   }: {
     recommendation: ProposalRecommendation | null;
     pending?: boolean;
-    onReview?: () => void;
+    onReview?: () => void | Promise<void>;
     onDismiss?: () => void;
   } = $props();
 
   const money = new Intl.NumberFormat('en', { maximumFractionDigits: 0 });
+  let expanded = $state(false);
+
+  $effect(() => {
+    if (!recommendation) expanded = false;
+  });
 
   function formatMoney(value: number): string {
     return `MVR ${money.format(value)}`;
   }
 </script>
 
-<aside class="presentation-recommendation" aria-labelledby="presentation-recommendation-title">
-  <Card.Root class="presentation-recommendation-card">
-    <Card.Header class="presentation-recommendation-header">
-      <div class="presentation-recommendation-heading">
-        <Badge variant="outline"><Sparkles data-icon="inline-start" aria-hidden="true" />Data wizard</Badge>
-        <Card.Title id="presentation-recommendation-title">
-          {pending && !recommendation ? 'Preparing your recommendation' : 'Compare a ferry connection'}
-        </Card.Title>
-      </div>
-    </Card.Header>
+<aside class="presentation-recommendation" aria-label="Ferry recommendation">
+  <Card.Root
+    class="presentation-recommendation-card"
+    data-presentation-target="recommendation-card"
+    role="button"
+    tabindex={0}
+    aria-expanded={expanded}
+    onclick={(event) => {
+      if ((event.target as HTMLElement).closest('button')) return;
+      expanded = !expanded;
+    }}
+    onkeydown={(event) => {
+      if ((event.key === 'Enter' || event.key === ' ') && !(event.target as HTMLElement).closest('button')) {
+        event.preventDefault();
+        expanded = !expanded;
+      }
+    }}
+  >
+    {#if !(pending && !recommendation)}
+      <Card.Header class="presentation-recommendation-header">
+        <div class="presentation-recommendation-heading">
+          <Card.Title>Compare a ferry connection</Card.Title>
+        </div>
+      </Card.Header>
+    {/if}
     <Card.Content class="presentation-recommendation-content">
       {#if pending && !recommendation}
         <div class="data-wizard-loader" role="status" aria-live="polite">
           <img
-            src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Mage.png"
-            alt=""
-            width="72"
-            height="72"
+            class="data-wizard-emoji"
+            src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Thinking%20Face.png"
+            alt="Thinking Face"
+            width="56"
+            height="56"
+            loading="eager"
+            decoding="async"
           />
           <div>
             <strong>Our data wizards are cooking…</strong>
             <p>Comparing access, journey time, and planning allowances.</p>
           </div>
         </div>
+      {:else if recommendation && !expanded}
+        <p>Our data wizards found a lower-cost ferry alternative. Click to review the recommendation.</p>
       {:else if recommendation}
         <p>
           A scheduled ferry to Hanimaadhoo may be a lower-cost alternative to upgrading Baarah Health Centre. It does
@@ -89,8 +111,13 @@
     </Card.Content>
     {#if recommendation}
       <Card.Footer class="presentation-recommendation-actions">
-        <Button variant="ghost" disabled={pending} onclick={onDismiss}>Dismiss</Button>
-        <Button disabled={pending} onclick={onReview}>Review suggested ferry</Button>
+        <Button class="recommendation-dismiss" variant="ghost" disabled={pending} onclick={onDismiss}>Dismiss</Button>
+        <Button
+          class="recommendation-review"
+          data-presentation-target="apply-recommended-changes"
+          disabled={pending}
+          onclick={onReview}>Apply recommended changes</Button
+        >
       </Card.Footer>
     {/if}
   </Card.Root>
@@ -102,7 +129,7 @@
     align-self: end;
     justify-self: center;
     z-index: 35;
-    width: min(100%, 38rem);
+    width: min(100%, 52rem);
     max-height: calc(100dvh - 2rem);
     overflow: auto;
     color-scheme: light;
@@ -132,14 +159,6 @@
     gap: 0.45rem;
   }
 
-  .presentation-recommendation-heading :global([data-slot='badge']) {
-    width: fit-content;
-    border-color: #d4d4d8;
-    background: #fafafa;
-    color: #52525b;
-    font-size: 0.72rem;
-  }
-
   :global(.presentation-recommendation-heading [data-slot='card-title']) {
     font-family: var(--font-secondary, 'Sora', sans-serif);
     font-size: 1.05rem;
@@ -158,18 +177,18 @@
 
   .data-wizard-loader {
     display: flex;
-    min-height: 8rem;
+    min-height: 5.5rem;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    padding: 1rem 0 1.25rem;
+    padding: 1rem;
   }
 
-  .data-wizard-loader img {
-    width: 4.5rem;
-    height: 4.5rem;
+  .data-wizard-emoji {
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin-right: 0.8rem;
     flex: none;
-    object-fit: contain;
   }
 
   .data-wizard-loader strong {
@@ -292,5 +311,74 @@
     .presentation-recommendation {
       transition: none;
     }
+  }
+
+  :global(.presentation-recommendation-card) {
+    border-color: var(--border);
+    border-radius: 0.55rem;
+    background: #ffffff;
+    color: #18181b;
+    color-scheme: light;
+    box-shadow: 0 0.7rem 2.2rem rgb(24 24 27 / 12%);
+    backdrop-filter: none;
+  }
+  :global(.presentation-recommendation-header) {
+    padding: 0.85rem 0.9rem 0.7rem;
+  }
+  :global(.presentation-recommendation-content) {
+    color: #3f3f46;
+  }
+  .presentation-recommendation-comparison {
+    border-color: #e4e4e7;
+  }
+  .presentation-recommendation-comparison > div {
+    border-color: #f4f4f5;
+  }
+  .presentation-recommendation-comparison dt,
+  .presentation-recommendation-note,
+  .data-wizard-loader p {
+    color: #71717a;
+  }
+  .presentation-recommendation-comparison dd,
+  .data-wizard-loader strong {
+    color: #18181b;
+  }
+  :global(.presentation-recommendation-actions) {
+    border-top: 1px solid #e4e4e7;
+    background: #ffffff;
+    color: #18181b;
+  }
+  :global(.presentation-recommendation-actions button) {
+    border-color: #d4d4d8;
+    background: #ffffff;
+    color: #18181b;
+  }
+  :global(.presentation-recommendation-actions button:hover),
+  :global(.presentation-recommendation-actions button:focus-visible) {
+    border-color: #3f3f46;
+    background: #f4f4f5;
+    color: #18181b;
+  }
+  :global(.presentation-recommendation-actions .recommendation-review) {
+    border-color: #18181b;
+    background: #18181b;
+    color: #ffffff;
+  }
+  :global(.presentation-recommendation-actions .recommendation-review:hover),
+  :global(.presentation-recommendation-actions .recommendation-review:focus-visible) {
+    border-color: #000000;
+    background: #000000;
+    color: #ffffff;
+  }
+  :global(.presentation-recommendation-actions .recommendation-dismiss) {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: #ffffff;
+  }
+  :global(.presentation-recommendation-actions .recommendation-dismiss:hover),
+  :global(.presentation-recommendation-actions .recommendation-dismiss:focus-visible) {
+    border-color: #b91c1c;
+    background: #b91c1c;
+    color: #ffffff;
   }
 </style>

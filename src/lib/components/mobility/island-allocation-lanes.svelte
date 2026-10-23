@@ -57,11 +57,15 @@
         </div>
         <div>
           <dt><i class="key-unserved" aria-hidden="true"></i>Unserved</dt>
-          <dd>{amount(metric.unserved)}</dd>
+          <dd data-presentation-target={row.key === 'health' ? 'resident-demand-elderly' : undefined}>
+            {amount(metric.unserved)}
+          </dd>
         </div>
         <div>
           <dt><i class="key-inbound" aria-hidden="true"></i>Inbound</dt>
-          <dd>{amount(row.inboundDemand)}</dd>
+          <dd data-presentation-target={row.key === 'health' ? 'inbound-care-value' : undefined}>
+            {amount(row.inboundDemand)}
+          </dd>
         </div>
       </dl>
     </section>

@@ -3,11 +3,15 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { mobilityFacade } from '$lib/server/mobility/mobility-facade';
 import { IslandServicesNotFoundError } from '$lib/server/scoring/island-services';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
   try {
-    return new Response(JSON.stringify(await mobilityFacade.getIslandServices(params.id ?? '')), {
-      headers: { 'content-type': 'application/json' }
-    });
+    const includeResidentialDemandPoints = url.searchParams.get('includeResidentialDemandPoints') !== 'false';
+    return new Response(
+      JSON.stringify(await mobilityFacade.getIslandServices(params.id ?? '', { includeResidentialDemandPoints })),
+      {
+        headers: { 'content-type': 'application/json' }
+      }
+    );
   } catch (error) {
     if (error instanceof IslandServicesNotFoundError) {
       return new Response(JSON.stringify({ error: error.message }), {

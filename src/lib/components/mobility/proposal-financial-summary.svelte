@@ -7,6 +7,7 @@
 
   import { Button } from '$components/ui/button';
   import * as Card from '$components/ui/card';
+  import * as Field from '$components/ui/field';
   import { Input } from '$components/ui/input';
 
   let {
@@ -18,8 +19,6 @@
     exporting = false,
     error = null,
     onSettingsChange = () => {},
-    onSaveDefaults = () => {},
-    onRestoreDefaults = () => {},
     onDownload = () => {},
     onClose = () => {}
   }: {
@@ -31,8 +30,6 @@
     exporting?: boolean;
     error?: string | null;
     onSettingsChange?: (settings: ProposalSettings) => void;
-    onSaveDefaults?: () => void;
-    onRestoreDefaults?: () => void;
     onDownload?: () => void;
     onClose?: () => void;
   } = $props();
@@ -94,14 +91,21 @@
 
 <Card.Root class="proposal-financial-panel" aria-label="Proposal summary" aria-busy={pending}>
   <Card.Header class="proposal-financial-header">
-    <div>
-      <p class="proposal-financial-eyebrow">Decision brief</p>
+    <div data-presentation-target="proposal-title">
       <Card.Title>{settings.name || 'Island access proposal'}</Card.Title>
-      <p class="proposal-financial-caption">Short modeled cost and benefit summary</p>
     </div>
-    <Button variant="ghost" size="icon" aria-label="Close proposal" title="Close proposal" onclick={onClose}>
-      <X aria-hidden="true" />
-    </Button>
+    <div class="proposal-financial-header-actions">
+      <Button
+        class="close-button"
+        variant="ghost"
+        size="icon"
+        aria-label="Close proposal"
+        title="Close proposal"
+        onclick={onClose}
+      >
+        <X size={18} strokeWidth={2.2} aria-hidden="true" />
+      </Button>
+    </div>
   </Card.Header>
   <Card.Content class="proposal-financial-content">
     {#if error}<p class="proposal-summary-error" role="alert">{error}</p>{/if}
@@ -139,8 +143,10 @@
         </div>
       </figure>
       <div class="proposal-budget-settings" aria-label="Budget settings">
-        <label
-          >Upfront budget (MVR)<Input
+        <Field.Field>
+          <Field.Label for="proposal-capital-limit">Upfront budget (MVR)</Field.Label>
+          <Input
+            id="proposal-capital-limit"
             type="number"
             min="0"
             max="1000000000000"
@@ -148,10 +154,12 @@
             value={settings.capitalLimit}
             {disabled}
             onchange={(event) => changeBudget('capitalLimit', event.currentTarget)}
-          /></label
-        >
-        <label
-          >Annual budget (MVR)<Input
+          />
+        </Field.Field>
+        <Field.Field>
+          <Field.Label for="proposal-annual-limit">Annual budget (MVR)</Field.Label>
+          <Input
+            id="proposal-annual-limit"
             type="number"
             min="0"
             max="1000000000000"
@@ -159,12 +167,8 @@
             value={settings.annualLimit}
             {disabled}
             onchange={(event) => changeBudget('annualLimit', event.currentTarget)}
-          /></label
-        >
-      </div>
-      <div class="proposal-default-actions">
-        <Button variant="outline" size="sm" {disabled} onclick={onSaveDefaults}>Save as defaults</Button>
-        <Button variant="ghost" size="sm" {disabled} onclick={onRestoreDefaults}>Restore defaults</Button>
+          />
+        </Field.Field>
       </div>
       <div class="proposal-budget-bars" aria-label="Budget usage chart">
         {#each budgetRows as item (item.label)}
@@ -248,7 +252,12 @@
     </section>
 
     <div class="proposal-download-wrap">
-      <Button class="proposal-download" disabled={exporting || downloadBlocked} onclick={onDownload}>
+      <Button
+        class="proposal-download"
+        data-presentation-target="download-proposal"
+        disabled={exporting || downloadBlocked}
+        onclick={onDownload}
+      >
         {#if exporting}<LoaderCircle class="proposal-summary-spinner" aria-hidden="true" />Generating PDF…{:else}<Download
             aria-hidden="true"
           />Download proposal PDF{/if}
@@ -262,7 +271,8 @@
   :global(.proposal-financial-panel) {
     grid-column: 3;
     grid-row: 1;
-    width: 32rem;
+    width: min(32rem, 100%);
+    max-width: 100%;
     min-width: 0;
     max-height: 100%;
     overflow: hidden;
@@ -280,30 +290,31 @@
     border-bottom: 1px solid #e4e4e7;
     background: #ffffff;
   }
-  :global(.proposal-financial-header button) {
-    color: #09090b;
-    background: #ffffff;
-  }
-  :global(.proposal-financial-header button:hover) {
-    background: #f4f4f5;
+  .proposal-financial-header-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
   }
   :global(.proposal-financial-header [data-slot='card-title']) {
     color: #09090b;
     font-size: 1.15rem;
     font-weight: 850;
   }
-  .proposal-financial-eyebrow {
-    margin: 0 0 0.2rem;
-    color: #71717a;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+  :global(.proposal-financial-header .close-button) {
+    display: grid;
+    width: 2.45rem;
+    height: 2.45rem;
+    place-items: center;
+    border: 1px solid #d4d4d8;
+    border-radius: 0.8rem;
+    color: #09090b;
+    background: #ffffff;
   }
-  .proposal-financial-caption {
-    margin: 0.25rem 0 0;
-    color: #71717a;
-    font-size: 0.68rem;
+  :global(.proposal-financial-header .close-button:hover),
+  :global(.proposal-financial-header .close-button:focus-visible) {
+    border-color: #3f3f46;
+    color: #09090b;
+    background: #f4f4f5;
   }
   :global(.proposal-financial-content) {
     display: grid;
@@ -460,10 +471,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.45rem;
   }
-  .proposal-budget-settings label {
+  .proposal-budget-settings :global([data-slot='field']) {
     display: grid;
     gap: 0.25rem;
-    color: #52525b;
+    color: var(--muted-foreground);
     font-size: 0.62rem;
     font-weight: 650;
   }
@@ -473,11 +484,6 @@
     background: #ffffff;
     border-color: #d4d4d8;
     font-size: 0.68rem;
-  }
-  .proposal-default-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.35rem;
   }
   .proposal-budget-bars,
   .proposal-impact-bars {
@@ -623,5 +629,52 @@
       grid-column: 1;
       grid-row: 1;
     }
+  }
+
+  :global(.proposal-financial-panel) {
+    border-color: var(--border);
+    border-radius: 0.55rem;
+    background: var(--card);
+    color: var(--card-foreground);
+    box-shadow: 0 0.7rem 2.2rem rgb(24 24 27 / 10%);
+  }
+  :global(.proposal-financial-header),
+  :global(.proposal-financial-content) {
+    background: var(--card);
+  }
+  :global(.proposal-financial-header) {
+    border-color: var(--border);
+  }
+  .proposal-summary-section {
+    border-color: var(--border);
+  }
+  .proposal-summary-grid > div,
+  .proposal-mini-chart,
+  .proposal-composition {
+    border-color: var(--border);
+    background: var(--background);
+  }
+  .proposal-summary-impact-grid > div {
+    border: 1px solid var(--border);
+    background: var(--muted);
+  }
+  .proposal-summary-note,
+  .proposal-summary-grid span,
+  .proposal-summary-impact-grid span {
+    color: var(--muted-foreground);
+  }
+  :global(.proposal-download) {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+  }
+  :global(.proposal-download:hover) {
+    background: var(--foreground);
+    color: var(--background);
+    border-color: var(--foreground);
+  }
+  :global(.proposal-financial-panel) {
+    width: min(32rem, 100%);
+    max-width: 100%;
   }
 </style>

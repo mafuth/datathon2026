@@ -75,6 +75,7 @@
       <div class="connection-destination-search">
         <Input
           class="connection-destination-input"
+          data-presentation-target="connection-destination-search"
           bind:value={destinationSearch}
           placeholder="Search destination island..."
           aria-label="Search destination island"
