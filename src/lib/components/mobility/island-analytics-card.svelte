@@ -1094,6 +1094,7 @@
     height: 2rem;
     border: 1px solid #e4e4e7;
     border-radius: 0.4rem;
+    background: #ffffff;
     color: #27272a;
   }
   :global(.connection-network-toggle:hover),

@@ -159,8 +159,8 @@
         preventScrolling
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} patternColor="#e4e4e7" />
-        <Controls showLock={false} fitViewOptions={{ minZoom: 0.0001, maxZoom: 1, padding: 0.12 }} />
         {#if view === 'fullscreen'}
+          <Controls showLock={false} fitViewOptions={{ minZoom: 0.0001, maxZoom: 1, padding: 0.12 }} />
           <MiniMap
             position="bottom-right"
             ariaLabel="Connection network overview"
@@ -385,6 +385,10 @@
     border-bottom-color: #e4e4e7;
     background: #ffffff;
     color: #27272a;
+  }
+
+  :global(.connection-network-canvas:not(.connection-network-fullscreen-canvas) .svelte-flow__controls) {
+    display: none;
   }
 
   :global(.connection-network-canvas .svelte-flow__controls-button:hover) {

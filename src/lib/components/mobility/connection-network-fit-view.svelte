@@ -23,6 +23,8 @@
   } = $props();
   const { fitView, setCenter } = useSvelteFlow<ConnectionGraphNode, ConnectionGraphEdge>();
   const SIDEBAR_FOCUS_ATTEMPTS = 12;
+  const SIDEBAR_FOCUS_ZOOM = 0.2;
+  const SIDEBAR_FOCUS_SCREEN_OFFSET = 160;
   const FULLSCREEN_FOCUS_ZOOM = 0.7;
   const FULLSCREEN_FOCUS_SCREEN_OFFSET = 500;
   let lastFitKey = '';
@@ -44,15 +46,22 @@
 
     const width = root.width ?? root.initialWidth ?? 0;
     const height = root.height ?? root.initialHeight ?? 0;
+    const graphOffset = SIDEBAR_FOCUS_SCREEN_OFFSET / SIDEBAR_FOCUS_ZOOM;
     await tick();
 
+    let focused = false;
     for (let attempt = 0; attempt < SIDEBAR_FOCUS_ATTEMPTS; attempt += 1) {
       await nextFrame();
       if (!isCurrentFocus(key, token)) return false;
-      if (await setCenter(root.position.x + width / 2, root.position.y + height / 2, { zoom: 0.85 })) return true;
+      if (
+        await setCenter(root.position.x + width / 2 + graphOffset, root.position.y + height / 2, {
+          zoom: SIDEBAR_FOCUS_ZOOM
+        })
+      )
+        focused = true;
     }
 
-    return false;
+    return focused;
   }
 
   async function focusFullscreenTarget(currentNodes: ConnectionGraphNode[]): Promise<boolean> {
