@@ -204,18 +204,98 @@ describe('database-backed analytics rankings', () => {
         }
       ])
     ).toMatchObject({
-      demand: ['b', 'a'],
-      outbound: ['a', 'b'],
-      underserved: ['a', 'b', 'c'],
-      overall: ['a', 'b'],
-      health: ['b', 'a'],
-      education: ['a', 'b'],
-      transport: ['a', 'b'],
-      employment: ['b', 'a'],
-      jobRichLowPopulation: ['b', 'a'],
-      jobDemandGaps: ['b', 'a'],
-      highestPollution: ['b', 'a']
+      demand: [
+        { id: 'b', value: 20 },
+        { id: 'a', value: 5 }
+      ],
+      outbound: [
+        { id: 'a', value: 25 },
+        { id: 'b', value: 10 }
+      ],
+      underserved: [
+        { id: 'a', value: 88 },
+        { id: 'b', value: 48 }
+      ],
+      overall: [
+        { id: 'a', value: 20 },
+        { id: 'b', value: 60 }
+      ],
+      health: [
+        { id: 'b', value: 10 },
+        { id: 'a', value: 40 }
+      ],
+      education: [
+        { id: 'a', value: 30 },
+        { id: 'b', value: 50 }
+      ],
+      transport: [
+        { id: 'a', value: 10 },
+        { id: 'b', value: 40 }
+      ],
+      employment: [
+        { id: 'b', value: 10 },
+        { id: 'a', value: 80 }
+      ],
+      jobRichLowPopulation: [
+        { id: 'b', value: 20 },
+        { id: 'a', value: 10 }
+      ],
+      jobDemandGaps: [
+        { id: 'b', value: 100 },
+        { id: 'a', value: 0 }
+      ],
+      highestPollution: [
+        { id: 'b', value: 2.1 },
+        { id: 'a', value: 1.4 }
+      ]
     });
+  });
+
+  it('uses domain tie-breakers and excludes unavailable accessibility scores', () => {
+    const rankings = buildAnalyticsRankings([
+      {
+        id: 'z',
+        label: 'B Island',
+        overall: null,
+        health: 20,
+        education: 20,
+        transport: 20,
+        employment: 20,
+        workingAgePopulation: 200,
+        jobDensity: 10,
+        jobDemand: 0.5,
+        jobSupply: 5,
+        demand: 10,
+        pressure: null,
+        pollutionPressure: 1
+      },
+      {
+        id: 'a',
+        label: 'A Island',
+        overall: 40,
+        health: 20,
+        education: 20,
+        transport: 20,
+        employment: 20,
+        workingAgePopulation: 100,
+        jobDensity: 10,
+        jobDemand: 0.5,
+        jobSupply: 5,
+        demand: 10,
+        pressure: null,
+        pollutionPressure: 1
+      }
+    ]);
+
+    expect(rankings.underserved).toEqual([{ id: 'a', value: 60 }]);
+    expect(rankings.jobRichLowPopulation).toEqual([
+      { id: 'a', value: 10 },
+      { id: 'z', value: 10 }
+    ]);
+    expect(rankings.demand).toEqual([
+      { id: 'a', value: 10 },
+      { id: 'z', value: 10 }
+    ]);
   });
 });
 
@@ -429,7 +509,8 @@ describe('age-based service demand allocation', () => {
           geoJson: null,
           source: 'test',
           sourceObjectId: 'test',
-          modeled: false
+          modeled: false,
+          scoreEligible: true
         },
         {
           id: 'origin-two-destination',
@@ -443,7 +524,8 @@ describe('age-based service demand allocation', () => {
           geoJson: null,
           source: 'test',
           sourceObjectId: 'test',
-          modeled: false
+          modeled: false,
+          scoreEligible: true
         }
       ],
       routes: [],

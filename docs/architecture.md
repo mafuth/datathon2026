@@ -88,6 +88,14 @@ $remote        → src/lib/remote
 
 ## State management
 
+### Proposal planning estimates
+
+- `src/lib/mobility/proposal-estimates.ts` contains pure cost and travel-estimate rules plus the shared assumption schema. Costs sum implementation packages in the active operation prefix; they are not net asset values. Upgrades require incremental packages; downgrades and deletions do not automatically generate refunds. Missing costs remain unknown.
+- Browser draft version 1 accepts optional `planningAssumptions` (per-operation upfront/additional annual MVR and nullable annual return trips per demand unit/return fare). Older drafts remain readable. Assumptions autosave on committed field changes; undo/redo selects operations without undoing assumptions.
+- Island services and scenario preview responses optionally expose `planningDemand`: nullable health/education objects with `local`, `outbound`, `unserved` allocation units from the same scoring snapshot. Local means served on the selected island, outbound means served elsewhere, and unserved is separate. Health uses canonical primary/chronic allocations; education uses canonical cohort allocations. Destination overlays and terminal shares are excluded. Missing/null data means unavailable, not zero.
+- Travel savings use positive outbound reduction capped by increased local allocation in each category, multiplied by explicitly entered annual return trips/unit and return fare. These are conditional planning estimates, not observed annual trips or unique residents. Terminal pressure comparisons are separate and never monetized. Route/destination reductions are not supplied by this contract.
+- School (MVR 25m upfront/5m annual), hospital (120m/20m) and stop (250k/unknown) defaults are unverified reference planning allowances copied read-only from the sibling `slop-branch` checkout, not sourced Maldives rates. Other packages start unknown.
+
 | Scope   | Pattern               | Location                 |
 | ------- | --------------------- | ------------------------ |
 | Local   | `$state` in component | Component file           |

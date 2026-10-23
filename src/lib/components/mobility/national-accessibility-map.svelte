@@ -1,5 +1,6 @@
 <script lang="ts">
   import type {
+    FilterSpecification,
     GeoJSONSource,
     Map as MapLibreMap,
     Marker as MapLibreMarker,
@@ -11,8 +12,7 @@
   import Hospital from '@lucide/svelte/icons/hospital';
   import Route from '@lucide/svelte/icons/route';
   import School from '@lucide/svelte/icons/school';
-  import X from '@lucide/svelte/icons/x';
-  import { mount, onMount, tick, unmount } from 'svelte';
+  import { mount, onMount, unmount } from 'svelte';
   import { cubicOut } from 'svelte/easing';
   import { prefersReducedMotion } from 'svelte/motion';
   import { SvelteMap } from 'svelte/reactivity';
@@ -20,6 +20,7 @@
   import 'maplibre-gl/dist/maplibre-gl.css';
 
   import type { IslandProfile } from './island-profile';
+  import type { IslandSearchOption } from './island-search.svelte';
   import type {
     IslandDemandCategory,
     IslandMapService,
@@ -27,16 +28,27 @@
     IslandServicesResponse
   } from './island-services';
   import type { AnalyticsData, AnalyticsIsland } from './national-analytics-card.svelte';
-  import type { IslandSearchOption } from './national-score-card.svelte';
-  import type { PresentationStep } from './presentation-story';
-  import type { ProposalServiceFilter } from './proposal-builder.svelte';
+  import type { ProposalRecommendation, ProposalServiceFilter } from './proposal-workspace.svelte';
   import type { ClusterMarkerData } from './service-marker-clustering';
+  import type { ConnectionNetworkResponse } from '$lib/mobility/connection-network-contracts';
+  import type { PresentationCoordinate, PresentationStory } from '$lib/mobility/presentation-contracts';
+  import type { ProposalDraft } from '$lib/mobility/proposal-draft';
+  import type { ProposalSettings } from '$lib/mobility/proposal-planning';
+  import type { ProposalTransportOperation, ProposalTransportOptions } from '$lib/mobility/proposal-transport';
   import type { ScenarioOperation, ScenarioPreviewResponse } from '$lib/mobility/scenario-contracts';
   import type { AddServiceSelection } from '$lib/mobility/service-catalog';
 
+  import {
+    readProposalDefaults,
+    readProposalDraft,
+    restoreProposalDefaults,
+    saveProposalDefaults,
+    saveProposalDraft
+  } from '$lib/mobility/proposal-draft';
+  import { DEFAULT_PROPOSAL_SETTINGS } from '$lib/mobility/proposal-planning';
+  import { transportDistanceKm, transportMinimumFleet } from '$lib/mobility/proposal-transport';
   import { SERVICE_DRAG_MIME, serviceCatalogEntry } from '$lib/mobility/service-catalog';
 
-  import { Button } from '$components/ui/button';
   import * as Tabs from '$components/ui/tabs';
 
   import { config } from '$config';
@@ -44,6 +56,7 @@
   import IslandAnalyticsCard from './island-analytics-card.svelte';
   import { pointWithinGeometryGrace } from './island-geometry';
   import IslandScoreCard from './island-score-card.svelte';
+  import IslandSearch from './island-search.svelte';
   import { ISLAND_DEMAND_CATEGORIES } from './island-services';
   import {
     buildZoomInterpolation,
@@ -54,8 +67,12 @@
   } from './national-accessibility-map-style';
   import NationalAnalyticsCard from './national-analytics-card.svelte';
   import NationalScoreCard from './national-score-card.svelte';
-  import ProposalBuilder from './proposal-builder.svelte';
+  import { PresentationController } from './presentation-controller.svelte';
+  import PresentationRecommendationCard from './presentation-recommendation-card.svelte';
+  import PresentationTimeline from './presentation-timeline.svelte';
+  import ProposalFinancialSummary from './proposal-financial-summary.svelte';
   import ProposalLauncher from './proposal-launcher.svelte';
+  import ProposalWorkspace from './proposal-workspace.svelte';
   import { SCORE_MOODS } from './score-presentation';
   import ServiceClusterMarker from './service-cluster-marker.svelte';
   import ServiceDetailsPopup from './service-details-popup.svelte';
@@ -72,14 +89,6 @@
   } from './service-marker-clustering';
 
   type Coordinate = [number, number];
-
-  type Props = {
-    presentationActive?: boolean;
-    presentationStep?: PresentationStep | null;
-    readerMode?: boolean;
-  };
-
-  let { presentationActive = false, presentationStep = null, readerMode = false }: Props = $props();
 
   type MapStyleDocument = {
     [key: string]: unknown;
@@ -164,30 +173,23 @@
         cluster: ClusterMarkerData;
       };
 
-  type PresentationRestoreState = {
-    center: Coordinate;
-    zoom: number;
-    selectedIslandId: string | null;
-    selectedDemandCategory: IslandDemandCategory;
-    analyticsOpen: boolean;
-    islandAnalyticsOpen: boolean;
-  };
-
-  type PresentationPhase = 'idle' | 'entering' | 'travelling' | 'arriving' | 'settled';
-
   const EMPTY_ISLAND_COLLECTION: IslandCollection = { type: 'FeatureCollection', features: [] };
   const EMPTY_SCORE_FIELD_COLLECTION: ScoreFieldCollection = { type: 'FeatureCollection', features: [] };
   const EMPTY_SERVICE_HEXES: IslandServiceHexes = { type: 'FeatureCollection', features: [] };
   const EMPTY_SELECTED_ISLAND_MASK: IslandMaskCollection = { type: 'FeatureCollection', features: [] };
-  const EMPTY_PRESENTATION_MAP: PresentationStep['mapData'] = { type: 'FeatureCollection', features: [] };
-  const STORY_CAMERA_DURATION = 1100;
-  const STORY_UI_LEAD = 320;
-  const STORY_SCROLL_DURATION = 760;
-  const STORY_JOURNEY_DEFAULT_DURATION = 2200;
-  const STORY_JOURNEY_DEFAULT_START_DURATION = 700;
-  const STORY_JOURNEY_DEFAULT_OVERVIEW_DURATION = 900;
-  const STORY_JOURNEY_SCROLL_PAUSE = 180;
-  const PRESENTATION_ISLAND_CLEAR_PAUSE = 280;
+  const PRESENTATION_SOURCE_ID = 'presentation-story';
+  const PRESENTATION_LINE_LAYER_ID = 'presentation-story-lines';
+  const PRESENTATION_POINT_SOURCE_ID = 'presentation-position';
+  const PRESENTATION_POINT_LAYER_ID = 'presentation-position-marker';
+  const PROPOSAL_TRANSPORT_SOURCE_ID = 'proposal-transport-routes';
+  const PROPOSAL_TRANSPORT_LINE_LAYER_ID = 'proposal-transport-lines';
+  const BAARAH_ISLAND_ID = 'island:640';
+  const HANIMAADHOO_ISLAND_ID = 'island:684';
+  const RECOMMENDED_FERRY_SPEED_KPH = 30;
+  const RECOMMENDED_FERRY_HEADWAY_MINUTES = 240;
+  const RECOMMENDED_FERRY_START_HOUR = 6;
+  const RECOMMENDED_FERRY_END_HOUR = 18;
+  const RECOMMENDED_FERRY_DAYS = 6;
   const SELECTED_DEMAND_HEX_OPACITY = 1;
   const SELECTED_SERVICE_MARKER_GRACE_METERS = 150;
   const SELECTED_ISLAND_FILL_COLOR = '#e5f5e0';
@@ -200,8 +202,8 @@
   const SELECTED_ISLAND_LOADING_MAX_OPACITY = 0.46;
   const SELECTED_ISLAND_LOADING_INTERVAL = 72;
   const SELECTED_ISLAND_LOADING_CYCLE = 1200;
-  const SELECTED_DEMAND_REVEAL_DURATION = 1500;
-  const SELECTED_DEMAND_REVEAL_INTERVAL = 96;
+  const SELECTED_DEMAND_REVEAL_DURATION = 240;
+  const SELECTED_DEMAND_REVEAL_INTERVAL = 32;
   const SELECTED_DEMAND_REVEAL_WAVE_WIDTH = 0.22;
   const SERVICE_MARKER_EXIT_DURATION = 460;
   const OSM_ROAD_CLASSES = [
@@ -289,6 +291,13 @@
   let analyticsLoading = $state(false);
   let analyticsError = $state<string | null>(null);
   let analyticsData = $state<AnalyticsData | null>(null);
+  let connectionNetwork = $state<ConnectionNetworkResponse | null>(null);
+  let connectionNetworkLoading = $state(false);
+  let connectionNetworkError = $state<string | null>(null);
+  const presentation = new PresentationController();
+  let presentationStory = $state.raw<PresentationStory | null>(null);
+  let presentationFrame: number | null = null;
+  let presentationRun = 0;
   let islandProfile = $state<IslandProfile | null>(null);
   let islandProfileLoading = $state(false);
   let islandProfileError = $state<string | null>(null);
@@ -305,9 +314,45 @@
   let proposalPending = $state(false);
   let proposalError = $state<string | null>(null);
   let draftOperations = $state<ScenarioOperation[]>([]);
+  let draftCursor = $state(0);
+  let draftPreview = $state.raw<ScenarioPreviewResponse | null>(null);
+  let proposalExporting = $state(false);
+  let proposalView = $state<'baseline' | 'proposal'>('proposal');
+  let draftStorageMessage = $state<string | null>(null);
+  let draftRestoreBlocked = $state(false);
+  let proposalRequest = 0;
+  const sessionDrafts = new SvelteMap<string, ProposalDraft>();
+  let displayedServices = $derived.by(() => {
+    const displayed = proposalMode && proposalView === 'proposal' ? (draftPreview ?? islandServices) : islandServices;
+    if (!displayed || !proposalMode || proposalView !== 'proposal' || !draftPreview) return displayed;
+    return { ...displayed, hexes: proposalDeltaHexes(draftPreview.baseline.hexes, displayed.hexes) };
+  });
+  let proposalSettings = $state<ProposalSettings>({ ...DEFAULT_PROPOSAL_SETTINGS });
+  let editableProposal = $derived(
+    proposalMode &&
+      proposalView === 'proposal' &&
+      !proposalPending &&
+      !islandServicesLoading &&
+      !draftRestoreBlocked &&
+      Boolean(islandServices?.baselineVersion)
+  );
   let moveServiceId = $state<string | null>(null);
   let proposalLastMessage = $state<string | null>(null);
   let addServiceDraft = $state<AddServiceSelection | null>(null);
+  let proposalRecommendation = $state.raw<ProposalRecommendation | null>(null);
+  let recommendationOperation = $state.raw<ScenarioOperation | null>(null);
+  let ignoredRecommendationOperationId = $state<string | null>(null);
+  let recommendationPending = $state(false);
+  let recommendationStarting = $state(false);
+  let recommendationKey: string | null = null;
+  let recommendationRequest = 0;
+  let recommendationUndoOperations = $state.raw<ScenarioOperation[] | null>(null);
+  let transportEditorOperation = $state.raw<ProposalTransportOperation | null>(null);
+  let stagedTransportOperations = $state.raw<ScenarioOperation[] | null>(null);
+  let stagedTransportPreview = $state.raw<ScenarioPreviewResponse | null>(null);
+  let stagedTransportReplacementOperationId = $state<string | null>(null);
+  let proposalBuilderTab = $state<'services' | 'transport'>('services');
+  let recommendationReplacementOperationId = $state<string | null>(null);
   let suppressMapClickUntil = 0;
   // MapLibre marker instances are imperative bookkeeping, not rendered Svelte state.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -320,28 +365,6 @@
   let demandRevealProgress = 1;
   let serviceFocusToken = 0;
   let activeServicePopup: MountedServicePopup | null = null;
-  let presentationRestoreState: PresentationRestoreState | null = null;
-  let appliedPresentationStepId: string | null = null;
-  let storyFocusStepId = $state<string | null>(null);
-  let presentationReadyStepId = $state<string | null>(null);
-  let storyAnimationToken = 0;
-  let storyScrollFrame: number | null = null;
-  let storyScrollResolve: ((completed: boolean) => void) | null = null;
-  let storyDelayTimeout: number | null = null;
-  let storyDelayResolve: ((completed: boolean) => void) | null = null;
-  let presentationTransitionToken = 0;
-  let presentationJourneyToken = 0;
-  let presentationJourneyFrame: number | null = null;
-  let presentationJourneyResolve: ((completed: boolean) => void) | null = null;
-  let presentationCameraCleanup: (() => void) | null = null;
-  let presentationPhase = $state<PresentationPhase>('idle');
-  let nationalMetrics = $derived([
-    { key: 'health', label: 'Health', value: analyticsData?.national.categories.health?.score },
-    { key: 'education', label: 'Schools', value: analyticsData?.national.categories.education?.score },
-    { key: 'transport', label: 'Getting around', value: analyticsData?.national.categories.transport?.score },
-    { key: 'employment', label: 'Jobs', value: analyticsData?.national.categories.employment?.score },
-    { key: 'sustainability', label: 'Sustainability', value: analyticsData?.national.categories.sustainability?.score }
-  ]);
   let selectedIsland = $derived(analyticsData?.islands.find((island) => island.id === selectedIslandId) ?? null);
   let selectedIslandLoading = $derived(
     selectedIslandId !== null && (analyticsLoading || islandProfileLoading || islandServicesLoading)
@@ -357,26 +380,16 @@
     };
   }
 
-  function filterProposalServices(services: readonly IslandMapService[]): IslandMapService[] {
-    const normalizedQuery = proposalQuery.trim().toLowerCase();
-    return services.filter((service) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        `${service.name ?? ''} ${service.subtype} ${service.id}`.toLowerCase().includes(normalizedQuery);
-      const matchesType = proposalServiceFilter === 'all' || service.serviceType === proposalServiceFilter;
-      return matchesQuery && matchesType;
-    });
-  }
-
-  let visibleProposalServices = $derived.by(() => filterProposalServices(islandServices?.services ?? []));
-
   function selectIslandById(id: string, centroid?: Coordinate): void {
     if (proposalPending) return;
+    if (proposalMode && selectedIslandId === id) return;
     if (proposalMode && selectedIslandId && selectedIslandId !== id) {
       closeServicePopup();
       stopMoveMode();
       stopAddServiceMode();
       draftOperations = [];
+      draftCursor = 0;
+      draftPreview = null;
       proposalError = null;
       proposalLastMessage = null;
     }
@@ -434,6 +447,13 @@
 
   function islandCameraPadding(): { top: number; right: number; bottom: number; left: number } {
     const isMobile = (mapElement?.clientWidth ?? 0) <= 640;
+    if (proposalMode) {
+      const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const stacked = window.matchMedia('(max-width: 64rem)').matches;
+      return stacked
+        ? { top: 16, right: 16, bottom: Math.round((mapElement?.clientHeight ?? 600) * 0.6) + 1.5 * rem, left: 16 }
+        : { top: 24, right: 34 * rem, bottom: 24, left: 24 * rem };
+    }
     if (isMobile) return { top: 210, right: 24, bottom: 190, left: 24 };
     return { top: 155, right: 370, bottom: 135, left: 350 };
   }
@@ -462,6 +482,7 @@
   }
 
   function returnToNational(): void {
+    if (proposalMode) closeProposalMode();
     selectedIslandId = null;
     islandAnalyticsOpen = false;
     islandProfile = null;
@@ -472,574 +493,6 @@
     islandServicesLoading = false;
     islandServicesRequest += 1;
     resetSelectedIslandOverlay();
-  }
-
-  function presentationCameraPadding(): { top: number; right: number; bottom: number; left: number } {
-    const isMobile = (mapElement?.clientWidth ?? 0) <= 640;
-    if (isMobile) return { top: 170, right: 24, bottom: 180, left: 24 };
-    return { top: 145, right: 350, bottom: 125, left: 330 };
-  }
-
-  function presentationBounds(coordinates: readonly Coordinate[]): [Coordinate, Coordinate] | null {
-    if (coordinates.length < 2) return null;
-
-    let west = coordinates[0][0];
-    let south = coordinates[0][1];
-    let east = coordinates[0][0];
-    let north = coordinates[0][1];
-
-    for (const [longitude, latitude] of coordinates.slice(1)) {
-      west = Math.min(west, longitude);
-      south = Math.min(south, latitude);
-      east = Math.max(east, longitude);
-      north = Math.max(north, latitude);
-    }
-
-    return [
-      [west, south],
-      [east, north]
-    ];
-  }
-
-  function visibleJourneyCoordinates(coordinates: readonly Coordinate[], progress: number): Coordinate[] {
-    if (coordinates.length < 2) return [...coordinates];
-
-    const clampedProgress = Math.min(1, Math.max(0, progress));
-    const segmentLengths = coordinates.slice(1).map((coordinate, index) => {
-      const previous = coordinates[index];
-      return Math.hypot(coordinate[0] - previous[0], coordinate[1] - previous[1]);
-    });
-    const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0);
-    if (totalLength === 0) return [coordinates[0], coordinates.at(-1)!];
-    if (clampedProgress <= 0) return [coordinates[0], coordinates[0]];
-    if (clampedProgress >= 1) return [...coordinates];
-
-    const targetLength = totalLength * clampedProgress;
-    let travelled = 0;
-    for (let index = 0; index < segmentLengths.length; index += 1) {
-      const segmentLength = segmentLengths[index];
-      if (travelled + segmentLength < targetLength) {
-        travelled += segmentLength;
-        continue;
-      }
-
-      const start = coordinates[index];
-      const end = coordinates[index + 1];
-      const ratio = segmentLength === 0 ? 0 : (targetLength - travelled) / segmentLength;
-      return [
-        ...coordinates.slice(0, index + 1),
-        [start[0] + (end[0] - start[0]) * ratio, start[1] + (end[1] - start[1]) * ratio]
-      ];
-    }
-
-    return [...coordinates];
-  }
-
-  function journeyCoordinateAtProgress(coordinates: readonly Coordinate[], progress: number): Coordinate {
-    return visibleJourneyCoordinates(coordinates, progress).at(-1) ?? coordinates[0] ?? MALDIVES_CENTER;
-  }
-
-  function presentationMapDataForStep(step: PresentationStep, revealProgress = 1): PresentationStep['mapData'] {
-    const highlighted = new Set(step.mapHighlightIds);
-    return {
-      type: 'FeatureCollection',
-      features: step.mapData.features.map((feature) => {
-        const geometry =
-          feature.id === step.journey?.featureId && feature.geometry.type === 'LineString'
-            ? {
-                type: 'LineString' as const,
-                coordinates: visibleJourneyCoordinates(feature.geometry.coordinates, revealProgress)
-              }
-            : feature.geometry;
-        return {
-          ...feature,
-          geometry,
-          properties: {
-            ...feature.properties,
-            focus: highlighted.has(feature.id)
-          }
-        };
-      })
-    };
-  }
-
-  function applyPresentationCamera(step: PresentationStep, isCurrent: () => boolean): Promise<boolean> {
-    if (!mapInstance) return Promise.resolve(false);
-
-    const reducedMotion = prefersReducedMotion.current;
-    const duration = reducedMotion ? 0 : STORY_CAMERA_DURATION;
-    const bounds = step.camera.fitCoordinates
-      ? presentationBounds(step.camera.fitCoordinates as readonly Coordinate[])
-      : null;
-
-    if (bounds) {
-      return runPresentationCamera(
-        () =>
-          mapInstance?.fitBounds(bounds, {
-            padding: presentationCameraPadding(),
-            maxZoom: step.camera.maxZoom ?? step.camera.zoom,
-            duration,
-            easing: storyEase,
-            essential: !reducedMotion
-          }),
-        duration,
-        isCurrent
-      );
-    }
-
-    return runPresentationCamera(
-      () =>
-        mapInstance?.easeTo({
-          center: step.camera.center,
-          zoom: step.camera.zoom,
-          duration,
-          easing: storyEase,
-          essential: !reducedMotion
-        }),
-      duration,
-      isCurrent
-    );
-  }
-
-  function storyEase(progress: number): number {
-    return progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-  }
-
-  function cancelPresentationJourney(): void {
-    presentationJourneyToken += 1;
-    if (presentationJourneyFrame !== null) {
-      window.cancelAnimationFrame(presentationJourneyFrame);
-      presentationJourneyFrame = null;
-    }
-    presentationCameraCleanup?.();
-    presentationCameraCleanup = null;
-    presentationJourneyResolve?.(false);
-    presentationJourneyResolve = null;
-    presentationPhase = 'idle';
-  }
-
-  function cancelPresentationTransition(): void {
-    presentationTransitionToken += 1;
-    presentationReadyStepId = null;
-    cancelPresentationJourney();
-    cancelStoryAnimations();
-  }
-
-  function waitForPresentationCamera(duration: number, isCurrent: () => boolean): Promise<boolean> {
-    if (duration <= 0 || !mapInstance) {
-      presentationCameraCleanup?.();
-      presentationCameraCleanup = null;
-      return Promise.resolve(isCurrent());
-    }
-
-    const map = mapInstance;
-    return new Promise((resolve) => {
-      let settled = false;
-      let timeout: number | null = null;
-      let cleanup: () => void;
-      let handleMoveEnd: () => void;
-
-      const finish = (completed: boolean) => {
-        if (settled) return;
-        settled = true;
-        map.off('moveend', handleMoveEnd);
-        if (timeout !== null) window.clearTimeout(timeout);
-        if (presentationCameraCleanup === cleanup) presentationCameraCleanup = null;
-        resolve(completed && isCurrent());
-      };
-      handleMoveEnd = () => finish(true);
-      cleanup = () => finish(false);
-
-      presentationCameraCleanup?.();
-      presentationCameraCleanup = cleanup;
-      map.on('moveend', handleMoveEnd);
-      timeout = window.setTimeout(() => finish(true), duration + 250);
-    });
-  }
-
-  function runPresentationCamera(action: () => void, duration: number, isCurrent: () => boolean): Promise<boolean> {
-    if (!mapInstance || !isCurrent()) return Promise.resolve(false);
-    const completion = waitForPresentationCamera(duration, isCurrent);
-    action();
-    return completion;
-  }
-
-  function waitForPresentationPause(duration: number, isCurrent: () => boolean): Promise<boolean> {
-    if (duration <= 0) return Promise.resolve(isCurrent());
-    return new Promise((resolve) => {
-      window.setTimeout(() => resolve(isCurrent()), duration);
-    });
-  }
-
-  function journeyZoom(progress: number, journey: NonNullable<PresentationStep['journey']>): number {
-    const travelZoom = journey.travelZoom ?? Math.min(journey.start.zoom, journey.end.zoom) - 1;
-    if (progress < 0.28) {
-      const localProgress = progress / 0.28;
-      return journey.start.zoom + (travelZoom - journey.start.zoom) * storyEase(localProgress);
-    }
-    if (progress < 0.72) return travelZoom;
-    const localProgress = (progress - 0.72) / 0.28;
-    return travelZoom + (journey.end.zoom - travelZoom) * storyEase(localProgress);
-  }
-
-  async function animatePresentationJourney(step: PresentationStep, transitionToken: number): Promise<boolean> {
-    const journey = step.journey;
-    if (!mapInstance || !journey) return false;
-
-    const journeyToken = ++presentationJourneyToken;
-    const isCurrent = () =>
-      transitionToken === presentationTransitionToken &&
-      journeyToken === presentationJourneyToken &&
-      presentationActive &&
-      presentationStep?.id === step.id &&
-      mapInstance !== null;
-    const reducedMotion = prefersReducedMotion.current;
-    const startDuration = reducedMotion ? 0 : (journey.startDuration ?? STORY_JOURNEY_DEFAULT_START_DURATION);
-    const duration = reducedMotion ? 0 : (journey.duration ?? STORY_JOURNEY_DEFAULT_DURATION);
-    const overviewDuration = reducedMotion ? 0 : (journey.overviewDuration ?? STORY_JOURNEY_DEFAULT_OVERVIEW_DURATION);
-    const route = step.mapData.features.find(
-      (feature) => feature.id === journey.featureId && feature.geometry.type === 'LineString'
-    );
-    if (!route || route.geometry.type !== 'LineString') return false;
-
-    presentationPhase = 'entering';
-    setSourceData('presentation-map', presentationMapDataForStep(step, 0));
-    if (
-      !(await runPresentationCamera(
-        () =>
-          mapInstance?.easeTo({
-            center: journey.start.center,
-            zoom: journey.start.zoom,
-            duration: startDuration,
-            easing: storyEase,
-            essential: !reducedMotion
-          }),
-        startDuration,
-        isCurrent
-      ))
-    )
-      return false;
-    presentationPhase = 'travelling';
-    const journeyZoomLevel = mapInstance.getZoom();
-
-    const completed = await new Promise<boolean>((resolve) => {
-      presentationJourneyResolve = resolve;
-      const startTime = performance.now();
-      const frame = (now: number) => {
-        if (!isCurrent()) {
-          presentationJourneyFrame = null;
-          presentationJourneyResolve = null;
-          resolve(false);
-          return;
-        }
-
-        const progress = duration === 0 ? 1 : Math.min(1, (now - startTime) / duration);
-        const center = journeyCoordinateAtProgress(route.geometry.coordinates, progress);
-        mapInstance?.jumpTo({
-          center,
-          zoom: journey.keepZoom ? journeyZoomLevel : journeyZoom(progress, journey)
-        });
-        setSourceData('presentation-map', presentationMapDataForStep(step, progress));
-        if (progress < 1) {
-          presentationJourneyFrame = window.requestAnimationFrame(frame);
-          return;
-        }
-
-        presentationJourneyFrame = null;
-        presentationJourneyResolve = null;
-        resolve(true);
-      };
-
-      presentationJourneyFrame = window.requestAnimationFrame(frame);
-    });
-    if (!completed || !isCurrent() || !mapInstance) return false;
-
-    presentationPhase = 'arriving';
-    setSourceData('presentation-map', EMPTY_PRESENTATION_MAP);
-    if (!(await waitForPresentationPause(PRESENTATION_ISLAND_CLEAR_PAUSE, isCurrent))) return false;
-    if (journey.arrivalIslandId) {
-      const arrivalIsland = islandCollection.features.find(
-        (feature) => feature.properties.id === journey.arrivalIslandId
-      );
-      const cameraCompleted = arrivalIsland
-        ? await focusPresentationIsland(journey.arrivalIslandId, overviewDuration, isCurrent)
-        : await runPresentationCamera(
-            () =>
-              mapInstance?.easeTo({
-                center: journey.overview.center,
-                zoom: journey.overview.zoom,
-                duration: overviewDuration,
-                easing: storyEase,
-                essential: !reducedMotion
-              }),
-            overviewDuration,
-            isCurrent
-          );
-      if (!cameraCompleted || !isCurrent()) return false;
-      activatePresentationIsland(journey.arrivalIslandId);
-    } else if (
-      !(await runPresentationCamera(
-        () =>
-          mapInstance?.easeTo({
-            center: journey.overview.center,
-            zoom: journey.overview.zoom,
-            duration: overviewDuration,
-            easing: storyEase,
-            essential: !reducedMotion
-          }),
-        overviewDuration,
-        isCurrent
-      ))
-    ) {
-      return false;
-    }
-
-    presentationPhase = 'settled';
-    return true;
-  }
-
-  function cancelStoryAnimations(): void {
-    storyAnimationToken += 1;
-    if (storyScrollFrame !== null) {
-      window.cancelAnimationFrame(storyScrollFrame);
-      storyScrollFrame = null;
-    }
-    storyScrollResolve?.(false);
-    storyScrollResolve = null;
-    if (storyDelayTimeout !== null) {
-      window.clearTimeout(storyDelayTimeout);
-      storyDelayTimeout = null;
-    }
-    storyDelayResolve?.(false);
-    storyDelayResolve = null;
-  }
-
-  function startStoryAnimation(): number {
-    cancelStoryAnimations();
-    return storyAnimationToken;
-  }
-
-  function storyDelay(duration: number, token: number): Promise<boolean> {
-    if (duration <= 0) return Promise.resolve(token === storyAnimationToken);
-    return new Promise((resolve) => {
-      if (storyDelayTimeout !== null) window.clearTimeout(storyDelayTimeout);
-      storyDelayResolve?.(false);
-      storyDelayResolve = resolve;
-      storyDelayTimeout = window.setTimeout(() => {
-        storyDelayTimeout = null;
-        storyDelayResolve = null;
-        resolve(token === storyAnimationToken);
-      }, duration);
-    });
-  }
-
-  function animateStoryScroll(target: HTMLElement, token: number): Promise<boolean> {
-    const container = target.closest<HTMLElement>('[data-story-scroll-container]');
-    if (!container) {
-      target.scrollIntoView({
-        behavior: prefersReducedMotion.current ? 'auto' : 'smooth',
-        block: 'center',
-        inline: 'nearest'
-      });
-      return Promise.resolve(token === storyAnimationToken);
-    }
-
-    const containerRect = container.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const targetTop =
-      container.scrollTop +
-      targetRect.top -
-      containerRect.top -
-      Math.max(0, (container.clientHeight - targetRect.height) / 2);
-    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-    const startTop = container.scrollTop;
-    const endTop = Math.min(maxScrollTop, Math.max(0, targetTop));
-
-    if (prefersReducedMotion.current || Math.abs(endTop - startTop) < 1) {
-      container.scrollTop = endTop;
-      return Promise.resolve(token === storyAnimationToken);
-    }
-
-    return new Promise((resolve) => {
-      storyScrollResolve = resolve;
-      const startTime = performance.now();
-      const frame = (now: number) => {
-        if (token !== storyAnimationToken) {
-          storyScrollFrame = null;
-          storyScrollResolve = null;
-          resolve(false);
-          return;
-        }
-
-        const progress = Math.min(1, (now - startTime) / STORY_SCROLL_DURATION);
-        container.scrollTop = startTop + (endTop - startTop) * storyEase(progress);
-        if (progress < 1) {
-          storyScrollFrame = window.requestAnimationFrame(frame);
-          return;
-        }
-
-        storyScrollFrame = null;
-        storyScrollResolve = null;
-        resolve(true);
-      };
-
-      storyScrollFrame = window.requestAnimationFrame(frame);
-    });
-  }
-
-  function updateStoryUiHighlights(targets: readonly string[]): void {
-    const targetSet = new Set(targets);
-    document.querySelectorAll<HTMLElement>('[data-story-target]').forEach((element) => {
-      const target = element.dataset.storyTarget;
-      element.toggleAttribute('data-story-focus', target ? targetSet.has(target) : false);
-    });
-  }
-
-  async function focusStoryUi(step: PresentationStep): Promise<boolean> {
-    const token = startStoryAnimation();
-    await tick();
-    if (!presentationActive || presentationStep?.id !== step.id) return false;
-    if (!(await storyDelay(STORY_UI_LEAD, token))) return false;
-    if (!presentationActive || presentationStep?.id !== step.id) return false;
-
-    const scrollTargets = step.scrollTargets ?? [];
-    updateStoryUiHighlights(step.uiTargets);
-
-    if (scrollTargets.length === 0) {
-      storyFocusStepId = step.id;
-      return true;
-    }
-
-    for (const [index, scrollTarget] of scrollTargets.entries()) {
-      const target = document.querySelector<HTMLElement>(`[data-story-target="${scrollTarget}"]`);
-      if (!target) return false;
-      if (!(await animateStoryScroll(target, token))) return false;
-      updateStoryUiHighlights([...step.uiTargets, scrollTarget]);
-      if (index < scrollTargets.length - 1 && !(await storyDelay(STORY_JOURNEY_SCROLL_PAUSE, token))) return false;
-    }
-    storyFocusStepId = step.id;
-    return true;
-  }
-
-  function clearStoryUiHighlights(): void {
-    document.querySelectorAll<HTMLElement>('[data-story-focus]').forEach((element) => {
-      element.removeAttribute('data-story-focus');
-    });
-    storyFocusStepId = null;
-  }
-
-  function savePresentationState(): void {
-    if (!mapInstance || presentationRestoreState) return;
-    const center = mapInstance.getCenter();
-    presentationRestoreState = {
-      center: [center.lng, center.lat],
-      zoom: mapInstance.getZoom(),
-      selectedIslandId,
-      selectedDemandCategory,
-      analyticsOpen,
-      islandAnalyticsOpen
-    };
-  }
-
-  async function runPresentationStep(step: PresentationStep, transitionToken: number): Promise<void> {
-    const isCurrent = () =>
-      transitionToken === presentationTransitionToken &&
-      presentationActive &&
-      presentationStep?.id === step.id &&
-      mapInstance !== null;
-
-    let cameraCompleted: boolean;
-    if (step.journey) {
-      cameraCompleted = await animatePresentationJourney(step, transitionToken);
-    } else if (step.selectedIslandId) {
-      cameraCompleted = await focusPresentationIsland(step.selectedIslandId, STORY_CAMERA_DURATION, isCurrent);
-      if (!cameraCompleted && isCurrent()) cameraCompleted = await applyPresentationCamera(step, isCurrent);
-    } else {
-      cameraCompleted = await applyPresentationCamera(step, isCurrent);
-    }
-
-    if (!cameraCompleted || !isCurrent()) return;
-
-    if (step.selectedIslandId && !step.journey) {
-      presentationPhase = 'arriving';
-      setSourceData('presentation-map', EMPTY_PRESENTATION_MAP);
-      if (!(await waitForPresentationPause(PRESENTATION_ISLAND_CLEAR_PAUSE, isCurrent))) return;
-      activatePresentationIsland(step.selectedIslandId);
-    }
-
-    const panel = step.panel ?? (step.journey?.arrivalIslandId ? 'island-analytics' : null);
-    if (panel === 'national-analytics') {
-      analyticsOpen = true;
-      void loadAnalytics();
-    } else if (panel === 'island-analytics') {
-      islandAnalyticsOpen = true;
-    }
-
-    if (!isCurrent()) return;
-    presentationPhase = 'settled';
-    await tick();
-    if (isCurrent()) presentationReadyStepId = step.id;
-  }
-
-  function applyPresentationStep(step: PresentationStep): void {
-    if (!mapInstance) return;
-
-    cancelPresentationTransition();
-    mapInstance.stop();
-    clearStoryUiHighlights();
-    closeServicePopup();
-    stopMoveMode();
-    stopAddServiceMode();
-    proposalMode = false;
-    proposalPending = false;
-    proposalError = null;
-    proposalLastMessage = null;
-    draftOperations = [];
-    presentationPhase = 'entering';
-    analyticsOpen = false;
-    islandAnalyticsOpen = false;
-    storyFocusStepId = null;
-    returnToNational();
-
-    setSourceData('presentation-map', presentationMapDataForStep(step, step.journey ? 0 : 1));
-    void runPresentationStep(step, presentationTransitionToken);
-  }
-
-  function restoreAfterPresentation(): void {
-    cancelPresentationTransition();
-    if (!mapInstance) return;
-    mapInstance.stop();
-    presentationPhase = 'idle';
-    const restore = presentationRestoreState;
-    presentationRestoreState = null;
-    appliedPresentationStepId = null;
-    clearStoryUiHighlights();
-    setSourceData('presentation-map', EMPTY_PRESENTATION_MAP);
-    stopMoveMode();
-    stopAddServiceMode();
-
-    if (restore?.selectedIslandId) {
-      selectedIslandId = restore.selectedIslandId;
-      selectedDemandCategory = restore.selectedDemandCategory;
-      prepareSelectedIslandOverlay(restore.selectedIslandId);
-      void loadIslandProfile(restore.selectedIslandId);
-      void loadIslandServices(restore.selectedIslandId);
-      analyticsOpen = restore.analyticsOpen;
-      islandAnalyticsOpen = restore.islandAnalyticsOpen;
-    } else {
-      returnToNational();
-      selectedDemandCategory = restore?.selectedDemandCategory ?? 'all';
-      analyticsOpen = restore?.analyticsOpen ?? false;
-    }
-
-    if (!restore) return;
-    const reducedMotion = prefersReducedMotion.current;
-    mapInstance.easeTo({
-      center: restore.center,
-      zoom: restore.zoom,
-      duration: reducedMotion ? 0 : 700,
-      essential: !reducedMotion
-    });
   }
 
   function focusIsland(
@@ -1064,53 +517,25 @@
       if (camera?.center) {
         const fittedZoom = camera.zoom ?? currentZoom;
         const keepCurrentZoom = fittedZoom < currentZoom && boundsFitAtCurrentZoom(bounds, padding);
-        return runPresentationCamera(
-          () =>
-            map.easeTo({
-              center: camera.center,
-              zoom: keepCurrentZoom ? currentZoom : fittedZoom,
-              duration: reducedMotion ? 0 : duration,
-              essential: !reducedMotion
-            }),
-          reducedMotion ? 0 : duration,
-          isCurrent
-        );
+        if (!isCurrent()) return Promise.resolve(false);
+        map.easeTo({
+          center: camera.center,
+          zoom: keepCurrentZoom ? currentZoom : fittedZoom,
+          duration: reducedMotion ? 0 : duration,
+          essential: !reducedMotion
+        });
+        return Promise.resolve(true);
       }
     }
 
-    return runPresentationCamera(
-      () =>
-        map.flyTo({
-          center: island.centroid!,
-          zoom: Math.max(map.getZoom(), 10),
-          duration: reducedMotion ? 0 : duration,
-          essential: !reducedMotion
-        }),
-      reducedMotion ? 0 : duration,
-      isCurrent
-    );
-  }
-
-  function focusPresentationIsland(
-    id: string,
-    duration = 850,
-    isCurrent: () => boolean = () => true
-  ): Promise<boolean> {
-    const island = islandCollection.features.find((feature) => feature.properties.id === id);
-    if (!island) return Promise.resolve(false);
-    if (!island.properties.centroid) return Promise.resolve(isCurrent());
-
-    return focusIsland(
-      {
-        id,
-        name: island.properties.name,
-        atollName: island.properties.atollName,
-        centroid: island.properties.centroid,
-        score: island.properties.score
-      },
-      duration,
-      isCurrent
-    );
+    if (!isCurrent()) return Promise.resolve(false);
+    map.flyTo({
+      center: island.centroid!,
+      zoom: Math.max(map.getZoom(), 10),
+      duration: reducedMotion ? 0 : duration,
+      essential: !reducedMotion
+    });
+    return Promise.resolve(true);
   }
 
   function focusService(service: IslandMapService): void {
@@ -1122,6 +547,7 @@
     const reducedMotion = prefersReducedMotion.current;
     mapInstance.easeTo({
       center: coordinates,
+      padding: proposalMode ? islandCameraPadding() : { top: 0, right: 0, bottom: 0, left: 0 },
       zoom: Math.max(mapInstance.getZoom(), 15.5),
       duration: reducedMotion ? 0 : 650,
       essential: !reducedMotion
@@ -1143,23 +569,6 @@
     selectIslandById(island.id, island.centroid);
   }
 
-  function activatePresentationIsland(id: string): void {
-    selectedIslandId = id;
-    selectedDemandCategory = 'all';
-    analyticsOpen = false;
-    islandAnalyticsOpen = false;
-    islandProfile = null;
-    islandProfileError = null;
-    islandServices = null;
-    islandServicesError = null;
-    islandProfileRequest += 1;
-    islandServicesRequest += 1;
-    prepareSelectedIslandOverlay(id);
-    void loadIslandProfile(id);
-    void loadIslandServices(id);
-    if (!analyticsData) void loadAnalytics();
-  }
-
   async function loadAnalytics(): Promise<void> {
     if (analyticsData || analyticsLoading) return;
     analyticsLoading = true;
@@ -1172,6 +581,29 @@
       analyticsError = error instanceof Error ? error.message : 'Analytics could not be loaded.';
     } finally {
       analyticsLoading = false;
+    }
+  }
+
+  function isConnectionNetworkResponse(value: unknown): value is ConnectionNetworkResponse {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as { islands?: unknown; connections?: unknown };
+    return Array.isArray(candidate.islands) && Array.isArray(candidate.connections);
+  }
+
+  async function loadConnectionNetwork(): Promise<void> {
+    if (connectionNetwork || connectionNetworkLoading) return;
+    connectionNetworkLoading = true;
+    connectionNetworkError = null;
+    try {
+      const response = await fetch('/api/v1/map/network', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Connection network request failed with status ${response.status}`);
+      const payload: unknown = await response.json();
+      if (!isConnectionNetworkResponse(payload)) throw new Error('Connection network returned an invalid response.');
+      connectionNetwork = payload;
+    } catch (error) {
+      connectionNetworkError = error instanceof Error ? error.message : 'Connection network could not be loaded.';
+    } finally {
+      connectionNetworkLoading = false;
     }
   }
 
@@ -1386,7 +818,7 @@
   }
 
   function startAddService(selection: AddServiceSelection): void {
-    if (!proposalMode) return;
+    if (!editableProposal) return;
     stopMoveMode();
     closeServicePopup();
     addServiceDraft = selection;
@@ -1395,7 +827,7 @@
   }
 
   function startMoveService(service: IslandMapService): void {
-    if (!proposalMode || !service.eligibility?.canMove) return;
+    if (!editableProposal || !service.eligibility?.canMove) return;
     closeServicePopup();
     moveServiceId = service.id;
     proposalError = null;
@@ -1408,52 +840,534 @@
       : `draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 
+  function isBaarahHospitalUpgrade(operation: ScenarioOperation): boolean {
+    if (
+      selectedIslandId !== BAARAH_ISLAND_ID ||
+      operation.kind !== 'upgrade_service' ||
+      operation.targetSubtype !== 'hospital'
+    )
+      return false;
+    return islandServices?.services.find((service) => service.id === operation.serviceId)?.serviceType === 'health';
+  }
+
+  function clearStagedTransportPreview(): void {
+    stagedTransportOperations = null;
+    stagedTransportPreview = null;
+    stagedTransportReplacementOperationId = null;
+  }
+
   async function applyDraftOperation(operation: ScenarioOperation): Promise<void> {
-    if (!selectedIslandId || proposalPending) return;
-    if (!islandServices?.baselineVersion) {
-      proposalError = islandServicesLoading
-        ? 'Service data is still loading. Try again in a moment.'
-        : 'Service data is unavailable for this island.';
+    if (!editableProposal) return;
+    clearStagedTransportPreview();
+    recommendationUndoOperations = null;
+    recommendationReplacementOperationId = null;
+    const startsRecommendation = isBaarahHospitalUpgrade(operation);
+    if (startsRecommendation) {
+      proposalRecommendation = null;
+      recommendationOperation = null;
+      recommendationStarting = true;
+    }
+    const nextOperations = [...draftOperations.slice(0, draftCursor), operation];
+    if (nextOperations.length > 100) {
+      proposalError = 'This draft has reached the 100-operation limit. Undo an edit before replacing it.';
+      recommendationStarting = false;
       return;
     }
+    const applied = await previewDraftHistory(nextOperations, nextOperations.length);
+    if (!applied) {
+      if (startsRecommendation) recommendationStarting = false;
+      return;
+    }
+    if (operation.kind === 'move_service') stopMoveMode();
+    if (operation.kind === 'add_service') {
+      stopAddServiceMode();
+      const result = draftPreview?.operations.find((entry) => entry.operationId === operation.operationId);
+      const addedService = result ? draftPreview?.services.find((service) => service.id === result.serviceId) : null;
+      if (addedService && editableProposal) openServicePopup(addedService);
+    }
+  }
 
-    const nextOperations = [...draftOperations, operation];
+  async function requestDraftPreview(
+    islandId: string,
+    baselineVersion: string,
+    operations: ScenarioOperation[],
+    settings: ProposalSettings = proposalSettings
+  ): Promise<ScenarioPreviewResponse> {
+    const response = await fetch('/api/v1/scenarios/preview', {
+      method: 'POST',
+      signal: AbortSignal.timeout(60_000),
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ baselineVersion, selectedIslandId: islandId, operations, proposal: settings })
+    });
+    const payload = (await response.json()) as ScenarioPreviewResponse | { error?: string };
+    if (!response.ok) throw new Error('error' in payload && payload.error ? payload.error : 'Draft preview failed.');
+    const preview = payload as ScenarioPreviewResponse;
+    if (
+      preview.status !== 'draft' ||
+      preview.selectedIslandId !== islandId ||
+      preview.island?.id !== islandId ||
+      preview.baselineVersion !== baselineVersion ||
+      preview.baseline?.island?.id !== islandId ||
+      preview.baseline.baselineVersion !== baselineVersion ||
+      !Array.isArray(preview.operations) ||
+      preview.operations.length !== operations.length ||
+      preview.operations.some((result, index) => result.operationId !== operations[index]?.operationId)
+    )
+      throw new Error('The server returned an incompatible draft preview.');
+    return preview;
+  }
+
+  function autosaveDraft(): void {
+    if (!selectedIslandId || !islandServices?.baselineVersion || draftRestoreBlocked) return;
+    const draft: ProposalDraft = {
+      version: 1,
+      selectedIslandId,
+      baselineVersion: islandServices.baselineVersion,
+      operations: $state.snapshot(draftOperations),
+      proposal: $state.snapshot(proposalSettings),
+      cursor: draftCursor,
+      savedAt: new Date().toISOString()
+    };
+    sessionDrafts.set(selectedIslandId, draft);
+    draftStorageMessage = saveProposalDraft(draft) ?? 'Draft autosaved in this browser.';
+  }
+
+  async function previewDraftHistory(operations: ScenarioOperation[], cursor: number): Promise<boolean> {
+    const islandId = selectedIslandId;
+    const version = islandServices?.baselineVersion;
+    if (!proposalMode || !islandId || !version || proposalPending || draftRestoreBlocked) return false;
+    const request = ++proposalRequest;
     proposalPending = true;
     proposalError = null;
     closeServicePopup();
-
+    stopMoveMode();
+    stopAddServiceMode();
     try {
-      const response = await fetch('/api/v1/scenarios/preview', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          baselineVersion: islandServices.baselineVersion,
-          selectedIslandId,
-          operations: nextOperations
-        })
-      });
-      const payload = (await response.json()) as ScenarioPreviewResponse | { error?: string };
-      if (!response.ok) throw new Error('error' in payload && payload.error ? payload.error : 'Draft update failed.');
-
-      const preview = payload as ScenarioPreviewResponse;
-      draftOperations = nextOperations;
-      islandServices = preview;
-      proposalLastMessage = preview.operations.at(-1)?.message ?? null;
-      applySelectedIslandMask(selectedIslandId);
-      startDemandHeatmapReveal(preview.hexes, preview.services, selectedIslandId);
-      renderServiceMarkers(preview, filterProposalServices(preview.services));
-      if (operation.kind === 'move_service') stopMoveMode();
-      if (operation.kind === 'add_service') {
-        stopAddServiceMode();
-        const result = preview.operations.find((entry) => entry.operationId === operation.operationId);
-        const addedService = result ? preview.services.find((service) => service.id === result.serviceId) : null;
-        if (addedService) openServicePopup(addedService);
-      }
+      const preview = await requestDraftPreview(islandId, version, operations.slice(0, cursor));
+      if (request !== proposalRequest || selectedIslandId !== islandId || !proposalMode) return false;
+      draftOperations = operations;
+      draftCursor = cursor;
+      draftPreview = preview;
+      islandServices = preview.baseline;
+      islandServicesCache.set(islandId, preview.baseline);
+      proposalLastMessage = `${cursor} applied edit${cursor === 1 ? '' : 's'}. ${preview.operations.at(-1)?.message ?? 'Baseline restored.'}`;
+      autosaveDraft();
+      syncProposalTransportLayers();
+      void prepareBaarahRecommendation();
+      return true;
     } catch (error) {
-      proposalError = error instanceof Error ? error.message : 'Draft update failed.';
+      if (request === proposalRequest) proposalError = error instanceof Error ? error.message : 'Draft update failed.';
+      return false;
+    } finally {
+      if (request === proposalRequest) proposalPending = false;
+    }
+  }
+
+  function activeBaarahHospitalUpgrade(): ScenarioOperation | null {
+    if (selectedIslandId !== BAARAH_ISLAND_ID) return null;
+    const operations = draftOperations.slice(0, draftCursor);
+    const upgrade =
+      operations.findLast((operation) => {
+        if (operation.kind !== 'upgrade_service' || operation.targetSubtype !== 'hospital') return false;
+        const service = islandServices?.services.find((entry) => entry.id === operation.serviceId);
+        return service?.serviceType === 'health';
+      }) ?? null;
+    return upgrade?.operationId === ignoredRecommendationOperationId ? null : upgrade;
+  }
+
+  function presentationJourneyMinutes(story: PresentationStory): number | null {
+    const seconds = story.sections
+      .filter((section) => section.branch === 'patient')
+      .reduce((total, section) => total + (section.timing.seconds ?? 0), 0);
+    return seconds > 0 ? Math.round(seconds / 60) : null;
+  }
+
+  async function prepareBaarahRecommendation(): Promise<void> {
+    const requestToken = ++recommendationRequest;
+    const upgrade = activeBaarahHospitalUpgrade();
+    const islandId = selectedIslandId;
+    const version = islandServices?.baselineVersion;
+    if (!upgrade || !islandId || !version || !draftPreview) {
+      if (!upgrade) {
+        proposalRecommendation = null;
+        recommendationOperation = null;
+        recommendationKey = null;
+        recommendationStarting = false;
+        recommendationPending = false;
+      }
+      return;
+    }
+    const currentOperations = draftOperations.slice(0, draftCursor);
+    const sourcePreview = draftPreview;
+    const sourceCosts = sourcePreview.costs;
+    const key = `${version}:${JSON.stringify(currentOperations)}:${upgrade.operationId}`;
+    if (recommendationKey === key && proposalRecommendation) return;
+    recommendationPending = true;
+    recommendationStarting = false;
+    recommendationKey = key;
+    try {
+      const optionsResponse = await fetch(
+        `/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(BAARAH_ISLAND_ID)}`,
+        { cache: 'no-store' }
+      );
+      const optionsPayload = (await optionsResponse.json()) as ProposalTransportOptions | { error?: string };
+      if (!optionsResponse.ok || 'error' in optionsPayload)
+        throw new Error('error' in optionsPayload ? optionsPayload.error : 'Transport options are unavailable.');
+      const options = optionsPayload as ProposalTransportOptions;
+      const pairs = options.origins.flatMap((origin) =>
+        options.destinations
+          .filter((destination) => destination.islandId === HANIMAADHOO_ISLAND_ID)
+          .map((destination) => ({
+            origin,
+            destination,
+            distanceKm: transportDistanceKm(origin.coordinates, destination.coordinates)
+          }))
+      );
+      const pair = pairs.sort((a, b) => a.distanceKm - b.distanceKm)[0];
+      if (!pair) throw new Error('Recorded Baarah and Hanimaadhoo landing places are required.');
+      const { origin, destination, distanceKm } = pair;
+      const storyResponse = await fetch('/api/v1/presentation/story', { cache: 'no-store' });
+      if (!storyResponse.ok) throw new Error('The current presentation journey is unavailable.');
+      const story = (await storyResponse.json()) as PresentationStory;
+      const currentJourneyMinutes = presentationJourneyMinutes(story);
+      if (!currentJourneyMinutes) throw new Error('The current presentation journey has no usable timing evidence.');
+      const recommendedJourneyMinutes = Math.round(
+        RECOMMENDED_FERRY_HEADWAY_MINUTES / 2 + (distanceKm / RECOMMENDED_FERRY_SPEED_KPH) * 60
+      );
+      const ferryOperation: ScenarioOperation = {
+        operationId: operationId(),
+        kind: 'add_ferry_service',
+        originStopId: origin.id,
+        destinationStopId: destination.id,
+        speedKph: RECOMMENDED_FERRY_SPEED_KPH,
+        headwayMinutes: RECOMMENDED_FERRY_HEADWAY_MINUTES,
+        startHour: RECOMMENDED_FERRY_START_HOUR,
+        endHour: RECOMMENDED_FERRY_END_HOUR,
+        serviceDaysPerWeek: RECOMMENDED_FERRY_DAYS,
+        vehicleCount: transportMinimumFleet(
+          'ferry',
+          distanceKm,
+          RECOMMENDED_FERRY_HEADWAY_MINUTES,
+          RECOMMENDED_FERRY_SPEED_KPH
+        )
+      };
+      const upgradeIndex = currentOperations.findIndex((operation) => operation.operationId === upgrade.operationId);
+      if (upgradeIndex < 0) return;
+      const recommendedOperations = currentOperations.slice();
+      recommendedOperations[upgradeIndex] = ferryOperation;
+      const recommendedPreview = await requestDraftPreview(islandId, version, recommendedOperations);
+      if (
+        recommendationRequest !== requestToken ||
+        recommendationKey !== key ||
+        activeBaarahHospitalUpgrade()?.operationId !== upgrade.operationId
+      )
+        return;
+      if (!sourceCosts.complete || !recommendedPreview.costs.complete)
+        throw new Error('Complete cost allowances are required before comparing this recommendation.');
+      const originalCapital = sourceCosts.capital;
+      const originalAnnual = sourceCosts.annual;
+      const recommendedCapital = recommendedPreview.costs.capital;
+      const recommendedAnnual = recommendedPreview.costs.annual;
+      proposalRecommendation = {
+        accessibilityImprovementPercent: Math.max(
+          0,
+          Math.round(((currentJourneyMinutes - recommendedJourneyMinutes) / currentJourneyMinutes) * 100)
+        ),
+        currentJourneyMinutes,
+        recommendedJourneyMinutes,
+        originalCapital,
+        recommendedCapital,
+        capitalSavings: Math.max(0, originalCapital - recommendedCapital),
+        originalAnnual,
+        recommendedAnnual,
+        annualSavings: Math.max(0, originalAnnual - recommendedAnnual)
+      };
+      recommendationOperation = ferryOperation;
+    } catch (error) {
+      if (recommendationRequest === requestToken && recommendationKey === key) {
+        proposalRecommendation = null;
+        recommendationOperation = null;
+        proposalError =
+          error instanceof Error ? error.message : 'The data wizard recommendation could not be evaluated.';
+      }
+    } finally {
+      if (recommendationRequest === requestToken && recommendationKey === key) recommendationPending = false;
+    }
+  }
+
+  function applyBaarahRecommendation(): void {
+    const upgrade = activeBaarahHospitalUpgrade();
+    if (!upgrade || recommendationOperation?.kind !== 'add_ferry_service' || !editableProposal) return;
+    transportEditorOperation = recommendationOperation;
+    recommendationReplacementOperationId = upgrade.operationId;
+    proposalBuilderTab = 'transport';
+    proposalLastMessage = 'Review the recommended ferry chain and schedule, then add it to the proposal.';
+  }
+
+  async function previewTransportOperation(operation: ProposalTransportOperation): Promise<void> {
+    const operations = draftOperations.slice(0, draftCursor);
+    const editingId = transportEditorOperation?.operationId;
+    const replacedOperationId = recommendationReplacementOperationId;
+    if (replacedOperationId && !operations.some((entry) => entry.operationId === replacedOperationId)) {
+      proposalError =
+        'The hospital upgrade changed while the recommendation was being reviewed. Reopen the recommendation.';
+      transportEditorOperation = null;
+      recommendationReplacementOperationId = null;
+      return;
+    }
+    const replacement = { ...operation, operationId: editingId ?? operation.operationId } as ProposalTransportOperation;
+    const targetId = replacedOperationId ?? editingId;
+    const targetIndex = targetId ? operations.findIndex((entry) => entry.operationId === targetId) : operations.length;
+    const nextOperations = operations.filter(
+      (entry) => entry.operationId !== editingId && entry.operationId !== replacedOperationId
+    );
+    nextOperations.splice(Math.min(Math.max(targetIndex, 0), nextOperations.length), 0, replacement);
+    stagedTransportReplacementOperationId = replacedOperationId;
+    stagedTransportOperations = nextOperations;
+    proposalPending = true;
+    proposalError = null;
+    try {
+      stagedTransportPreview = await requestDraftPreview(
+        selectedIslandId,
+        islandServices?.baselineVersion ?? '',
+        nextOperations
+      );
+      proposalLastMessage =
+        'Transport change ready for confirmation. Review the updated proposal totals, then confirm or cancel.';
+    } catch (error) {
+      stagedTransportOperations = null;
+      stagedTransportPreview = null;
+      proposalError = error instanceof Error ? error.message : 'The transport proposal could not be previewed.';
     } finally {
       proposalPending = false;
     }
+  }
+
+  async function confirmTransportPreview(): Promise<void> {
+    if (!stagedTransportOperations) return;
+    const operations = stagedTransportOperations;
+    const previousOperations = draftOperations.slice(0, draftCursor);
+    const replacedOperationId = stagedTransportReplacementOperationId;
+    const applied = await previewDraftHistory(operations, operations.length);
+    if (!applied) return;
+    recommendationUndoOperations = previousOperations;
+    stagedTransportOperations = null;
+    stagedTransportPreview = null;
+    stagedTransportReplacementOperationId = null;
+    transportEditorOperation = null;
+    recommendationReplacementOperationId = null;
+    proposalRecommendation = null;
+    recommendationOperation = null;
+    recommendationKey = null;
+    proposalLastMessage = replacedOperationId
+      ? 'Recommended ferry confirmed and the hospital upgrade removed.'
+      : 'Transport route confirmed in the proposal.';
+  }
+
+  function cancelTransportPreview(): void {
+    clearStagedTransportPreview();
+    proposalLastMessage = 'Transport change cancelled.';
+  }
+
+  function editTransportOperation(operationId: string): void {
+    clearStagedTransportPreview();
+    const operation = draftOperations.slice(0, draftCursor).find((entry) => entry.operationId === operationId);
+    if (operation?.kind === 'add_bus_service' || operation?.kind === 'add_ferry_service') {
+      transportEditorOperation = operation;
+      recommendationReplacementOperationId = null;
+    }
+  }
+
+  function removeTransportOperation(operationId: string): void {
+    clearStagedTransportPreview();
+    const operations = draftOperations.slice(0, draftCursor);
+    const nextOperations = operations.filter((entry) => entry.operationId !== operationId);
+    recommendationUndoOperations = operations;
+    transportEditorOperation = null;
+    recommendationReplacementOperationId = null;
+    void previewDraftHistory(nextOperations, nextOperations.length);
+  }
+
+  function ignoreBaarahRecommendation(): void {
+    ignoredRecommendationOperationId = activeBaarahHospitalUpgrade()?.operationId ?? null;
+    proposalRecommendation = null;
+    recommendationOperation = null;
+    recommendationKey = null;
+    recommendationStarting = false;
+    recommendationPending = false;
+  }
+
+  async function updateProposalSettings(settings: ProposalSettings): Promise<void> {
+    if (!editableProposal || proposalPending) return;
+    proposalSettings = settings;
+    autosaveDraft();
+    const refreshed = await previewDraftHistory([...draftOperations], draftCursor);
+    if (!refreshed) proposalError = proposalError ?? 'Budget limits could not be updated.';
+  }
+
+  function saveCurrentProposalDefaults(): void {
+    const error = saveProposalDefaults($state.snapshot(proposalSettings));
+    draftStorageMessage = error ?? 'Proposal settings saved as browser defaults.';
+  }
+
+  function restoreCurrentProposalDefaults(): void {
+    const defaults = restoreProposalDefaults();
+    proposalSettings = { ...defaults, name: `${islandServices?.island.name ?? 'Island'} access proposal` };
+    draftStorageMessage = 'Built-in proposal defaults restored.';
+    void updateProposalSettings(proposalSettings);
+  }
+
+  function changeDraftHistory(direction: -1 | 1): void {
+    if (!editableProposal) return;
+    if (direction === -1 && recommendationUndoOperations) {
+      const operations = recommendationUndoOperations;
+      recommendationUndoOperations = null;
+      void previewDraftHistory(operations, operations.length);
+      return;
+    }
+    const cursor = draftCursor + direction;
+    if (cursor < 0 || cursor > draftOperations.length) return;
+    void previewDraftHistory([...draftOperations], cursor);
+  }
+
+  async function restoreProposalDraft(baseline: IslandServicesResponse): Promise<void> {
+    const islandId = baseline.island.id;
+    const request = ++proposalRequest;
+    const current = () => request === proposalRequest && proposalMode && selectedIslandId === islandId;
+    const sessionDraft = sessionDrafts.get(islandId);
+    const saved = sessionDraft ? { status: 'ready' as const, draft: sessionDraft } : readProposalDraft(islandId);
+    if (saved.status === 'unavailable') draftStorageMessage = saved.message;
+    if (saved.status === 'invalid') {
+      draftRestoreBlocked = true;
+      proposalError = saved.message;
+      return;
+    }
+    if (saved.status !== 'ready') return;
+    const draft = saved.draft;
+    if (!baseline.baselineVersion || baseline.baselineVersion !== draft.baselineVersion) {
+      draftRestoreBlocked = true;
+      proposalError =
+        'The saved draft uses a different baseline version. It has been preserved but cannot be restored.';
+      return;
+    }
+    proposalPending = true;
+    proposalLastMessage = 'Replaying saved draft against current server data…';
+    try {
+      // Validate the redo branch too. Never trust cached services, scores or geometry.
+      const restoredSettings = draft.proposal ?? readProposalDefaults();
+      const full = await requestDraftPreview(islandId, draft.baselineVersion, draft.operations, restoredSettings);
+      if (!current()) return;
+      const preview =
+        draft.cursor === draft.operations.length
+          ? full
+          : await requestDraftPreview(
+              islandId,
+              draft.baselineVersion,
+              draft.operations.slice(0, draft.cursor),
+              restoredSettings
+            );
+      if (!current()) return;
+      proposalSettings = restoredSettings;
+      draftOperations = draft.operations;
+      draftCursor = draft.cursor;
+      draftPreview = preview;
+      islandServices = preview.baseline;
+      islandServicesCache.set(islandId, preview.baseline);
+      proposalLastMessage = `Restored ${draft.cursor} applied edits by replaying against current data. The baseline version is a schema identifier, not a content checksum.`;
+      autosaveDraft();
+      void prepareBaarahRecommendation();
+    } catch (error) {
+      if (!current()) return;
+      draftRestoreBlocked = true;
+      proposalError = `Saved draft could not be restored and has been preserved. ${error instanceof Error ? error.message : 'Preview unavailable.'}`;
+      proposalLastMessage = null;
+    } finally {
+      if (current()) proposalPending = false;
+    }
+  }
+
+  function startFreshDraft(): void {
+    if (!draftRestoreBlocked || proposalPending || !islandServices?.baselineVersion) return;
+    draftRestoreBlocked = false;
+    clearStagedTransportPreview();
+    draftOperations = [];
+    draftCursor = 0;
+    draftPreview = null;
+    proposalError = null;
+    proposalLastMessage = 'Started a new draft.';
+    autosaveDraft();
+  }
+
+  function resetProposalDraft(): void {
+    if (!editableProposal || proposalPending || !selectedIslandId) return;
+    if (!window.confirm('Reset this proposal? All draft changes and custom cost estimates will be removed.')) return;
+    closeServicePopup();
+    stopMoveMode();
+    stopAddServiceMode();
+    clearStagedTransportPreview();
+    draftOperations = [];
+    draftCursor = 0;
+    draftPreview = null;
+    proposalRecommendation = null;
+    recommendationOperation = null;
+    ignoredRecommendationOperationId = null;
+    recommendationPending = false;
+    recommendationStarting = false;
+    recommendationKey = null;
+    recommendationUndoOperations = null;
+    recommendationReplacementOperationId = null;
+    transportEditorOperation = null;
+    proposalSettings = { ...DEFAULT_PROPOSAL_SETTINGS };
+    draftRestoreBlocked = false;
+    draftStorageMessage = null;
+    proposalError = null;
+    proposalLastMessage = 'Draft reset. Island defaults restored.';
+    sessionDrafts.delete(selectedIslandId);
+    autosaveDraft();
+  }
+
+  function proposalTransportCollection() {
+    return {
+      type: 'FeatureCollection' as const,
+      features: (proposalView === 'proposal' ? (draftPreview?.transportPlans ?? []) : []).flatMap((plan) =>
+        plan.geometry.coordinates.map((coordinates, index) => ({
+          type: 'Feature' as const,
+          id: `${plan.operationId}:${index}`,
+          properties: { operationId: plan.operationId, mode: plan.mode },
+          geometry: { type: 'LineString' as const, coordinates }
+        }))
+      )
+    };
+  }
+
+  function syncProposalTransportLayers(): void {
+    if (!mapInstance) return;
+    const data = proposalTransportCollection();
+    const source = mapInstance.getSource(PROPOSAL_TRANSPORT_SOURCE_ID) as GeoJSONSource | undefined;
+    if (source) source.setData(data);
+    else mapInstance.addSource(PROPOSAL_TRANSPORT_SOURCE_ID, { type: 'geojson', data });
+    if (!mapInstance.getLayer(PROPOSAL_TRANSPORT_LINE_LAYER_ID)) {
+      mapInstance.addLayer({
+        id: PROPOSAL_TRANSPORT_LINE_LAYER_ID,
+        type: 'line',
+        source: PROPOSAL_TRANSPORT_SOURCE_ID,
+        paint: {
+          'line-color': ['match', ['get', 'mode'], 'ferry', '#2563eb', '#18181b'],
+          'line-width': 5,
+          'line-opacity': 0.92,
+          'line-dasharray': [1.5, 1]
+        }
+      });
+    }
+  }
+
+  function setProposalView(value: string): void {
+    if (value !== 'baseline' && value !== 'proposal') return;
+    closeServicePopup();
+    stopMoveMode();
+    stopAddServiceMode();
+    proposalView = value;
+    syncProposalTransportLayers();
   }
 
   function upgradeService(service: IslandMapService, targetSubtype: string): void {
@@ -1511,14 +1425,14 @@
   }
 
   function handleMapDragOver(event: DragEvent): void {
-    if (!proposalMode || !selectedIslandId || proposalPending) return;
+    if (!editableProposal || !selectedIslandId) return;
     if (!event.dataTransfer?.types.includes(SERVICE_DRAG_MIME)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
   }
 
   function handleMapDrop(event: DragEvent): void {
-    if (!mapInstance || !proposalMode || !selectedIslandId || proposalPending) return;
+    if (!mapInstance || !editableProposal || !selectedIslandId) return;
     const selection = parseServiceDragPayload(event.dataTransfer?.getData(SERVICE_DRAG_MIME) ?? null);
     if (!selection) return;
 
@@ -1531,6 +1445,7 @@
   }
 
   function handleMapProposalClick(event: MapMouseEvent): void {
+    if (!editableProposal) return;
     if (Date.now() < suppressMapClickUntil) return;
 
     if (addServiceDraft) {
@@ -1563,7 +1478,7 @@
       props: {
         service,
         onClose: () => popup.remove(),
-        proposalMode,
+        proposalMode: editableProposal,
         onUpgrade: (targetSubtype: string) => upgradeService(service, targetSubtype),
         onDowngrade: (targetSubtype: string) => downgradeService(service, targetSubtype),
         onMove: () => startMoveService(service),
@@ -1592,8 +1507,7 @@
     services: readonly IslandMapService[] = data.services
   ): void {
     if (!mapInstance || !maplibreMarkerConstructor) return;
-    closeServicePopup();
-    disposeMountedServiceMarkers();
+    if (activeServicePopup) closeServicePopup();
     const visibleServices = filterServicesToSelectedIsland(services);
     serviceMarkerServices = new SvelteMap<string, IslandMapService>(
       visibleServices.flatMap((service) => (service.coordinates ? [[service.id, service] as const] : []))
@@ -1623,7 +1537,10 @@
       props: {
         serviceType: service.serviceType,
         label: serviceMarkerLabel(service),
-        onSelect: () => openServicePopup(service)
+        onSelect: () => {
+          const current = serviceMarkerServices.get(service.id);
+          if (current) openServicePopup(current);
+        }
       }
     });
     const marker = new maplibreMarkerConstructor({ element: host, anchor: 'center' });
@@ -1886,7 +1803,57 @@
     return 'allStatus';
   }
 
+  function demandDeltaProperty(category: IslandDemandCategory): string {
+    if (category === 'health') return 'healthDelta';
+    if (category === 'education') return 'educationDelta';
+    if (category === 'transport') return 'transportDelta';
+    return 'allDelta';
+  }
+
+  function proposalDeltaHexes(baseline: IslandServiceHexes, projected: IslandServiceHexes): IslandServiceHexes {
+    const baselineById = new Map(baseline.features.map((feature) => [feature.id, feature.properties]));
+    return {
+      ...projected,
+      features: projected.features.map((feature) => {
+        const before = baselineById.get(feature.id);
+        const healthDelta = feature.properties.healthWeight - (before?.healthWeight ?? 0);
+        const educationDelta = feature.properties.educationWeight - (before?.educationWeight ?? 0);
+        const transportDelta = feature.properties.transportWeight - (before?.transportWeight ?? 0);
+        const deltas = [healthDelta, educationDelta, transportDelta];
+        const allDelta = deltas.reduce((largest, value) => (Math.abs(value) > Math.abs(largest) ? value : largest), 0);
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            healthDelta,
+            educationDelta,
+            transportDelta,
+            allDelta
+          }
+        };
+      })
+    };
+  }
+
   function demandColorExpression(category: IslandDemandCategory): unknown[] {
+    if (proposalMode && proposalView === 'proposal' && draftPreview) {
+      const deltaProperty = demandDeltaProperty(category);
+      return [
+        'interpolate',
+        ['linear'],
+        ['coalesce', ['get', deltaProperty], 0],
+        -0.2,
+        '#16a34a',
+        -0.02,
+        '#86efac',
+        0,
+        '#f4f4f5',
+        0.02,
+        '#fdba74',
+        0.2,
+        '#dc2626'
+      ];
+    }
     const weightProperty = demandWeightProperty(category);
     const statusProperty = demandStatusProperty(category);
     return [
@@ -1925,6 +1892,14 @@
   }
 
   function demandFillOpacityExpression(category: IslandDemandCategory, multiplier = 1, revealProgress = 1): unknown[] {
+    if (proposalMode && proposalView === 'proposal' && draftPreview) {
+      const deltaProperty = demandDeltaProperty(category);
+      return [
+        '*',
+        multiplier,
+        ['interpolate', ['linear'], ['abs', ['coalesce', ['get', deltaProperty], 0]], 0, 0.08, 0.02, 0.45, 0.2, 0.9]
+      ];
+    }
     const weightProperty = demandWeightProperty(category);
     const statusProperty = demandStatusProperty(category);
     const opacity = [
@@ -1959,7 +1934,7 @@
       : ['*', weightedOpacity, demandRevealOpacityExpression(revealProgress)];
   }
 
-  function demandAvailabilityFilter(category: IslandDemandCategory): unknown[] {
+  function demandAvailabilityFilter(category: IslandDemandCategory): FilterSpecification {
     return ['has', demandStatusProperty(category)];
   }
 
@@ -1998,70 +1973,9 @@
     demandRevealProgress = 1;
   }
 
-  function hexFeatureCenter(feature: IslandServiceHexes['features'][number]): Coordinate | null {
-    const ring = feature.geometry.coordinates[0];
-    if (!ring || ring.length === 0) return null;
-    const totals = ring.reduce(
-      (result, [longitude, latitude]) => {
-        result[0] += longitude;
-        result[1] += latitude;
-        return result;
-      },
-      [0, 0]
-    );
-    return [totals[0] / ring.length, totals[1] / ring.length];
-  }
-
-  function coordinateDistanceMeters(first: Coordinate, second: Coordinate): number {
-    const latitude = ((first[1] + second[1]) / 2) * (Math.PI / 180);
-    const longitudeMeters = (first[0] - second[0]) * 111_320 * Math.cos(latitude);
-    const latitudeMeters = (first[1] - second[1]) * 110_574;
-    return Math.hypot(longitudeMeters, latitudeMeters);
-  }
-
-  function demandHexesWithRevealPhases(
-    hexes: IslandServiceHexes,
-    services: readonly IslandMapService[]
-  ): IslandServiceHexes {
-    const serviceCoordinates = services.flatMap((service) => (service.coordinates ? [service.coordinates] : []));
-    if (serviceCoordinates.length === 0) {
-      return {
-        ...hexes,
-        features: hexes.features.map((feature) => ({
-          ...feature,
-          properties: { ...feature.properties, revealPhase: 0 }
-        }))
-      };
-    }
-
-    const distances = hexes.features.map((feature) => {
-      const center = hexFeatureCenter(feature);
-      return center
-        ? Math.min(...serviceCoordinates.map((service) => coordinateDistanceMeters(center, service)))
-        : null;
-    });
-    const validDistances = distances.filter((distance): distance is number => distance !== null);
-    const maximumDistance = Math.max(1, ...validDistances);
-
-    return {
-      ...hexes,
-      features: hexes.features.map((feature, index) => ({
-        ...feature,
-        properties: {
-          ...feature.properties,
-          revealPhase: Number(((distances[index] ?? maximumDistance) / maximumDistance).toFixed(3))
-        }
-      }))
-    };
-  }
-
-  function startDemandHeatmapReveal(
-    hexes: IslandServiceHexes,
-    services: readonly IslandMapService[],
-    islandId: string
-  ): void {
+  function startDemandHeatmapReveal(hexes: IslandServiceHexes, islandId: string): void {
     stopDemandHeatmapReveal();
-    setSourceData('selected-service-hexes', demandHexesWithRevealPhases(hexes, services));
+    setSourceData('selected-service-hexes', hexes);
 
     if (prefersReducedMotion.current || hexes.features.length === 0) {
       demandRevealProgress = 1;
@@ -2153,16 +2067,25 @@
 
   async function loadIslandServices(id: string): Promise<void> {
     const requestId = ++islandServicesRequest;
+    proposalRequest += 1;
+    proposalPending = false;
+    draftPreview = null;
+    draftOperations = [];
+    draftCursor = 0;
+    draftRestoreBlocked = false;
+    draftStorageMessage = null;
+    proposalError = null;
+    proposalLastMessage = null;
     islandServices = null;
     islandServicesLoading = true;
     islandServicesError = null;
     try {
-      const cachedServices = islandServicesCache.get(id);
+      const cachedServices = proposalMode ? null : islandServicesCache.get(id);
       if (cachedServices) {
         if (requestId !== islandServicesRequest) return;
         islandServices = cachedServices;
         applySelectedIslandMask(id);
-        startDemandHeatmapReveal(cachedServices.hexes, cachedServices.services, id);
+        startDemandHeatmapReveal(cachedServices.hexes, id);
         renderServiceMarkers(cachedServices);
         return;
       }
@@ -2173,8 +2096,9 @@
       islandServicesCache.set(id, data);
       islandServices = data;
       applySelectedIslandMask(id);
-      startDemandHeatmapReveal(data.hexes, data.services, id);
+      startDemandHeatmapReveal(data.hexes, id);
       renderServiceMarkers(data);
+      if (proposalMode) await restoreProposalDraft(data);
     } catch (error) {
       if (requestId === islandServicesRequest) {
         islandServicesError = error instanceof Error ? error.message : 'Island services could not be loaded.';
@@ -2192,14 +2116,14 @@
   }
 
   function demandCategoryLabel(category: IslandDemandCategory): string {
-    if (category === 'health') return 'Health';
+    if (category === 'health') return 'Healthcare';
     if (category === 'education') return 'Education';
     if (category === 'transport') return 'Transport';
-    return 'All demand';
+    return 'All';
   }
 
   $effect(() => {
-    if (!mapInstance?.getLayer('selected-service-demand-hexes')) return;
+    if (!mapReady || !mapInstance?.getLayer('selected-service-demand-hexes')) return;
     mapInstance.setPaintProperty(
       'selected-service-demand-hexes',
       'fill-color',
@@ -2226,29 +2150,14 @@
   });
 
   $effect(() => {
-    if (!proposalMode || !islandServices || !selectedIslandId || !mapInstance) return;
-    renderServiceMarkers(islandServices, visibleProposalServices);
-  });
-
-  $effect(() => {
-    if (!presentationActive || !presentationStep || !mapReady || !mapInstance) return;
-    savePresentationState();
-    if (appliedPresentationStepId === presentationStep.id) return;
-    appliedPresentationStepId = presentationStep.id;
-    applyPresentationStep(presentationStep);
-  });
-
-  $effect(() => {
-    if (presentationActive || !mapReady || !mapInstance || !presentationRestoreState) return;
-    restoreAfterPresentation();
-  });
-
-  $effect(() => {
-    if (!presentationActive || !presentationStep || !mapReady || !mapInstance) return;
-    if (storyFocusStepId === presentationStep.id) return;
-    if (presentationPhase !== 'settled' || presentationReadyStepId !== presentationStep.id) return;
-    if (presentationStep.scrollTargets?.length && (islandProfileLoading || analyticsLoading)) return;
-    void focusStoryUi(presentationStep);
+    if (!mapReady || !displayedServices || displayedServices.island.id !== selectedIslandId) return;
+    // Comparison switches use settled opacity, so animation cannot imply a change in pressure.
+    if (proposalMode) {
+      stopDemandHeatmapReveal();
+      setSourceData('selected-service-hexes', displayedServices.hexes);
+      setDemandHexOpacity(SELECTED_DEMAND_HEX_OPACITY, 1);
+    }
+    renderServiceMarkers(displayedServices);
   });
 
   async function openAnalytics(): Promise<void> {
@@ -2351,8 +2260,7 @@
             educationCount: ['+', ['case', ['==', ['get', 'serviceType'], 'education'], 1, 0]],
             transportCount: ['+', ['case', ['==', ['get', 'serviceType'], 'transport'], 1, 0]]
           }
-        },
-        'presentation-map': { type: 'geojson', data: EMPTY_PRESENTATION_MAP }
+        }
       },
       layers: [
         ...layersBeforeRoads,
@@ -2488,127 +2396,6 @@
             'line-opacity-transition': { duration: 240, delay: 0 },
             'line-width': ['interpolate', ['linear'], ['zoom'], 5.5, 1.5, 10, 2.8, 16, 3.6]
           }
-        },
-        {
-          id: 'presentation-route-verified',
-          type: 'line',
-          source: 'presentation-map',
-          filter: ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'kind'], 'verified']],
-          layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint: {
-            'line-color': '#0f766e',
-            'line-opacity': ['case', ['boolean', ['get', 'focus'], false], 0.96, 0.2],
-            'line-opacity-transition': { duration: 520, delay: 0 },
-            'line-width': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              4,
-              ['case', ['boolean', ['get', 'focus'], false], 2.8, 1.5],
-              8,
-              ['case', ['boolean', ['get', 'focus'], false], 4.6, 2.5],
-              13,
-              ['case', ['boolean', ['get', 'focus'], false], 6.5, 3.6]
-            ],
-            'line-width-transition': { duration: 520, delay: 0 }
-          }
-        },
-        {
-          id: 'presentation-route-narrative',
-          type: 'line',
-          source: 'presentation-map',
-          filter: ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'kind'], 'narrative']],
-          layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint: {
-            'line-color': '#f97316',
-            'line-dasharray': [1.4, 1.1],
-            'line-opacity': ['case', ['boolean', ['get', 'focus'], false], 0.96, 0.2],
-            'line-opacity-transition': { duration: 520, delay: 0 },
-            'line-width': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              4,
-              ['case', ['boolean', ['get', 'focus'], false], 2.6, 1.4],
-              8,
-              ['case', ['boolean', ['get', 'focus'], false], 4.2, 2.3],
-              13,
-              ['case', ['boolean', ['get', 'focus'], false], 6, 3.4]
-            ],
-            'line-width-transition': { duration: 520, delay: 0 }
-          }
-        },
-        {
-          id: 'presentation-route-proposal',
-          type: 'line',
-          source: 'presentation-map',
-          filter: ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'kind'], 'proposal']],
-          layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint: {
-            'line-color': '#22c55e',
-            'line-dasharray': [0.8, 1.4],
-            'line-opacity': ['case', ['boolean', ['get', 'focus'], false], 1, 0.2],
-            'line-opacity-transition': { duration: 520, delay: 0 },
-            'line-width': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              4,
-              ['case', ['boolean', ['get', 'focus'], false], 3, 1.5],
-              8,
-              ['case', ['boolean', ['get', 'focus'], false], 5, 2.6],
-              13,
-              ['case', ['boolean', ['get', 'focus'], false], 7, 3.8]
-            ],
-            'line-width-transition': { duration: 520, delay: 0 }
-          }
-        },
-        {
-          id: 'presentation-route-points',
-          type: 'circle',
-          source: 'presentation-map',
-          filter: ['==', ['geometry-type'], 'Point'],
-          paint: {
-            'circle-color': ['match', ['get', 'kind'], 'proposal', '#22c55e', 'narrative', '#f97316', '#0f766e'],
-            'circle-radius': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              4,
-              ['case', ['boolean', ['get', 'focus'], false], 6, 3.5],
-              8,
-              ['case', ['boolean', ['get', 'focus'], false], 8, 5],
-              13,
-              ['case', ['boolean', ['get', 'focus'], false], 10, 6]
-            ],
-            'circle-opacity': ['case', ['boolean', ['get', 'focus'], false], 1, 0.34],
-            'circle-opacity-transition': { duration: 520, delay: 0 },
-            'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': ['case', ['boolean', ['get', 'focus'], false], 3, 1.5]
-          }
-        },
-        {
-          id: 'presentation-route-labels',
-          type: 'symbol',
-          source: 'presentation-map',
-          filter: ['all', ['==', ['geometry-type'], 'Point'], ['has', 'name']],
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 9, 8, 11, 13, 13],
-            'text-anchor': 'top',
-            'text-offset': [0, 1],
-            'text-allow-overlap': true,
-            'text-ignore-placement': true
-          },
-          paint: {
-            'text-color': '#18181b',
-            'text-opacity': ['case', ['boolean', ['get', 'focus'], false], 1, 0.35],
-            'text-opacity-transition': { duration: 520, delay: 0 },
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 2,
-            'text-halo-blur': 0.2
-          }
         }
       ]
     } as unknown as NonNullable<MapOptions['style']>;
@@ -2620,6 +2407,9 @@
     document.documentElement.style.colorScheme = 'light';
 
     let disposed = false;
+
+    void loadAnalytics();
+    void loadConnectionNetwork();
 
     void (async () => {
       const maplibre = await import('maplibre-gl');
@@ -2693,18 +2483,18 @@
         if (selectedIslandId) {
           prepareSelectedIslandOverlay(selectedIslandId);
           if (islandServices) {
-            startDemandHeatmapReveal(islandServices.hexes, islandServices.services, selectedIslandId);
+            startDemandHeatmapReveal(islandServices.hexes, selectedIslandId);
             renderServiceMarkers(islandServices);
           }
         }
-        void loadAnalytics();
       });
     })();
 
     return () => {
       disposed = true;
+      proposalRequest += 1;
+      islandServicesRequest += 1;
       stopMoveMode();
-      cancelPresentationTransition();
       stopDemandHeatmapReveal();
       stopSelectedIslandLoadingPulse();
       hideSelectedIslandFill();
@@ -2774,7 +2564,61 @@
     void loadIslandGeometry();
   }
 
+  async function downloadProposalPdf(): Promise<void> {
+    if (!selectedIslandId || !islandServices?.baselineVersion || proposalPending || proposalExporting) return;
+    proposalExporting = true;
+    proposalError = null;
+    try {
+      const response = await fetch('/api/v1/scenarios/report.pdf', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          baselineVersion: islandServices.baselineVersion,
+          selectedIslandId,
+          operations: draftOperations.slice(0, draftCursor),
+          proposal: proposalSettings
+        })
+      });
+      const contentType = response.headers.get('content-type') ?? '';
+      if (!response.ok) {
+        let message = 'The proposal PDF could not be generated.';
+        if (contentType.includes('application/json')) {
+          const payload = (await response.json()) as { error?: string };
+          if (payload.error) message = payload.error;
+        } else {
+          const text = await response.text();
+          if (text.trim()) message = text;
+        }
+        throw new Error(message);
+      }
+      if (!contentType.includes('application/pdf')) throw new Error('The server returned an invalid proposal report.');
+      const blob = await response.blob();
+      if (blob.size < 5) throw new Error('The generated proposal PDF is empty.');
+      const signature = await blob.slice(0, 5).text();
+      if (signature !== '%PDF-') throw new Error('The generated proposal report is not a valid PDF.');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${
+        islandServices.island.name
+          .replace(/[^a-zA-Z0-9 _-]/g, '')
+          .trim()
+          .replace(/\\s+/g, '-') || 'island'
+      }-proposal.pdf`;
+      link.hidden = true;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch (error) {
+      proposalError = error instanceof Error ? error.message : 'PDF export failed.';
+    } finally {
+      proposalExporting = false;
+    }
+  }
+
   function createProposal(): void {
+    if (!selectedIslandId) return;
     closeServicePopup();
     proposalQuery = '';
     proposalServiceFilter = 'all';
@@ -2782,12 +2626,205 @@
     proposalError = null;
     proposalLastMessage = null;
     draftOperations = [];
+    proposalRecommendation = null;
+    recommendationOperation = null;
+    ignoredRecommendationOperationId = null;
+    recommendationPending = false;
+    recommendationStarting = false;
+    recommendationKey = null;
+    recommendationUndoOperations = null;
+    recommendationReplacementOperationId = null;
+    transportEditorOperation = null;
+    proposalBuilderTab = 'services';
     addServiceDraft = null;
     stopMoveMode();
+    const defaults = readProposalDefaults();
+    proposalSettings = {
+      ...defaults,
+      name: `${islandServices?.island.name ?? 'Island'} access proposal`
+    };
     proposalMode = true;
+    proposalView = 'proposal';
+    void loadIslandServices(selectedIslandId);
+    const feature = islandCollection.features.find((island) => island.id === selectedIslandId);
+    if (feature) void focusIsland(feature.properties);
+  }
+
+  function visibleJourneyCoordinates(
+    coordinates: readonly PresentationCoordinate[],
+    progress: number
+  ): PresentationCoordinate[] {
+    if (coordinates.length < 2) return [...coordinates];
+    const scaled = Math.min(1, Math.max(0, progress)) * (coordinates.length - 1);
+    const index = Math.floor(scaled);
+    const amount = scaled - index;
+    const visible = coordinates.slice(0, index + 1);
+    const from = coordinates[index];
+    const to = coordinates[index + 1];
+    if (from && to && amount > 0)
+      visible.push([from[0] + (to[0] - from[0]) * amount, from[1] + (to[1] - from[1]) * amount]);
+    if (visible.length === 1) visible.push(visible[0]);
+    return visible;
+  }
+
+  function presentationCollection(story: PresentationStory, sectionIndex: number, progress = 1) {
+    return {
+      type: 'FeatureCollection' as const,
+      features: story.sections.slice(0, sectionIndex + 1).map((section, index) => ({
+        type: 'Feature' as const,
+        id: section.id,
+        properties: { mode: section.mode, branch: section.branch },
+        geometry: {
+          ...section.geometry,
+          coordinates:
+            index === sectionIndex
+              ? visibleJourneyCoordinates(section.geometry.coordinates, progress)
+              : section.geometry.coordinates
+        }
+      }))
+    };
+  }
+
+  function ensurePresentationLayers(): void {
+    if (!mapInstance || !presentationStory) return;
+    if (!mapInstance.getSource(PRESENTATION_SOURCE_ID)) {
+      mapInstance.addSource(PRESENTATION_SOURCE_ID, {
+        type: 'geojson',
+        data: presentationCollection(presentationStory, 0)
+      });
+      mapInstance.addLayer({
+        id: PRESENTATION_LINE_LAYER_ID,
+        type: 'line',
+        source: PRESENTATION_SOURCE_ID,
+        paint: {
+          'line-color': ['match', ['get', 'branch'], 'pickup', '#f59e0b', 'merged', '#dc2626', '#16a34a'],
+          'line-width': 5,
+          'line-opacity': 0.92
+        }
+      });
+    }
+    if (!mapInstance.getSource(PRESENTATION_POINT_SOURCE_ID)) {
+      mapInstance.addSource(PRESENTATION_POINT_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] }
+      });
+      mapInstance.addLayer({
+        id: PRESENTATION_POINT_LAYER_ID,
+        type: 'circle',
+        source: PRESENTATION_POINT_SOURCE_ID,
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#dc2626',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 3
+        }
+      });
+    }
+  }
+
+  function pointAlongLine(coordinates: PresentationCoordinate[], progress: number): PresentationCoordinate {
+    if (coordinates.length < 2) return coordinates[0] ?? MALDIVES_CENTER;
+    const scaled = Math.min(0.999999, Math.max(0, progress)) * (coordinates.length - 1);
+    const index = Math.floor(scaled);
+    const amount = scaled - index;
+    const from = coordinates[index];
+    const to = coordinates[index + 1] ?? from;
+    return [from[0] + (to[0] - from[0]) * amount, from[1] + (to[1] - from[1]) * amount];
+  }
+
+  function showPresentationSection(): void {
+    if (!mapInstance || !presentationStory || !presentation.active) return;
+    const story = presentationStory;
+    const section = story.sections[presentation.sectionIndex];
+    if (!section) return;
+    const run = ++presentationRun;
+    presentation.setProgress(0);
+    ensurePresentationLayers();
+    (mapInstance.getSource(PRESENTATION_SOURCE_ID) as GeoJSONSource).setData(
+      presentationCollection(presentationStory, presentation.sectionIndex, 0)
+    );
+    const longitudes = section.geometry.coordinates.map((coordinate) => coordinate[0]);
+    const latitudes = section.geometry.coordinates.map((coordinate) => coordinate[1]);
+    const bounds: [Coordinate, Coordinate] = [
+      [Math.min(...longitudes), Math.min(...latitudes)],
+      [Math.max(...longitudes), Math.max(...latitudes)]
+    ];
+    mapInstance.fitBounds(bounds, {
+      padding: section.camera.padding,
+      maxZoom: section.camera.maxZoom,
+      duration: prefersReducedMotion.current ? 0 : 800
+    });
+    const duration = prefersReducedMotion.current || section.mode === 'wait' || section.mode === 'handoff' ? 0 : 2600;
+    const started = performance.now();
+    const animate = (time: number) => {
+      if (run !== presentationRun || !presentation.active) return;
+      const progress = duration === 0 ? 1 : Math.min(1, (time - started) / duration);
+      presentation.setProgress(progress);
+      const coordinate = pointAlongLine(section.geometry.coordinates, progress);
+      (mapInstance?.getSource(PRESENTATION_SOURCE_ID) as GeoJSONSource | undefined)?.setData(
+        presentationCollection(story, presentation.sectionIndex, progress)
+      );
+      (mapInstance?.getSource(PRESENTATION_POINT_SOURCE_ID) as GeoJSONSource | undefined)?.setData({
+        type: 'Feature',
+        properties: { mode: section.mode },
+        geometry: { type: 'Point', coordinates: coordinate }
+      });
+      if (progress < 1) {
+        presentationFrame = requestAnimationFrame(animate);
+      } else if (presentation.sectionIndex === story.sections.length - 1) {
+        completePresentation();
+      }
+    };
+    presentationFrame = requestAnimationFrame(animate);
+  }
+
+  async function startPresentation(destinationIslandId: string): Promise<void> {
+    if (selectedIslandId !== 'island:640' || destinationIslandId !== 'island:1442') return;
+    const response = await fetch('/api/v1/presentation/story');
+    if (!response.ok) return;
+    presentationStory = (await response.json()) as PresentationStory;
+    islandAnalyticsOpen = false;
+    resetSelectedIslandOverlay();
+    selectedIslandId = null;
+    presentation.start();
+    showPresentationSection();
+  }
+
+  function clearPresentation(): void {
+    presentation.exit();
+    presentationRun += 1;
+    if (presentationFrame !== null) cancelAnimationFrame(presentationFrame);
+    presentationFrame = null;
+    if (mapInstance?.getLayer(PRESENTATION_POINT_LAYER_ID)) mapInstance.removeLayer(PRESENTATION_POINT_LAYER_ID);
+    if (mapInstance?.getLayer(PRESENTATION_LINE_LAYER_ID)) mapInstance.removeLayer(PRESENTATION_LINE_LAYER_ID);
+    if (mapInstance?.getSource(PRESENTATION_POINT_SOURCE_ID)) mapInstance.removeSource(PRESENTATION_POINT_SOURCE_ID);
+    if (mapInstance?.getSource(PRESENTATION_SOURCE_ID)) mapInstance.removeSource(PRESENTATION_SOURCE_ID);
+  }
+
+  function completePresentation(): void {
+    clearPresentation();
+    selectIslandById('island:1442');
+  }
+
+  function exitPresentation(): void {
+    clearPresentation();
+    returnToNational();
+  }
+
+  function handlePresentationKey(event: KeyboardEvent): void {
+    if (!presentation.active || !presentationStory) return;
+    if (['ArrowRight', ' ', 'ArrowLeft', 'Escape', 'r', 'R'].includes(event.key)) event.preventDefault();
+    if (event.key === 'ArrowRight' || event.key === ' ') presentation.next(presentationStory.sections.length);
+    else if (event.key === 'ArrowLeft') presentation.previous();
+    else if (event.key === 'r' || event.key === 'R') presentation.restart();
+    else if (event.key === 'Escape') return exitPresentation();
+    showPresentationSection();
   }
 
   function closeProposalMode(): void {
+    proposalRequest += 1;
+    islandServicesRequest += 1;
+    proposalPending = false;
     closeServicePopup();
     stopMoveMode();
     proposalMode = false;
@@ -2796,10 +2833,45 @@
     proposalError = null;
     proposalLastMessage = null;
     draftOperations = [];
+    draftCursor = 0;
+    draftPreview = null;
+    transportEditorOperation = null;
+    recommendationReplacementOperationId = null;
+    proposalBuilderTab = 'services';
     addServiceDraft = null;
+    if (mapInstance?.getLayer(PROPOSAL_TRANSPORT_LINE_LAYER_ID))
+      mapInstance.removeLayer(PROPOSAL_TRANSPORT_LINE_LAYER_ID);
+    if (mapInstance?.getSource(PROPOSAL_TRANSPORT_SOURCE_ID)) mapInstance.removeSource(PROPOSAL_TRANSPORT_SOURCE_ID);
     if (selectedIslandId) void loadIslandServices(selectedIslandId);
   }
 </script>
+
+{#snippet mapCategoryTabs()}
+  <Tabs.Root bind:value={selectedDemandCategory} class="demand-tabs">
+    <Tabs.List class="demand-tabs-list" aria-label="Map demand category">
+      {#each ISLAND_DEMAND_CATEGORIES as category (category)}
+        <Tabs.Trigger value={category}>{demandCategoryLabel(category)}</Tabs.Trigger>
+      {/each}
+    </Tabs.List>
+  </Tabs.Root>
+{/snippet}
+
+{#snippet proposalMapControls()}
+  <section aria-label="Proposal map comparison">
+    <Tabs.Root class="demand-tabs" bind:value={() => proposalView, setProposalView}>
+      <Tabs.List class="demand-tabs-list demand-tabs-list-comparison" aria-label="Compare baseline and proposal">
+        <Tabs.Trigger value="baseline">Baseline</Tabs.Trigger>
+        <Tabs.Trigger value="proposal">Proposal</Tabs.Trigger>
+      </Tabs.List>
+    </Tabs.Root>
+    {@render mapCategoryTabs()}
+    <div class="demand-scale" aria-hidden="true"></div>
+    <div class="score-labels"><span>Low pressure / gap</span><span>High</span></div>
+    {#if displayedServices && displayedServices.summary.hexFeatureCount === 0}
+      <p class="selected-map-state" role="status">No mapped demand data is available for this view.</p>
+    {/if}
+  </section>
+{/snippet}
 
 <svelte:head>
   <title>{config.app.name} | Accessibility map</title>
@@ -2808,12 +2880,13 @@
 
 <svelte:window
   onkeydown={(event) => {
+    if (presentation.active) return handlePresentationKey(event);
     if (event.key === 'Escape' && moveServiceId) stopMoveMode();
     else if (event.key === 'Escape' && addServiceDraft) stopAddServiceMode();
   }}
 />
 
-<div class="map-shell" data-presentation-phase={presentationActive ? presentationPhase : 'idle'}>
+<div class="map-shell">
   <div
     bind:this={mapElement}
     class="map-canvas"
@@ -2855,57 +2928,10 @@
     </div>
   {/if}
 
-  {#if selectedIslandId}
-    <section
-      class={`selected-map-controls${proposalMode ? ' proposal-mode-right' : ''}`}
-      aria-hidden={proposalMode}
-      aria-label="Selected island demand and residential access controls"
-      data-story-target="island-demand"
-    >
-      <div class="selected-map-heading">
-        <div>
-          <p class="selected-map-eyebrow">Selected island</p>
-          <h2>{islandServices?.island.name ?? selectedIsland?.name ?? 'Island services'}</h2>
-        </div>
-        {#if islandServicesLoading}<span class="selected-map-spinner" aria-label="Loading service demand"></span>{/if}
-      </div>
-
-      <p class="selected-map-caption">Demand pressure + residential access gap</p>
-      <div class="service-marker-legend" aria-label="Service marker types">
-        {#each SERVICE_MARKER_LEGEND as marker (marker.label)}
-          {@const Icon = marker.icon}
-          <span>
-            <i class="marker-dot" style={`--marker-color: ${marker.color}`}><Icon size={11} strokeWidth={2.5} /></i>
-            {marker.label.replace(' services', '')}
-          </span>
-        {/each}
-      </div>
-      <Tabs.Root bind:value={selectedDemandCategory} class="demand-tabs">
-        <Tabs.List class="demand-tabs-list" aria-label="Demand category">
-          {#each ISLAND_DEMAND_CATEGORIES as category (category)}
-            <Tabs.Trigger value={category}>{demandCategoryLabel(category)}</Tabs.Trigger>
-          {/each}
-        </Tabs.List>
-      </Tabs.Root>
-
-      {#if islandServicesError}
-        <p class="selected-map-state" role="alert">{islandServicesError}</p>
-      {:else if islandServices && islandServices.summary.hexFeatureCount === 0}
-        <p class="selected-map-state" role="status">
-          No services with valid coordinates are available for this island.
-        </p>
-      {:else if islandServices}
-        <p class="selected-map-state" role="status">
-          {islandServices.summary.mappedCoordinateCount} services · {islandServices.summary.residentialBuildingCount} residential
-          buildings · {demandCategoryLabel(selectedDemandCategory)}
-        </p>
-      {/if}
-    </section>
-  {/if}
-
   <div
     class={`national-panel-slot${proposalMode ? ' proposal-mode-left' : ''}`}
     aria-hidden={proposalMode}
+    inert={proposalMode}
     aria-live="polite"
   >
     {#key selectedIslandId}
@@ -2920,15 +2946,7 @@
           title={config.app.name}
           caption="National score"
           overall={analyticsData?.national.score}
-          metrics={nationalMetrics}
-          islands={islandCollection.features.map((feature) => ({
-            id: feature.properties.id,
-            name: feature.properties.name,
-            atollName: feature.properties.atollName,
-            centroid: feature.properties.centroid,
-            score: feature.properties.score
-          }))}
-          onIslandSelect={selectSearchIsland}
+          national={analyticsData?.national ?? null}
           onAnalyticsOpen={openAnalytics}
           loading={!mapReady || analyticsLoading}
           error={Boolean(analyticsError)}
@@ -2936,6 +2954,22 @@
       {/if}
     {/key}
   </div>
+
+  {#if !selectedIslandId}
+    <div class="island-search-slot" aria-hidden={analyticsOpen || proposalMode} inert={analyticsOpen || proposalMode}>
+      <IslandSearch
+        islands={islandCollection.features.map((feature) => ({
+          id: feature.properties.id,
+          name: feature.properties.name,
+          atollName: feature.properties.atollName,
+          centroid: feature.properties.centroid,
+          score: feature.properties.score
+        }))}
+        onIslandSelect={selectSearchIsland}
+        loading={!mapReady || analyticsLoading}
+      />
+    </div>
+  {/if}
 
   <NationalAnalyticsCard
     bind:open={analyticsOpen}
@@ -2946,92 +2980,154 @@
     {proposalMode}
   />
 
-  {#key `${selectedIslandId ?? 'national'}:${presentationActive ? (presentationStep?.id ?? '') : ''}`}
-    <IslandAnalyticsCard
-      bind:open={islandAnalyticsOpen}
-      island={selectedIsland}
-      profile={islandProfile}
-      loading={analyticsLoading || islandProfileLoading || !selectedIsland}
-      error={analyticsError ?? islandProfileError}
-      onClose={returnToNational}
-      autoExpandConnections={presentationActive && presentationStep?.id === 'ferry-dhihdhoo-hanimaadhoo'}
-      {proposalMode}
-    />
-  {/key}
+  <IslandAnalyticsCard
+    bind:open={islandAnalyticsOpen}
+    island={selectedIsland}
+    profile={islandProfile}
+    loading={analyticsLoading || islandProfileLoading || !selectedIsland}
+    error={analyticsError ?? islandProfileError}
+    network={connectionNetwork}
+    networkLoading={connectionNetworkLoading}
+    networkError={connectionNetworkError}
+    onClose={returnToNational}
+    onIslandSelect={(islandId) => selectIslandById(islandId)}
+    onSimulate={startPresentation}
+    {proposalMode}
+  />
 
-  {#if !readerMode}
-    <section
-      class={`map-legend${proposalMode ? ' proposal-mode-left' : ''}`}
-      aria-hidden={proposalMode}
-      aria-label={selectedIslandId ? 'Demand and residential access gap legend' : 'Accessibility score legend'}
-    >
-      {#if selectedIslandId}
+  <section
+    class={`map-legend${proposalMode ? ' proposal-mode-left' : ''}`}
+    aria-hidden={proposalMode}
+    inert={proposalMode}
+    aria-label={selectedIslandId ? 'Demand and residential access gap legend' : 'Accessibility score legend'}
+  >
+    {#if selectedIslandId}
+      <div class="selected-map-heading">
         <p class="legend-title">
           {selectedDemandCategory === 'all'
             ? 'Demand + residential access gap'
             : `${demandCategoryLabel(selectedDemandCategory)} pressure + access gap`}
         </p>
-        <div class="demand-scale" aria-hidden="true"></div>
-        <div class="score-labels"><span>Low</span><span>High</span></div>
-        <div class="score-unavailable"><span></span>No mapped demand</div>
-        <div class="marker-legend-section">
-          <p class="legend-section-title">Map markers</p>
-          <ul class="marker-legend" aria-label="Map service markers">
-            {#each SERVICE_MARKER_LEGEND as marker (marker.label)}
-              {@const Icon = marker.icon}
-              <li class="marker-legend-item">
-                <span class="marker-legend-icon" style={`--marker-color: ${marker.color}`} aria-hidden="true">
-                  <Icon size={13} strokeWidth={2.5} />
-                </span>
-                <span>{marker.label}</span>
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {:else}
-        <p class="legend-title">Accessibility score</p>
-        <div class="score-scale" aria-hidden="true"></div>
-        <div class="score-labels"><span>Low</span><span>High</span></div>
-        <div class="score-unavailable"><span></span>No access / no data</div>
+        {#if islandServicesLoading}<span class="selected-map-spinner" aria-label="Loading service demand"></span>{/if}
+      </div>
+      {@render mapCategoryTabs()}
+      <div class="demand-scale" aria-hidden="true"></div>
+      <div class="score-labels"><span>Low</span><span>High</span></div>
+      <div class="score-unavailable"><span></span>No mapped demand</div>
+      <div class="marker-legend-section">
+        <p class="legend-section-title">Map markers</p>
+        <ul class="marker-legend" aria-label="Map service markers">
+          {#each SERVICE_MARKER_LEGEND as marker (marker.label)}
+            {@const Icon = marker.icon}
+            <li class="marker-legend-item">
+              <span class="marker-legend-icon" style={`--marker-color: ${marker.color}`} aria-hidden="true">
+                <Icon size={13} strokeWidth={2.5} />
+              </span>
+              <span>{marker.label}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+      {#if islandServicesError}
+        <p class="selected-map-state" role="alert">{islandServicesError}</p>
+      {:else if islandServices && islandServices.summary.hexFeatureCount === 0}
+        <p class="selected-map-state" role="status">
+          No services with valid coordinates are available for this island.
+        </p>
+      {:else if islandServices}
+        <p class="selected-map-state" role="status">
+          {islandServices.summary.mappedCoordinateCount} services · {islandServices.summary.residentialBuildingCount} residential
+          buildings · {demandCategoryLabel(selectedDemandCategory)}
+        </p>
       {/if}
-    </section>
-  {/if}
+    {:else}
+      <p class="legend-title">Accessibility score</p>
+      <div class="score-scale" aria-hidden="true"></div>
+      <div class="score-labels"><span>Low</span><span>High</span></div>
+      <div class="score-unavailable"><span></span>No access / no data</div>
+    {/if}
+  </section>
 
   {#if selectedIslandId && islandAnalyticsOpen && !proposalMode}
     <ProposalLauncher onCreate={createProposal} />
   {/if}
 
+  {#if presentation.active && presentationStory}
+    <PresentationTimeline
+      story={presentationStory}
+      sectionIndex={presentation.sectionIndex}
+      sectionProgress={presentation.sectionProgress}
+    />
+  {/if}
+
   {#if proposalMode}
-    {#if selectedIslandId}
-      <ProposalBuilder
-        services={islandServices?.services ?? []}
-        bind:query={proposalQuery}
-        bind:serviceFilter={proposalServiceFilter}
-        pending={proposalPending || islandServicesLoading}
-        moveActive={moveServiceId !== null}
-        error={proposalError}
-        message={proposalLastMessage}
-        onCancelMove={stopMoveMode}
-        onSelectService={focusService}
-        activeSelection={addServiceDraft}
-        addServiceLabel={addServiceDraft
-          ? serviceCatalogEntry(addServiceDraft.serviceType, addServiceDraft.subtype)?.label
-          : null}
-        onStartAddService={startAddService}
-        onCancelAdd={stopAddServiceMode}
-      />
-    {/if}
-    <Button
-      class="proposal-mode-close"
-      variant="outline"
-      size="icon"
-      type="button"
-      aria-label="Exit proposal mode"
-      title="Exit proposal mode"
-      onclick={closeProposalMode}
-    >
-      <X aria-hidden="true" />
-    </Button>
+    <div class="proposal-panels">
+      {#if selectedIslandId}
+        {#if !recommendationReplacementOperationId && (proposalRecommendation || recommendationPending || recommendationStarting)}
+          <PresentationRecommendationCard
+            recommendation={proposalRecommendation}
+            pending={recommendationPending || recommendationStarting}
+            onReview={applyBaarahRecommendation}
+            onDismiss={ignoreBaarahRecommendation}
+          />
+        {/if}
+        <ProposalFinancialSummary
+          settings={proposalSettings}
+          costs={draftPreview?.costs ?? null}
+          disabled={!editableProposal}
+          onSettingsChange={(settings) => void updateProposalSettings(settings)}
+          onSaveDefaults={saveCurrentProposalDefaults}
+          onRestoreDefaults={restoreCurrentProposalDefaults}
+          impact={draftPreview?.impact ?? null}
+          pending={proposalPending || islandServicesLoading}
+          exporting={proposalExporting}
+          error={proposalError ?? islandServicesError}
+          onDownload={downloadProposalPdf}
+          onClose={closeProposalMode}
+        />
+        <ProposalWorkspace
+          services={displayedServices?.services ?? []}
+          mapControls={proposalMapControls}
+          readOnly={!editableProposal}
+          canUndo={draftCursor > 0}
+          canRedo={draftCursor < draftOperations.length}
+          onUndo={() => changeDraftHistory(-1)}
+          onRedo={() => changeDraftHistory(1)}
+          onReset={resetProposalDraft}
+          canReset={draftOperations.length > 0}
+          storageMessage={draftStorageMessage}
+          restoreBlocked={draftRestoreBlocked}
+          onRetryRestore={() => {
+            if (selectedIslandId) void loadIslandServices(selectedIslandId);
+          }}
+          onStartFresh={startFreshDraft}
+          bind:query={proposalQuery}
+          bind:serviceFilter={proposalServiceFilter}
+          pending={proposalPending || islandServicesLoading}
+          moveActive={moveServiceId !== null}
+          error={proposalError ?? islandServicesError}
+          message={proposalLastMessage}
+          onCancelMove={stopMoveMode}
+          onSelectService={focusService}
+          activeSelection={addServiceDraft}
+          addServiceLabel={addServiceDraft
+            ? serviceCatalogEntry(addServiceDraft.serviceType, addServiceDraft.subtype)?.label
+            : null}
+          onStartAddService={startAddService}
+          onCancelAdd={stopAddServiceMode}
+          selectedIslandId={selectedIslandId ?? ''}
+          transportPlans={draftPreview?.transportPlans ?? []}
+          {transportEditorOperation}
+          {stagedTransportPreview}
+          bind:builderTab={proposalBuilderTab}
+          onPreviewTransport={previewTransportOperation}
+          onConfirmTransport={confirmTransportPreview}
+          onCancelTransport={cancelTransportPreview}
+          onEditTransport={editTransportOperation}
+          onRemoveTransport={removeTransportOperation}
+        />
+      {/if}
+    </div>
   {/if}
 </div>
 
@@ -3075,66 +3171,8 @@
     inset: 0;
   }
 
-  :global([data-story-target]) {
-    outline: 2px solid transparent;
-    outline-offset: 4px;
-    transition:
-      outline-color 320ms ease,
-      box-shadow 420ms ease;
-  }
-
-  :global([data-story-focus]) {
-    outline: 3px solid #f97316;
-    box-shadow:
-      0 0 0 7px rgb(249 115 22 / 16%),
-      0 0.7rem 2rem rgb(16 24 32 / 14%);
-    animation: story-focus-pulse 2.4s ease-in-out 2;
-  }
-
-  :global([data-story-target='island-elderly-population'][data-story-focus]) {
-    outline-color: #2563eb;
-    background: #eff6ff;
-    box-shadow:
-      0 0 0 7px rgb(37 99 235 / 18%),
-      0 0.7rem 2rem rgb(16 24 32 / 14%);
-    animation-name: story-focus-pulse-elderly;
-  }
-
-  @keyframes story-focus-pulse {
-    0%,
-    100% {
-      outline-color: #f97316;
-    }
-    50% {
-      outline-color: #fdba74;
-    }
-  }
-
-  @keyframes story-focus-pulse-elderly {
-    0%,
-    100% {
-      outline-color: #2563eb;
-    }
-    50% {
-      outline-color: #93c5fd;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    :global([data-story-focus]) {
-      animation: none;
-    }
-    :global([data-story-target='island-elderly-population'][data-story-focus]) {
-      animation: none;
-    }
-    :global([data-story-target]) {
-      transition: none;
-    }
-  }
-
   .national-panel-slot,
-  .map-legend,
-  .selected-map-controls {
+  .map-legend {
     will-change: transform, opacity;
     backface-visibility: hidden;
     transition:
@@ -3144,10 +3182,6 @@
 
   .national-panel-slot {
     transition-delay: 0ms;
-  }
-
-  .selected-map-controls {
-    transition-delay: 35ms;
   }
 
   .map-legend {
@@ -3160,36 +3194,36 @@
     pointer-events: none;
   }
 
-  .proposal-mode-right {
-    transform: translate3d(calc(100% + 2rem), 0, 0) scale(0.985);
-    opacity: 0;
+  .proposal-panels {
+    position: fixed;
+    inset: 1rem;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: 22rem minmax(0, 1fr) 32rem;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
     pointer-events: none;
   }
 
-  :global(.proposal-mode-close) {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 30;
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    border-radius: 999px;
-    background: var(--mobility-surface, #ffffff);
-    color: var(--mobility-accent, #09090b);
-    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
+  .proposal-panels > :global(*) {
+    pointer-events: auto;
   }
 
-  :global(.proposal-mode-close:hover) {
-    border-color: var(--mobility-accent, #09090b);
-    background: var(--mobility-accent-soft, #f4f4f5);
-    color: var(--mobility-accent, #09090b);
+  @media (max-width: 64rem) {
+    .proposal-panels {
+      inset: auto 0.75rem 0.75rem;
+      height: 60dvh;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+      align-items: stretch;
+      gap: 0.5rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .national-panel-slot,
-    .map-legend,
-    .selected-map-controls {
+    .map-legend {
       transition: none;
       will-change: auto;
     }
@@ -3206,7 +3240,7 @@
     display: grid;
     place-items: center;
     padding: 2rem;
-    background: #ffffff;
+    background: var(--mobility-surface, #ffffff);
     will-change: opacity, filter;
   }
 
@@ -3304,18 +3338,24 @@
     width: min(19rem, calc(100vw - 2rem));
   }
 
-  .selected-map-controls {
+  .island-search-slot {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    z-index: 2;
-    width: min(21rem, calc(100vw - 2rem));
-    padding: 0.8rem;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    border-radius: 0.55rem;
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
-    color: var(--mobility-text, #09090b);
+    z-index: 3;
+    transition: opacity 180ms ease-out;
+  }
+
+  .island-search-slot[aria-hidden='true'] {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .island-search-slot {
+      top: 0.65rem;
+      right: 0.65rem;
+    }
   }
 
   .selected-map-heading {
@@ -3325,58 +3365,11 @@
     gap: 0.7rem;
   }
 
-  .selected-map-eyebrow {
-    margin: 0;
-    color: var(--mobility-focus, #3f3f46);
-    font-size: 0.58rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .selected-map-heading h2 {
-    overflow: hidden;
-    margin: 0.18rem 0 0;
-    font-size: 1.05rem;
-    font-weight: 850;
-    letter-spacing: -0.025em;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .selected-map-caption,
   .selected-map-state {
     margin: 0.55rem 0 0;
     color: var(--mobility-muted, #71717a);
     font-size: 0.62rem;
     line-height: 1.3;
-  }
-
-  .service-marker-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem 0.7rem;
-    margin-top: 0.55rem;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.57rem;
-  }
-
-  .service-marker-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .marker-dot {
-    display: grid;
-    place-items: center;
-    width: 1.3rem;
-    height: 1.3rem;
-    border: 0;
-    border-radius: 50%;
-    background: var(--marker-color);
-    color: #ffffff;
-    box-shadow: 0 0.12rem 0.35rem rgb(16 24 32 / 14%);
   }
 
   .selected-map-state[role='alert'] {
@@ -3395,6 +3388,10 @@
     background: var(--mobility-surface-muted, #f4f4f5);
   }
 
+  :global(.demand-tabs-list.demand-tabs-list-comparison) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   :global(.demand-tabs-list [data-slot='tabs-trigger']) {
     min-width: 0;
     padding: 0.3rem 0.2rem;
@@ -3402,7 +3399,8 @@
     font-size: 0.58rem;
   }
 
-  :global(.demand-tabs-list [data-slot='tabs-trigger'][data-state='active']) {
+  :global(.demand-tabs-list [data-slot='tabs-trigger'][data-state='active']),
+  :global(.demand-tabs-list [data-slot='tabs-trigger'][data-active]) {
     background: var(--mobility-surface, #ffffff);
     color: var(--mobility-accent, #09090b);
     box-shadow: 0 1px 2px rgb(16 24 32 / 8%);
@@ -3423,7 +3421,7 @@
     z-index: 2;
     border: 1px solid var(--mobility-border-strong, #d4d4d8);
     border-radius: 0.55rem;
-    background: var(--mobility-surface, #ffffff);
+    background: #ffffff;
     box-shadow: 0 0.35rem 1.3rem rgb(16 24 32 / 12%);
   }
 
@@ -3440,10 +3438,13 @@
     bottom: 1rem;
     left: 1rem;
     width: min(19rem, calc(100vw - 2rem));
-    padding: 0.7rem 0.8rem;
+    padding: 0.7rem 0.8rem 1rem;
     font-size: 0.7rem;
     line-height: 1.2;
-    pointer-events: none;
+  }
+
+  .map-legend :global(.demand-tabs) {
+    margin-bottom: 0.85rem;
   }
 
   .score-scale {
@@ -3557,14 +3558,6 @@
     .national-panel-slot {
       top: 0.75rem;
       left: 0.75rem;
-    }
-
-    .selected-map-controls {
-      top: auto;
-      right: 0.75rem;
-      bottom: 8.8rem;
-      left: 0.75rem;
-      width: auto;
     }
 
     .map-legend {

@@ -14,8 +14,8 @@
     "zone_count": 5,
     "route_count": 47,
     "covered_island_count": 124,
-    "matched_official_island_count": 109,
-    "unmatched_stop_count": 15,
+    "matched_official_island_count": 110,
+    "unmatched_stop_count": 14,
     "ambiguous_stop_count": 0
   },
   "zones": [
@@ -1049,10 +1049,10 @@
       "atoll_name": "Haa Alifu",
       "latitude": 6.8881,
       "longitude": 73.11511,
-      "official_island_id": null,
-      "official_island_name": null,
+      "official_island_id": "island:625",
+      "official_island_name": "Dhidhdhoo",
       "official_atoll": "Haa Alifu",
-      "reconciliation_status": "unmatched"
+      "reconciliation_status": "matched_exact_atoll_name"
     },
     {
       "rtl_stop_name": "Sh.Noomaraa",

@@ -1,28 +1,19 @@
 <script lang="ts">
-  import type { ScoreCardMetric } from './score-presentation';
+  import type { AnalyticsData } from './national-analytics-card.svelte';
+  import type { ScoreDriver } from './score-driver-list.svelte';
 
   import { onMount } from 'svelte';
 
-  import { Input } from '$components/ui/input';
   import { Skeleton } from '$components/ui/skeleton';
 
-  import { isUnavailableScore, SCORE_NO_DATA_MESSAGES, scorePercentage, scorePresentation } from './score-presentation';
-
-  export type IslandSearchOption = {
-    id: string;
-    name: string;
-    atollName: string;
-    centroid?: [number, number];
-    score: number | null;
-  };
+  import ScoreDriverList from './score-driver-list.svelte';
+  import { isUnavailableScore, SCORE_NO_DATA_MESSAGES, scorePresentation } from './score-presentation';
 
   type Props = {
     title: string;
     caption: string;
     overall: number | null | undefined;
-    metrics: readonly ScoreCardMetric[];
-    islands?: readonly IslandSearchOption[];
-    onIslandSelect?: (island: IslandSearchOption) => void;
+    national: AnalyticsData['national'] | null;
     onAnalyticsOpen?: () => void;
     loading?: boolean;
     error?: boolean;
@@ -32,9 +23,7 @@
     title,
     caption,
     overall,
-    metrics,
-    islands = [],
-    onIslandSelect,
+    national,
     onAnalyticsOpen = () => {},
     loading = false,
     error = false
@@ -42,40 +31,28 @@
 
   let presentation = $derived(scorePresentation(overall, `${title} score unavailable`));
   let noDataMessage = $state(SCORE_NO_DATA_MESSAGES[0]);
-  let islandSearch = $state('');
-  let islandSearchOpen = $state(false);
-  let filteredIslands = $derived(
-    islands
-      .filter((island) =>
-        `${island.atollName} ${island.name}`.toLowerCase().includes(islandSearch.trim().toLowerCase())
-      )
-      .slice(0, 8)
-  );
+  const driverDefinitions = [
+    { key: 'health', label: 'Health' },
+    { key: 'education', label: 'Education' },
+    { key: 'transport', label: 'Transport' },
+    { key: 'employment', label: 'Employment' },
+    { key: 'sustainability', label: 'Sustainability' }
+  ] as const;
+  let scoreDrivers = $derived.by((): ScoreDriver[] => {
+    const categories = national?.categories;
 
-  function selectIsland(island: IslandSearchOption) {
-    islandSearch = `${island.atollName} ${island.name}`;
-    islandSearchOpen = false;
-    onIslandSelect?.(island);
-  }
-
-  function selectFirstIsland(): void {
-    const island = filteredIslands[0];
-    if (island) selectIsland(island);
-  }
-
+    return driverDefinitions.map((driver) => ({
+      ...driver,
+      score: categories?.[driver.key]?.score
+    }));
+  });
   onMount(() => {
     noDataMessage =
       SCORE_NO_DATA_MESSAGES[Math.floor(Math.random() * SCORE_NO_DATA_MESSAGES.length)] ?? SCORE_NO_DATA_MESSAGES[0];
   });
 </script>
 
-<section
-  class="national-panel"
-  aria-label="National mobility score"
-  aria-busy={loading}
-  data-score-card="national"
-  data-story-target="national-score"
->
+<section class="national-panel" aria-label="National mobility score" aria-busy={loading} data-score-card="national">
   <div class="score-card-upper">
     <div class="national-panel-header">
       <div class="score-card-heading">
@@ -99,7 +76,6 @@
         <div class="score-loading" role="status" aria-label="Loading mobility score">
           <div class="score-value">
             <Skeleton class="score-value-skeleton" />
-            <Skeleton class="score-label-skeleton" />
           </div>
           <Skeleton class="score-emoji-skeleton" />
         </div>
@@ -150,65 +126,7 @@
     </button>
   {/if}
 
-  <div class="overall-score-grid" aria-label="Score breakdown">
-    {#each metrics as metric (metric.key)}
-      <div class="overall-score-card">
-        {#if loading}
-          <Skeleton class="metric-label-skeleton" />
-          <Skeleton class="metric-value-skeleton" />
-        {:else}
-          <span>{metric.label}</span>
-          <strong>{scorePercentage(metric.value)}</strong>
-        {/if}
-      </div>
-    {/each}
-  </div>
-
-  <div class="island-search">
-    {#if loading}
-      <Skeleton class="island-search-skeleton" aria-hidden="true" />
-    {:else}
-      <Input
-        class="island-search-input"
-        bind:value={islandSearch}
-        placeholder="Search island..."
-        aria-label="Search for an island"
-        autocomplete="off"
-        onfocus={() => (islandSearchOpen = true)}
-        oninput={() => (islandSearchOpen = true)}
-        onkeydown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            selectFirstIsland();
-          }
-        }}
-        onblur={() => setTimeout(() => (islandSearchOpen = false), 120)}
-      />
-      {#if islandSearchOpen && islandSearch.trim()}
-        <div class="island-search-suggestions" role="listbox" aria-label="Island suggestions">
-          {#if filteredIslands.length === 0}
-            <p class="island-search-empty">No islands found</p>
-          {:else}
-            {#each filteredIslands as island (island.id)}
-              <button
-                class="island-search-suggestion"
-                type="button"
-                role="option"
-                aria-selected="false"
-                onpointerdown={(event) => {
-                  event.preventDefault();
-                  selectIsland(island);
-                }}
-              >
-                <span>{island.atollName} {island.name}</span>
-                <strong>{scorePercentage(island.score)}</strong>
-              </button>
-            {/each}
-          {/if}
-        </div>
-      {/if}
-    {/if}
-  </div>
+  <ScoreDriverList drivers={scoreDrivers} {loading} />
 
   {#if error}<p class="panel-error">Details unavailable. The map score may still be shown.</p>{/if}
 </section>
@@ -217,7 +135,7 @@
   .national-panel {
     position: relative;
     width: min(19rem, calc(100vw - 2rem));
-    padding: 0.9rem 1rem;
+    padding: 0.72rem 0.9rem;
     border: 1px solid var(--mobility-border-strong, #d4d4d8);
     border-radius: 0.55rem;
     background: var(--mobility-surface, #ffffff);
@@ -271,85 +189,6 @@
     margin-top: 0.18rem;
     border-radius: 999px;
   }
-  .island-search {
-    position: relative;
-    width: 100%;
-    margin-top: 0.8rem;
-  }
-  :global(.island-search-skeleton) {
-    width: 100%;
-    height: 2rem;
-    border-radius: 0.38rem;
-  }
-  :global(.island-search-input) {
-    width: 100%;
-    height: 2rem;
-    border-color: var(--mobility-border-strong, #d4d4d8);
-    background: var(--mobility-surface-soft, #fafafa);
-    color: var(--mobility-text, #09090b);
-    font-size: 0.68rem;
-    font-weight: 650;
-  }
-  :global(.island-search-input::placeholder) {
-    color: #7a858a;
-  }
-  :global(.island-search-input:focus-visible) {
-    border-color: var(--mobility-focus, #3f3f46);
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0 0 3px rgb(9 9 11 / 16%);
-  }
-  .island-search-suggestions {
-    position: absolute;
-    top: calc(100% + 0.25rem);
-    right: 0;
-    left: 0;
-    z-index: 10;
-    display: grid;
-    max-height: 14rem;
-    overflow-y: auto;
-    padding: 0.3rem;
-    border: 1px solid var(--mobility-border-strong, #d4d4d8);
-    border-radius: 0.42rem;
-    background: var(--mobility-surface, #ffffff);
-    box-shadow: 0 0.45rem 1.1rem rgb(16 24 32 / 12%);
-  }
-  .island-search-suggestion {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 0.48rem 0.5rem;
-    border: 0;
-    border-radius: 0.3rem;
-    background: transparent;
-    color: var(--mobility-text, #09090b);
-    cursor: pointer;
-    font-size: 0.68rem;
-    text-align: left;
-  }
-  .island-search-suggestion:hover,
-  .island-search-suggestion:focus-visible {
-    background: var(--mobility-accent-soft, #f4f4f5);
-    outline: none;
-  }
-  .island-search-suggestion span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .island-search-suggestion strong {
-    flex: 0 0 auto;
-    color: var(--mobility-accent, #09090b);
-    font-size: 0.65rem;
-    font-variant-numeric: tabular-nums;
-  }
-  .island-search-empty {
-    margin: 0;
-    padding: 0.5rem;
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.68rem;
-  }
   :global(.why-score-button) {
     display: flex;
     align-items: center;
@@ -385,36 +224,43 @@
   }
   .score-mood {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
+    column-gap: 0.75rem;
     width: min(15rem, 100%);
-    margin: 0.28rem auto 1.25rem;
+    margin: 0.2rem auto 0.75rem;
   }
   .score-loading {
     display: contents;
   }
   .score-value {
+    grid-column: 2;
     min-width: 0;
-    text-align: left;
+    justify-self: end;
+    text-align: right;
   }
   .score-value strong {
     display: block;
-    font-size: 2.9rem;
+    font-size: 2.5rem;
     font-weight: 800;
     letter-spacing: -0.05em;
     line-height: 1;
   }
   .score-emoji {
     display: block;
-    width: 5.25rem;
-    height: 5.25rem;
+    grid-column: 1;
+    grid-row: 1;
+    width: 4.25rem;
+    height: 4.25rem;
     object-fit: contain;
   }
   .score-emoji-placeholder {
     display: grid;
+    grid-column: 1;
+    grid-row: 1;
     place-items: center;
-    width: 5.25rem;
-    height: 5.25rem;
+    width: 4.25rem;
+    height: 4.25rem;
     color: #8b949b;
     font-size: 1.7rem;
     font-weight: 800;
@@ -428,8 +274,8 @@
     text-align: center;
   }
   .score-no-data img {
-    width: 5.1rem;
-    height: 5.1rem;
+    width: 4.25rem;
+    height: 4.25rem;
     object-fit: contain;
   }
   .score-no-data strong {
@@ -443,36 +289,6 @@
     font-size: 0.62rem;
     line-height: 1.35;
   }
-  .overall-score-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-    margin-top: 0.6rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--mobility-border, #e4e4e7);
-  }
-  .overall-score-card {
-    display: grid;
-    gap: 0.14rem;
-    min-width: 0;
-    min-height: 2.65rem;
-    padding: 0.48rem 0.55rem;
-    border: 1px solid var(--mobility-border, #e4e4e7);
-    border-radius: 0.4rem;
-    background: #fafafa;
-  }
-  .overall-score-card span {
-    color: var(--mobility-muted, #71717a);
-    font-size: 0.55rem;
-    font-weight: 700;
-    line-height: 1.1;
-  }
-  .overall-score-card strong {
-    color: var(--mobility-text, #09090b);
-    font-size: 0.76rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
   .panel-error {
     margin: 0.55rem 0 0;
     color: #b42318;
@@ -484,31 +300,18 @@
     background-size: 200% 100%;
   }
   :global(.score-value-skeleton) {
+    grid-column: 2;
+    justify-self: end;
     width: 5.1rem;
     height: 2.9rem;
     border-radius: 0.35rem;
   }
-  :global(.score-label-skeleton) {
-    width: 3.8rem;
-    height: 0.62rem;
-    margin-top: 0.2rem;
-    border-radius: 999px;
-  }
   :global(.score-emoji-skeleton) {
-    width: 5.25rem;
-    height: 5.25rem;
+    grid-column: 1;
+    grid-row: 1;
+    width: 4.25rem;
+    height: 4.25rem;
     border-radius: 50%;
-  }
-  :global(.metric-label-skeleton) {
-    width: 72%;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.metric-value-skeleton) {
-    width: 3rem;
-    height: 0.76rem;
-    margin-top: 0.14rem;
-    border-radius: 999px;
   }
   @media (max-width: 480px) {
     .national-panel {

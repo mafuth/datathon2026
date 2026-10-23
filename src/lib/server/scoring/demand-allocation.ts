@@ -363,7 +363,12 @@ function selectDestination(
         destinationIslandId: candidate.islandId,
         routeType: candidate.routeType,
         routeFactor: candidate.factor,
-        serviceSubtype: candidate.service.subtype
+        serviceSubtype: candidate.service.subtype,
+        distanceM: candidate.connection.distanceM,
+        hopCount: 1,
+        pathIslandIds: [originIslandId, candidate.islandId],
+        pathConnectionIds: [candidate.connection.id],
+        knownConnectivity: true
       }
     : { destinationIslandId: null, routeType: 'unavailable', routeFactor: 0, serviceSubtype: null };
 }
@@ -434,7 +439,7 @@ export function buildDemandAllocation(snapshot: ScoringSnapshot): DemandAllocati
         if (demand <= 0) continue;
         addNeedDemand(originSummary, category, needKey, 'local', demand);
         const destination =
-          category === 'health' && needKey === 'chronic_elderly'
+          category === 'health' && (needKey === 'chronic_elderly' || needKey === 'hospital_emergency')
             ? destinationFromServiceRoute(elderlyHospitalRouting.canonical)
             : selectDestination(snapshot, origin.id, category, needKey);
         const allocation: DemandAllocation = {

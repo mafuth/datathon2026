@@ -10,6 +10,7 @@ import type {
   TransportStopMode
 } from './types';
 
+import { landReachableIslands } from '../mobility/land-topology';
 import { scoringConfig } from './config';
 
 type CohortDemand = {
@@ -26,9 +27,11 @@ type StopAccumulator = {
   elderly: number;
   careTransfer: number;
   educationTransfer: number;
+  outbound: number;
 };
 
 type TransferLeg = {
+  connectionId: string;
   mode: TransportStopMode;
   originIslandId: string;
   destinationIslandId: string;
@@ -51,7 +54,6 @@ const connectedIslandIdsCache = new WeakMap<ScoringSnapshot, Map<string, string[
 const careAllocationsCache = new WeakMap<DemandAllocationResult, DemandAllocation[]>();
 const educationAllocationsCache = new WeakMap<DemandAllocationResult, DemandAllocation[]>();
 const transferLegsCache = new WeakMap<ScoringSnapshot, WeakMap<DemandAllocation, Map<boolean, TransferLeg[]>>>();
-const endpointStopsCache = new WeakMap<ScoringSnapshot, WeakMap<TransportStop[], Map<string, TransportStop[]>>>();
 
 function round(value: number): number {
   return Number(value.toFixed(2));
@@ -93,7 +95,7 @@ function cohortDemand(snapshot: ScoringSnapshot, islandId: string): CohortDemand
   return result;
 }
 
-function stopMode(stop: TransportStop): TransportStopMode {
+function stopMode(stop: Pick<TransportStop, 'subtype'>): TransportStopMode {
   if (AIR_STOP_TYPES.has(stop.subtype)) return 'air';
   if (MARINE_STOP_TYPES.has(stop.subtype)) return 'marine';
   return 'land';
@@ -135,7 +137,7 @@ function stopsForSnapshot(snapshot: ScoringSnapshot): TransportStop[] {
       if (stopKeys.has(key)) continue;
       stops.push({
         id: `virtual:${mode}:${islandId}`,
-        name: mode === 'air' ? 'Air transfer point' : 'Ferry transfer point',
+        name: mode === 'air' ? 'Air endpoint — terminal unresolved' : 'Ferry endpoint — terminal unresolved',
         islandId,
         subtype: mode === 'air' ? 'airport' : 'port',
         latitude: null,
@@ -163,7 +165,7 @@ function routeIslands(snapshot: ScoringSnapshot): Map<string, Set<string>> {
   return islandsByRoute;
 }
 
-function directlyConnectedIslands(snapshot: ScoringSnapshot, islandId: string): Set<string> {
+function accessibleLandIslands(snapshot: ScoringSnapshot, islandId: string): Set<string> {
   let byIsland = directConnectionsCache.get(snapshot);
   if (!byIsland) {
     byIsland = new Map<string, Set<string>>();
@@ -172,8 +174,9 @@ function directlyConnectedIslands(snapshot: ScoringSnapshot, islandId: string): 
   const cached = byIsland.get(islandId);
   if (cached) return cached;
 
-  const connected = new Set<string>();
+  const connected = landReachableIslands(snapshot.connections, islandId);
   for (const connection of snapshot.connections.filter((entry) => entry.scoreEligible !== false)) {
+    if (!LAND_CONNECTION_TYPES.has(connection.connectionType)) continue;
     if (connection.fromIslandId === islandId) connected.add(connection.toIslandId);
     if (connection.toIslandId === islandId && connection.directionality === 'bidirectional') {
       connected.add(connection.fromIslandId);
@@ -192,11 +195,7 @@ function connectionsById(snapshot: ScoringSnapshot): Map<string, ScoringSnapshot
   return result;
 }
 
-function connectedIslandIds(
-  snapshot: ScoringSnapshot,
-  stop: TransportStop,
-  islandsByRoute: Map<string, Set<string>>
-): string[] {
+function connectedIslandIds(snapshot: ScoringSnapshot, stop: TransportStop): string[] {
   let byStop = connectedIslandIdsCache.get(snapshot);
   if (!byStop) {
     byStop = new Map<string, string[]>();
@@ -206,76 +205,88 @@ function connectedIslandIds(
   if (cached) return cached;
 
   const connected = new Set<string>();
-  for (const routeId of stop.routeIds) {
-    for (const islandId of islandsByRoute.get(routeId) ?? []) {
-      if (islandId !== stop.islandId) connected.add(islandId);
-    }
+  for (const connection of snapshot.connections) {
+    if (connection.scoreEligible === false || connectionMode(connection, true) !== stopMode(stop)) continue;
+    if (!connection.routeId || !stop.routeIds.includes(connection.routeId) || connection.sequence === null) continue;
+    const pair = resolveConnectionStopPair(connection, snapshot.routeStops, stopsForSnapshot(snapshot));
+    if (!pair) continue;
+    if (pair.fromStopId === stop.id) connected.add(connection.toIslandId);
+    if (pair.toStopId === stop.id && connection.directionality === 'bidirectional')
+      connected.add(connection.fromIslandId);
   }
-  for (const islandId of directlyConnectedIslands(snapshot, stop.islandId)) connected.add(islandId);
+  connected.delete(stop.islandId);
   const result = [...connected].sort();
   byStop.set(stop.id, result);
   return result;
 }
 
-function routeLinksIslands(
-  stop: TransportStop,
-  originIslandId: string,
-  destinationIslandId: string,
-  islandsByRoute: Map<string, Set<string>>
-): boolean {
-  return stop.routeIds.some((routeId) => {
-    const islands = islandsByRoute.get(routeId);
-    return Boolean(islands?.has(originIslandId) && islands.has(destinationIslandId));
-  });
-}
-
-function normalizeLabel(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-}
-
-function preferredDestinationStops(
-  snapshot: ScoringSnapshot,
-  candidates: TransportStop[],
-  mode: TransportStopMode,
-  destinationIslandId: string
-): TransportStop[] {
-  const destination = snapshot.islands.find((island) => island.id === destinationIslandId);
-  const destinationName = destination ? normalizeLabel(destination.name) : '';
-  const hubRouting = scoringConfig.transportDemandPolicy.hospitalHubRouting;
-
-  if (mode === 'air' && destinationName === 'hulhule') {
-    const preferred = candidates.filter(
-      (stop) =>
-        hubRouting.hulhuleAirportStopIds.includes(stop.id) ||
-        (stop.subtype === 'airport' &&
-          hubRouting.hulhuleAirportNameTokens.some((token) =>
-            normalizeLabel(stop.name ?? '').includes(normalizeLabel(token))
-          ))
+export function resolveConnectionStopPair(
+  connection: Pick<
+    ScoringSnapshot['connections'][number],
+    'routeId' | 'sequence' | 'fromIslandId' | 'toIslandId' | 'connectionType'
+  >,
+  routeStops: ScoringSnapshot['routeStops'],
+  stops: Array<Pick<TransportStop, 'id' | 'islandId' | 'subtype' | 'routeIds'>>
+): { fromStopId: string; toStopId: string; fromTerminalEvidence: string; toTerminalEvidence: string } | null {
+  if (!connection.routeId || connection.sequence === null) return null;
+  const sequence = connection.sequence;
+  const calls = routeStops.filter((call) => call.routeId === connection.routeId);
+  const canonicalFrom = calls.filter(
+    (call) => call.sequence === sequence - 1 && call.islandId === connection.fromIslandId
+  );
+  const canonicalTo = calls.filter((call) => call.sequence === sequence && call.islandId === connection.toIslandId);
+  const from = canonicalFrom.length === 1 && canonicalTo.length === 1 ? canonicalFrom : [];
+  const to = canonicalFrom.length === 1 && canonicalTo.length === 1 ? canonicalTo : [];
+  if (from.length !== 1 || to.length !== 1) {
+    const adjacentFrom = calls.filter((call) => call.islandId === connection.fromIslandId);
+    const adjacentTo = calls.filter((call) => call.islandId === connection.toIslandId);
+    const pairs = adjacentFrom.flatMap((origin) =>
+      adjacentTo
+        .filter((destination) => Math.abs(destination.sequence - origin.sequence) === 1)
+        .map((destination) => ({ origin, destination }))
     );
-    return preferred.length > 0 ? preferred : candidates.filter((stop) => stop.subtype === 'airport');
-  }
-
-  if (mode === 'marine' && destinationName === 'male') {
-    const named = candidates.filter((stop) => stop.name !== null);
-    const preferred = named.filter((stop) =>
-      hubRouting.maleMarineStopNameAliases.some((alias) =>
-        normalizeLabel(stop.name ?? '').includes(normalizeLabel(alias))
+    if (pairs.length !== 1) return null;
+    const pair = pairs[0];
+    const mode =
+      connection.connectionType === 'air' ? 'air' : connection.connectionType === 'ferry' ? 'marine' : 'land';
+    if (
+      ![pair.origin, pair.destination].every((call) =>
+        stops.some(
+          (stop) =>
+            stop.id === call.stopId &&
+            stop.islandId === call.islandId &&
+            stopMode(stop) === mode &&
+            stop.routeIds.includes(call.routeId)
+        )
       )
-    );
-    if (preferred.length > 0) return preferred;
-    const fallback = named.filter((stop) =>
-      hubRouting.maleMarineStopNameTokens.some((token) =>
-        normalizeLabel(stop.name ?? '').includes(normalizeLabel(token))
-      )
-    );
-    return fallback.length > 0 ? fallback : candidates;
+    )
+      return null;
+    return {
+      fromStopId: pair.origin.stopId,
+      toStopId: pair.destination.stopId,
+      fromTerminalEvidence: pair.origin.terminalEvidence ?? 'Ordered operator route-stop record',
+      toTerminalEvidence: pair.destination.terminalEvidence ?? 'Ordered operator route-stop record'
+    };
   }
-
-  return candidates;
+  const mode = connection.connectionType === 'air' ? 'air' : connection.connectionType === 'ferry' ? 'marine' : 'land';
+  if (
+    ![from[0], to[0]].every((call) =>
+      stops.some(
+        (stop) =>
+          stop.id === call.stopId &&
+          stop.islandId === call.islandId &&
+          stopMode(stop) === mode &&
+          stop.routeIds.includes(call.routeId)
+      )
+    )
+  )
+    return null;
+  return {
+    fromStopId: from[0].stopId,
+    toStopId: to[0].stopId,
+    fromTerminalEvidence: from[0].terminalEvidence ?? 'Ordered operator route-stop record',
+    toTerminalEvidence: to[0].terminalEvidence ?? 'Ordered operator route-stop record'
+  };
 }
 
 function eligibleStops(
@@ -287,67 +298,14 @@ function eligibleStops(
   const candidates = stops.filter((stop) => {
     if (stopMode(stop) !== 'land') return false;
     if (stop.islandId === originIslandId) return true;
-    if (stop.routeIds.length > 0) {
-      return stop.routeIds.some((routeId) => islandsByRoute.get(routeId)?.has(originIslandId));
-    }
-    return (
-      stop.routeIds.some((routeId) => islandsByRoute.get(routeId)?.has(originIslandId)) ||
-      directlyConnectedIslands(snapshot, stop.islandId).has(originIslandId)
-    );
+    if (accessibleLandIslands(snapshot, originIslandId).has(stop.islandId)) return true;
+    return stop.routeIds.some((routeId) => islandsByRoute.get(routeId)?.has(originIslandId));
   });
   if (candidates.length > 0) return candidates;
 
   const localStops = stops.filter((stop) => stop.islandId === originIslandId);
   if (localStops.length > 0) return localStops;
-  return stops.filter((stop) => directlyConnectedIslands(snapshot, originIslandId).has(stop.islandId));
-}
-
-function endpointStops(
-  snapshot: ScoringSnapshot,
-  stops: TransportStop[],
-  mode: TransportStopMode,
-  originIslandId: string,
-  destinationIslandId: string,
-  islandsByRoute: Map<string, Set<string>>
-): TransportStop[] {
-  let byStops = endpointStopsCache.get(snapshot);
-  if (!byStops) {
-    byStops = new WeakMap<TransportStop[], Map<string, TransportStop[]>>();
-    endpointStopsCache.set(snapshot, byStops);
-  }
-  let byEndpoint = byStops.get(stops);
-  if (!byEndpoint) {
-    byEndpoint = new Map<string, TransportStop[]>();
-    byStops.set(stops, byEndpoint);
-  }
-  const key = JSON.stringify([mode, originIslandId, destinationIslandId]);
-  const cached = byEndpoint.get(key);
-  if (cached) return cached;
-
-  const linked = stops.filter(
-    (stop) =>
-      stopMode(stop) === mode &&
-      (stop.islandId === originIslandId || stop.islandId === destinationIslandId) &&
-      routeLinksIslands(stop, originIslandId, destinationIslandId, islandsByRoute)
-  );
-  const candidates =
-    linked.length > 0
-      ? linked
-      : stops.filter(
-          (stop) =>
-            stopMode(stop) === mode && (stop.islandId === originIslandId || stop.islandId === destinationIslandId)
-        );
-  const destinationCandidates = candidates.filter((stop) => stop.islandId === destinationIslandId);
-  const preferredDestination = preferredDestinationStops(snapshot, destinationCandidates, mode, destinationIslandId);
-  if (preferredDestination.length === 0 || preferredDestination.length === destinationCandidates.length) {
-    byEndpoint.set(key, candidates);
-    return candidates;
-  }
-
-  const preferredIds = new Set(preferredDestination.map((stop) => stop.id));
-  const result = candidates.filter((stop) => stop.islandId === originIslandId || preferredIds.has(stop.id));
-  byEndpoint.set(key, result);
-  return result;
+  return stops.filter((stop) => accessibleLandIslands(snapshot, originIslandId).has(stop.islandId));
 }
 
 function connectionMode(
@@ -383,24 +341,17 @@ function transferLegs(snapshot: ScoringSnapshot, allocation: DemandAllocation, i
       const mode = connection ? connectionMode(connection, includeLand) : null;
       const originIslandId = pathIslandIds[index];
       const destinationIslandId = pathIslandIds[index + 1];
-      return mode && originIslandId && destinationIslandId ? [{ mode, originIslandId, destinationIslandId }] : [];
+      const eligible =
+        connection &&
+        connection.scoreEligible !== false &&
+        ((connection.fromIslandId === originIslandId && connection.toIslandId === destinationIslandId) ||
+          (connection.directionality === 'bidirectional' &&
+            connection.toIslandId === originIslandId &&
+            connection.fromIslandId === destinationIslandId));
+      return eligible && mode && originIslandId && destinationIslandId
+        ? [{ connectionId, mode, originIslandId, destinationIslandId }]
+        : [];
     });
-    byMode.set(includeLand, result);
-    return result;
-  }
-
-  if (
-    allocation.destinationIslandId &&
-    allocation.destinationIslandId !== allocation.originIslandId &&
-    (allocation.routeType === 'marine' || allocation.routeType === 'airport')
-  ) {
-    const result = [
-      {
-        mode: allocation.routeType === 'airport' ? 'air' : 'marine',
-        originIslandId: allocation.originIslandId,
-        destinationIslandId: allocation.destinationIslandId
-      }
-    ];
     byMode.set(includeLand, result);
     return result;
   }
@@ -432,6 +383,28 @@ function careAllocations(result: DemandAllocationResult): DemandAllocation[] {
         allocation.routeType === 'marine' ||
         allocation.routeType === 'airport')
   );
+  // Emergency need overlaps the younger and elderly cohorts. Only add the
+  // residual on the same hospital path, never a second copy of those residents.
+  for (const emergency of result.byOriginNeed.values()) {
+    if (
+      emergency.category !== 'health' ||
+      emergency.needKey !== 'hospital_emergency' ||
+      !emergency.knownConnectivity ||
+      !emergency.destinationIslandId ||
+      emergency.destinationIslandId === emergency.originIslandId
+    )
+      continue;
+    const alreadyAllocated = allocations
+      .filter(
+        (allocation) =>
+          allocation.originIslandId === emergency.originIslandId &&
+          allocation.destinationIslandId === emergency.destinationIslandId &&
+          (allocation.pathConnectionIds ?? []).join('|') === (emergency.pathConnectionIds ?? []).join('|')
+      )
+      .reduce((sum, allocation) => sum + allocation.demand, 0);
+    const demand = Math.max(0, emergency.demand - alreadyAllocated);
+    if (demand > 0) allocations.push({ ...emergency, demand });
+  }
   careAllocationsCache.set(result, allocations);
   return allocations;
 }
@@ -461,28 +434,49 @@ function addTransferDemand(
   allocations: DemandAllocation[],
   accumulators: Map<string, StopAccumulator>,
   allStops: TransportStop[],
-  islandsByRoute: Map<string, Set<string>>,
+  unresolvedIslands: Set<string>,
   field: 'careTransfer' | 'educationTransfer'
 ): number {
   const demandByAllocation = new Map<string, number>();
   for (const allocation of allocations) {
     const legs = transferLegs(snapshot, allocation, field === 'educationTransfer');
     for (const [legIndex, leg] of legs.entries()) {
-      const endpoints = endpointStops(
-        snapshot,
-        allStops,
-        leg.mode,
-        leg.originIslandId,
-        leg.destinationIslandId,
-        islandsByRoute
-      );
-      if (endpoints.length === 0) continue;
-      const share = allocation.demand / endpoints.length;
-      demandByAllocation.set(`${allocationKey(allocation)}:${legIndex}`, allocation.demand);
-      for (const stop of endpoints) {
-        const accumulator = accumulators.get(stop.id);
-        if (accumulator) accumulator[field] += share;
+      const connection = connectionsById(snapshot).get(leg.connectionId);
+      if (!connection) continue;
+      const pair = resolveConnectionStopPair(connection, snapshot.routeStops, allStops);
+      // Island connectivity does not establish which terminal serves the route.
+      if (!pair) {
+        unresolvedIslands.add(leg.originIslandId);
+        unresolvedIslands.add(leg.destinationIslandId);
+        continue;
       }
+      const departureId = connection.fromIslandId === leg.originIslandId ? pair.fromStopId : pair.toStopId;
+      const endpoints = [
+        { stopId: pair.fromStopId, islandId: connection.fromIslandId, evidence: pair.fromTerminalEvidence },
+        { stopId: pair.toStopId, islandId: connection.toIslandId, evidence: pair.toTerminalEvidence }
+      ];
+      // Preserve the existing pressure units: one allocation per leg, divided
+      // between departure and arrival. Outbound is a subset, not extra demand.
+      const share = allocation.demand / 2;
+      const key = `${allocationKey(allocation)}:${legIndex}`;
+      if (demandByAllocation.has(key)) continue;
+      let attributed = 0;
+      for (const { stopId, islandId, evidence } of endpoints) {
+        // RTL can identify an island call while explicitly leaving its physical
+        // terminal unresolved. Preserve the known endpoint's half, but never
+        // assign the other half to a synthetic stop or a nearby physical jetty.
+        if (evidence.toLowerCase().includes('unresolved') || stopId.startsWith('virtual:')) {
+          unresolvedIslands.add(islandId);
+          continue;
+        }
+        const accumulator = accumulators.get(stopId);
+        if (accumulator) {
+          accumulator[field] += share;
+          if (stopId === departureId) accumulator.outbound += share;
+          attributed += share;
+        }
+      }
+      demandByAllocation.set(key, attributed);
     }
   }
   return round([...demandByAllocation.values()].reduce((sum, value) => sum + value, 0));
@@ -512,7 +506,7 @@ export function calculateTransportDemand(
     (stop) =>
       stop.islandId === islandId ||
       stop.routeIds.some((routeId) => islandsByRoute.get(routeId)?.has(islandId)) ||
-      directlyConnectedIslands(snapshot, stop.islandId).has(islandId)
+      accessibleLandIslands(snapshot, islandId).has(stop.islandId)
   );
   const accumulators = new Map<string, StopAccumulator>();
   for (const stop of stops) {
@@ -523,7 +517,8 @@ export function calculateTransportDemand(
       students: 0,
       elderly: 0,
       careTransfer: 0,
-      educationTransfer: 0
+      educationTransfer: 0,
+      outbound: 0
     });
   }
 
@@ -546,12 +541,13 @@ export function calculateTransportDemand(
     }
   }
 
+  const unresolvedIslands = new Set<string>();
   const careTransferDemand = addTransferDemand(
     snapshot,
     careAllocations(demandAllocations),
     accumulators,
     allStops,
-    islandsByRoute,
+    unresolvedIslands,
     'careTransfer'
   );
   const educationTransferDemand = addTransferDemand(
@@ -559,14 +555,19 @@ export function calculateTransportDemand(
     educationAllocations(demandAllocations),
     accumulators,
     allStops,
-    islandsByRoute,
+    unresolvedIslands,
     'educationTransfer'
+  );
+  const unservedOrigins = new Set(
+    [...demandAllocations.byOriginNeed.values()]
+      .filter((allocation) => allocation.demand > 0 && allocation.destinationIslandId === null)
+      .map((allocation) => allocation.originIslandId)
   );
 
   const demandStops: TransportDemandStop[] = stops.map((stop) => {
     const accumulator = accumulators.get(stop.id) as StopAccumulator;
     const mode = stopMode(stop);
-    const connected = connectedIslandIds(snapshot, stop, islandsByRoute);
+    const connected = connectedIslandIds(snapshot, stop);
     const servedPopulation = [stop.islandId, ...connected].reduce((sum, sourceIslandId) => {
       const cohorts = cohortDemand(snapshot, sourceIslandId);
       return sum + cohorts.working + cohorts.students + cohorts.elderly;
@@ -594,6 +595,19 @@ export function calculateTransportDemand(
       mode,
       routeIds: stop.routeIds,
       connectedIslandIds: connected,
+      departureTransferDemand:
+        (unresolvedIslands.has(stop.islandId) || unservedOrigins.has(stop.islandId)) && accumulator.outbound === 0
+          ? null
+          : round(accumulator.outbound),
+      arrivalTransferDemand:
+        unresolvedIslands.has(stop.islandId) &&
+        accumulator.careTransfer + accumulator.educationTransfer - accumulator.outbound === 0
+          ? null
+          : round(accumulator.careTransfer + accumulator.educationTransfer - accumulator.outbound),
+      outboundDemand:
+        (unresolvedIslands.has(stop.islandId) || unservedOrigins.has(stop.islandId)) && accumulator.outbound === 0
+          ? null
+          : round(accumulator.outbound),
       localDemand: round(accumulator.localDemand),
       connectedDemand: round(accumulator.connectedDemand),
       workingDemand: round(accumulator.working),
@@ -607,7 +621,13 @@ export function calculateTransportDemand(
       score: round(factor * 100),
       status: 'partial',
       limitation:
-        'Stop capacity and passenger counts are estimated because validated transport capacity is unavailable; resident cohorts are allocated once and only known hospital or education routes add transfer demand.'
+        'Stop capacity and passenger counts are estimated because validated transport capacity is unavailable; transfer pressure is split equally between recorded departure and arrival terminals. Outbound is the departure share of transfer pressure, not an additional passenger count.' +
+        (unresolvedIslands.has(stop.islandId)
+          ? ' Some transfer demand is unavailable at terminal level because ordered route-stop evidence is missing; it has not been distributed to other terminals.'
+          : '') +
+        (unservedOrigins.has(stop.islandId)
+          ? ' Some outbound service need has no eligible connection to an appropriate facility and remains unserved; no terminal demand is inferred for it.'
+          : '')
     };
   });
 
@@ -641,7 +661,7 @@ export function calculateTransportDemand(
     hubType: modeHubType(stop.mode),
     localDemand: stop.localDemand,
     incomingDemand: stop.connectedDemand,
-    outboundDemand: 0,
+    outboundDemand: stop.outboundDemand,
     transferDemand: round(stop.careTransferDemand + stop.educationTransferDemand),
     careTransferDemand: stop.careTransferDemand,
     educationTransferDemand: stop.educationTransferDemand,
@@ -655,6 +675,18 @@ export function calculateTransportDemand(
   }));
 
   const result = {
+    limitations: [
+      ...(stops.some((stop) => unresolvedIslands.has(stop.islandId))
+        ? [
+            'Some service transfer demand is unavailable at terminal level: eligible island connections lack ordered terminal attribution. No substitute terminal or route is inferred.'
+          ]
+        : []),
+      ...(unservedOrigins.has(islandId)
+        ? [
+            'Some outbound service need has no eligible connection to an appropriate facility. It remains unserved and is unavailable as terminal transfer demand.'
+          ]
+        : [])
+    ],
     workingDemand: round(allCohorts.working),
     studentDemand: round(allCohorts.students),
     elderlyDemand: round(allCohorts.elderly),
@@ -671,6 +703,33 @@ export function calculateTransportDemand(
   };
   byIsland.set(islandId, result);
   return result;
+}
+
+export function buildTransportInfrastructure(snapshot: ScoringSnapshot): Array<{
+  id: string;
+  islandId: string;
+  name: string | null;
+  subtype: string;
+  mode: TransportStopMode;
+  routeIds: string[];
+  connectedIslandIds: string[];
+}> {
+  const allStops = stopsForSnapshot(snapshot);
+  return allStops.flatMap((stop) => {
+    const mode = stopMode(stop);
+    if (!mode) return [];
+    return [
+      {
+        id: stop.id,
+        islandId: stop.islandId,
+        name: stop.name,
+        subtype: stop.subtype,
+        mode,
+        routeIds: stop.routeIds,
+        connectedIslandIds: connectedIslandIds(snapshot, stop)
+      }
+    ];
+  });
 }
 
 function allocationKey(allocation: DemandAllocation): string {

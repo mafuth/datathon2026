@@ -22,6 +22,8 @@ import {
   VehicleCount
 } from '../src/lib/db/models';
 import db from '../src/lib/server/database';
+import { loadLandTopology } from '../src/lib/server/mobility/land-topology-data';
+import { retainEvidencedAirportLinks } from '../src/lib/server/scoring/airport-evidence';
 
 type Position = [number, number];
 type Ring = Position[];
@@ -76,7 +78,7 @@ type OSMConnection = {
   id: string;
   from_island_id: string;
   to_island_id: string;
-  connection_type: 'bridge' | 'causeway';
+  connection_type: 'bridge' | 'causeway' | 'land_link';
   directionality: 'forward' | 'bidirectional';
   sequence: number | null;
   distance_m: number | null;
@@ -84,6 +86,7 @@ type OSMConnection = {
   source: 'OpenStreetMap';
   source_object_id: string;
   modeled: false;
+  score_eligible?: boolean;
 };
 type OSMServicesArtifact = { services: OSMService[] };
 type OSMMarineArtifact = { services: OSMService[]; routes: OSMRoute[] };
@@ -610,7 +613,7 @@ for (const connection of osmConnections) {
     source: connection.source,
     sourceObjectId: connection.source_object_id,
     modeled: connection.modeled,
-    scoreEligible: true
+    scoreEligible: connection.score_eligible ?? true
   });
   connectionIds.add(connection.id);
 }
@@ -674,11 +677,27 @@ for (const route of rtlFerry.routes) {
       source: 'RTL',
       sourceObjectId: `${route.route_id}:${route.route_code}:${index}`,
       modeled: false,
-      scoreEligible: false
+      scoreEligible: true
     });
     connectionIds.add(id);
   }
 }
+
+const sharedConnections = retainEvidencedAirportLinks(
+  loadLandTopology(
+    baseline.islands,
+    transportConnections.map((connection) => ({
+      ...connection,
+      routeId: connection.routeId ?? null,
+      sequence: connection.sequence ?? null,
+      distanceM: connection.distanceM ?? null,
+      geoJson: connection.geoJson ?? null,
+      modeled: connection.modeled ?? true,
+      scoreEligible: connection.scoreEligible ?? true
+    }))
+  ),
+  services
+);
 
 await db.transaction(async (tx) => {
   await tx.delete(JobLocation);
@@ -696,7 +715,7 @@ await db.transaction(async (tx) => {
   await insertChunks(services, async (chunk) => tx.insert(Service).values(chunk));
   await insertChunks(jobLocations, async (chunk) => tx.insert(JobLocation).values(chunk));
   await insertChunks(transportRoutes, async (chunk) => tx.insert(TransportRoute).values(chunk));
-  await insertChunks(transportConnections, async (chunk) => tx.insert(TransportConnection).values(chunk));
+  await insertChunks(sharedConnections, async (chunk) => tx.insert(TransportConnection).values(chunk));
 });
 
 console.log(
@@ -710,9 +729,11 @@ console.log(
         services: services.length,
         jobLocations: jobLocations.length,
         transportRoutes: transportRoutes.length,
-        transportConnections: transportConnections.length,
+        transportConnections: sharedConnections.length,
         rtlFerryRoutes: rtlFerryRouteIds.size,
-        rtlFerryConnections: transportConnections.filter((connection) => connection.source === 'RTL').length,
+        rtlFerryConnections: sharedConnections.filter(
+          (connection) => connection.source === 'RTL' && connection.connectionType === 'ferry'
+        ).length,
         rtlFerrySkippedSegments
       },
       servicePatch: {

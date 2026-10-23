@@ -1,14 +1,17 @@
 <script lang="ts">
-  import type { IslandProfile } from './island-profile';
+  import type { IslandProfile, IslandTransportDemandStop } from './island-profile';
   import type { AnalyticsIsland } from './national-analytics-card.svelte';
   import type { SustainabilityFactorKey, SustainabilityScore } from './sustainability-types';
+  import type { ConnectionNetworkResponse } from '$lib/mobility/connection-network-contracts';
 
   import Bus from '@lucide/svelte/icons/bus';
-  import Car from '@lucide/svelte/icons/car';
+  import Maximize2 from '@lucide/svelte/icons/maximize-2';
+  import Minimize2 from '@lucide/svelte/icons/minimize-2';
   import Plane from '@lucide/svelte/icons/plane';
   import Route from '@lucide/svelte/icons/route';
   import Ship from '@lucide/svelte/icons/ship';
   import X from '@lucide/svelte/icons/x';
+  import { tick } from 'svelte';
   import { prefersReducedMotion } from 'svelte/motion';
   import { fly } from 'svelte/transition';
 
@@ -17,8 +20,15 @@
   import * as Card from '$components/ui/card';
   import { Progress } from '$components/ui/progress';
   import { Skeleton } from '$components/ui/skeleton';
+  import * as Tabs from '$components/ui/tabs';
 
-  import { averagePercentage, scoreColor } from './score-presentation';
+  import ConnectionNetwork from './connection-network.svelte';
+  import IslandAllocationLanes from './island-allocation-lanes.svelte';
+  import { islandScoreHighlights, islandScoreMetrics } from './island-chart-data';
+  import IslandContextGauge from './island-context-gauge.svelte';
+  import IslandDemandFlow from './island-demand-flow.svelte';
+  import IslandPopulationComposition from './island-population-composition.svelte';
+  import IslandScoreComparison from './island-score-comparison.svelte';
   import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
   type Props = {
@@ -27,9 +37,13 @@
     profile: IslandProfile | null;
     loading?: boolean;
     error?: string | null;
+    network?: ConnectionNetworkResponse | null;
+    networkLoading?: boolean;
+    networkError?: string | null;
     onClose?: () => void;
+    onIslandSelect?: (islandId: string) => void;
+    onSimulate?: (destinationIslandId: string) => void;
     proposalMode?: boolean;
-    autoExpandConnections?: boolean;
   };
   let {
     open = $bindable(false),
@@ -37,59 +51,95 @@
     profile,
     loading = false,
     error = null,
+    network = null,
+    networkLoading = false,
+    networkError = null,
     onClose = () => (open = false),
-    proposalMode = false,
-    autoExpandConnections = false
+    onIslandSelect = () => {},
+    onSimulate,
+    proposalMode = false
   }: Props = $props();
-  let connectionsExpanded = $derived(autoExpandConnections);
-  let transportLoadExpanded = $state(false);
-  let inboundDemandExpanded = $state(false);
-  let vehicleIntensity = $derived(profile ? vehicleIntensityPercent(profile.sustainability) : null);
+  let connectionNetworkFullscreen = $state(false);
+  let connectionsExpanded = $state(false);
 
-  const drivers = [
-    { key: 'health', label: 'Health', note: 'Population-weighted health access' },
-    { key: 'education', label: 'Education', note: 'Population-weighted school access' },
-    { key: 'transport', label: 'Transport', note: 'Land, marine, and air connections' },
-    { key: 'employment', label: 'Employment', note: 'Foreign residents balanced against recorded workplaces' },
-    {
-      key: 'sustainability',
-      label: 'Sustainability',
-      note: 'Modeled pollution pressure from vehicles and transport demand'
-    },
-    { key: 'crowdedness', label: 'Crowdedness', note: 'Population density pressure' },
-    { key: 'demand', label: 'Service demand', note: 'Combined local and inbound demand pressure' }
-  ] as const;
-  const populationSkeletons = Array.from({ length: 7 }, (_, index) => index);
-  const serviceGroupSkeletons = Array.from({ length: 3 }, (_, index) => index);
-  const transportStatSkeletons = Array.from({ length: 3 }, (_, index) => index);
-  const connectionModeSkeletons = Array.from({ length: 3 }, (_, index) => index);
-  const connectionRowSkeletons = Array.from({ length: 3 }, (_, index) => index);
-  const healthDemandSkeletons = Array.from({ length: 8 }, (_, index) => index);
-  const educationDemandSkeletons = Array.from({ length: 6 }, (_, index) => index);
-  const employmentDemandSkeletons = Array.from({ length: 5 }, (_, index) => index);
-  const transportDemandSkeletons = Array.from({ length: 12 }, (_, index) => index);
-  const transportStopSkeletons = Array.from({ length: 2 }, (_, index) => index);
-  const inboundSourceSkeletons = Array.from({ length: 3 }, (_, index) => index);
+  async function simulateJourney(destinationIslandId: string): Promise<void> {
+    connectionNetworkFullscreen = false;
+    await tick();
+    onSimulate?.(destinationIslandId);
+  }
+  let inboundDemandExpanded = $state(false);
+  let scoreMetrics = $derived(islandScoreMetrics(island));
+  let scoreHighlights = $derived(islandScoreHighlights(scoreMetrics));
+  let currentProfile = $derived(profile?.island.id === island?.id ? profile : null);
+  let inboundSources = $derived(currentProfile?.demand.inboundSources ?? island?.demand.inboundSources ?? []);
+  let allocationRows = $derived.by(() => {
+    if (!currentProfile) return [];
+
+    const hospitalDemand = currentProfile.demand.health.hospitalDemand;
+    const hasHospital = currentProfile.services
+      .find((group) => group.key === 'health')
+      ?.items.some((item) => item.key === 'hospital' && item.count > 0);
+    const healthMetric =
+      hospitalDemand && !hasHospital && currentProfile.demand.health.elderlyPopulation !== null
+        ? {
+            ...hospitalDemand,
+            outbound: Math.max(0, hospitalDemand.outbound - currentProfile.demand.health.elderlyPopulation),
+            unserved: currentProfile.demand.health.elderlyPopulation
+          }
+        : (hospitalDemand ?? currentProfile.demand.health.demand);
+
+    return [
+      {
+        key: 'health',
+        label: hospitalDemand ? 'Hospital' : 'Health',
+        metric: healthMetric,
+        inboundDemand: currentProfile.demand.health.demand.inbound
+      },
+      {
+        key: 'education',
+        label: 'Education',
+        metric: currentProfile.demand.education.demand,
+        inboundDemand: currentProfile.demand.education.demand.inbound
+      }
+    ];
+  });
+  let accessModes = $derived(
+    currentProfile
+      ? [
+          { key: 'bus', label: 'Land', score: currentProfile.transportAccess.land.score },
+          { key: 'ferry', label: 'Marine', score: currentProfile.transportAccess.marine.score },
+          { key: 'air', label: 'Air', score: currentProfile.transportAccess.air.score }
+        ]
+      : []
+  );
+  const transportModes = ['land', 'marine', 'air'] as const;
+  let transportStopGroups = $derived(
+    currentProfile
+      ? transportModes
+          .map((mode) => ({ mode, stops: currentProfile.demand.transport.stops.filter((stop) => stop.mode === mode) }))
+          .filter(
+            (group): group is { mode: (typeof transportModes)[number]; stops: IslandTransportDemandStop[] } =>
+              group.stops.length > 0
+          )
+      : []
+  );
+  const allocationLaneSkeletons = Array.from({ length: 2 }, (_, index) => index);
+  const accessModeSkeletons = Array.from({ length: 3 }, (_, index) => index);
+  const networkNodeSkeletons = Array.from({ length: 5 }, (_, index) => index);
 
   function percentage(value: number | null | undefined): string {
     return value === null || value === undefined ? 'N/A' : `${Math.round(value)}%`;
+  }
+  function accessColor(value: number | null | undefined): string {
+    if (value === null || value === undefined || !Number.isFinite(value)) return '#71717a';
+    const normalized = Math.min(100, Math.max(0, value));
+    return `hsl(${Math.round((normalized / 100) * 120)} 68% 40%)`;
   }
   function number(value: number | null | undefined): string {
     return value === null || value === undefined ? 'N/A' : Math.round(value).toLocaleString();
   }
   function decimal(value: number | null | undefined): string {
     return value === null || value === undefined ? 'N/A' : value.toFixed(2);
-  }
-  function driverScore(key: (typeof drivers)[number]['key']): number | null {
-    if (!island) return null;
-    if (key === 'demand') {
-      return averagePercentage([island.demand.health.demandPercent, island.demand.education.demandPercent]);
-    }
-    if (key === 'crowdedness') return island.crowdedness.score;
-    return island[key].score;
-  }
-  function driverColor(key: (typeof drivers)[number]['key'], value: number | null): string {
-    return scoreColor(value, { higherIsWorse: key === 'demand' || key === 'crowdedness' });
   }
   function titleCase(value: string): string {
     return value
@@ -99,11 +149,6 @@
   }
   function categoryShare(count: number, total: number): number {
     return total > 0 ? Math.min(100, (count / total) * 100) : 0;
-  }
-
-  function vehicleIntensityPercent(score: SustainabilityScore): number | null {
-    if (score.publicTransportReliance === null) return null;
-    return Math.min(100, Math.max(0, (1 - score.publicTransportReliance) * 100));
   }
 
   function factorContribution(score: SustainabilityScore, key: SustainabilityFactorKey): number | null {
@@ -145,27 +190,28 @@
 
 {#if open}
   <div
-    class={`island-analytics-layer${proposalMode ? ' proposal-mode-right' : ''}`}
+    class={`island-analytics-layer${proposalMode ? ' proposal-mode-right' : ''}${connectionNetworkFullscreen ? ' connection-network-layer-fullscreen' : ''}`}
     aria-hidden={proposalMode}
     in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
     out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
   >
-    <Card.Root
-      class="island-analytics-card"
-      role="dialog"
-      aria-label="Island score analytics"
-      data-story-target="island-analytics"
-    >
-      <div class="analytics-scroll" data-story-scroll-container>
+    <Card.Root class="island-analytics-card" role="dialog" aria-label="Island score analytics">
+      <div class="analytics-scroll">
         <div class="analytics-heading">
           <div>
-            <h2>
-              {#if island?.overall.score === null || island?.overall.score === undefined}
-                Why is this score unavailable?
-              {:else}
-                Why {percentage(island.overall.score)}?
-              {/if}
-            </h2>
+            {#if loading}
+              <div class="island-loading-title-wrap" aria-label="Loading island score">
+                <Skeleton class="island-loading-title" />
+              </div>
+            {:else}
+              <h2>
+                {#if island?.overall.score === null || island?.overall.score === undefined}
+                  Why is this score unavailable?
+                {:else}
+                  Why {percentage(island.overall.score)}?
+                {/if}
+              </h2>
+            {/if}
           </div>
           <Button class="close-button" variant="ghost" size="icon" aria-label="Close island analytics" onclick={onClose}
             ><X size={18} strokeWidth={2.2} /></Button
@@ -174,238 +220,54 @@
 
         {#if loading}
           <div class="island-loading-content" role="status" aria-label="Loading island analytics">
-            <Card.Root class="insight-card island-loading-card" size="sm">
+            <div class="island-loading-tabs" aria-hidden="true">
+              <Skeleton class="island-loading-tab island-loading-tab-active" />
+              <Skeleton class="island-loading-tab" />
+              <Skeleton class="island-loading-tab" />
+            </div>
+
+            <Card.Root class="insight-card access-overview island-loading-card" size="sm">
               <div class="card-heading">
-                <Skeleton class="island-loading-panel-heading" />
+                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
               </div>
-              <div class="driver-list">
-                {#each drivers as driver (driver.key)}
-                  <div class="driver-row">
-                    <div class="driver-topline">
-                      <Skeleton class="island-loading-driver-label" />
-                      <Skeleton class="island-loading-driver-score" />
+              <div class="island-loading-allocation-lanes">
+                {#each allocationLaneSkeletons as lane (lane)}
+                  <div class="island-loading-allocation-lane">
+                    <div>
+                      <Skeleton class="island-loading-lane-icon" /><Skeleton class="island-loading-lane-label" />
                     </div>
-                    <Skeleton class="island-loading-progress" />
-                    <Skeleton class="island-loading-driver-note" />
+                    <Skeleton class="island-loading-lane-track" />
+                    <div>
+                      <Skeleton class="island-loading-lane-caption" /><Skeleton class="island-loading-lane-value" />
+                    </div>
                   </div>
                 {/each}
               </div>
             </Card.Root>
 
-            <Card.Root class="insight-card population-panel island-loading-card" size="sm">
+            <Card.Root class="insight-card connection-network-card island-loading-card" size="sm">
               <div class="card-heading">
-                <Skeleton class="island-loading-panel-heading" />
-                <Skeleton class="island-loading-people-total" />
+                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
+                <Skeleton class="island-loading-network-toggle" />
               </div>
-              <div class="population-list">
-                {#each populationSkeletons as row (row)}
-                  <div class="population-row">
-                    <div class="population-topline">
-                      <Skeleton class="island-loading-population-label" />
-                      <Skeleton class="island-loading-population-value" />
-                    </div>
-                    <Skeleton class="island-loading-population-progress" />
-                  </div>
+              <div class="island-loading-network" aria-hidden="true">
+                <Skeleton class="island-loading-network-line island-loading-network-line-one" />
+                <Skeleton class="island-loading-network-line island-loading-network-line-two" />
+                {#each networkNodeSkeletons as node (node)}
+                  <Skeleton class={`island-loading-network-node island-loading-network-node-${node + 1}`} />
                 {/each}
               </div>
             </Card.Root>
 
-            <Card.Root class="insight-card employment-card island-loading-card" size="sm">
-              <div class="card-heading">
-                <Skeleton class="island-loading-panel-heading" />
-              </div>
-              <div class="island-loading-demand-metrics">
-                {#each employmentDemandSkeletons as row (row)}
+            <Card.Root class="insight-card transport-access-overview island-loading-card" size="sm">
+              <div class="card-heading"><Skeleton class="island-loading-panel-heading" /></div>
+              <div class="access-mode-grid">
+                {#each accessModeSkeletons as mode (mode)}
                   <div>
-                    <Skeleton class="island-loading-demand-label" />
-                    <Skeleton class="island-loading-demand-value" />
-                  </div>
-                {/each}
-              </div>
-              <Skeleton class="island-loading-demand-progress" />
-            </Card.Root>
-
-            <Card.Root class="insight-card sustainability-card island-loading-card" size="sm">
-              <div class="card-heading">
-                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
-              </div>
-              <Skeleton class="island-loading-sustainability-score" />
-              <div class="island-loading-sustainability-factors">
-                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
-                  <Skeleton class="island-loading-sustainability-factor" />
-                {/each}
-              </div>
-            </Card.Root>
-
-            <div class="detail-grid">
-              <Card.Root class="insight-card island-loading-card" size="sm">
-                <div class="card-heading">
-                  <Skeleton class="island-loading-panel-heading" />
-                </div>
-                <div class="service-groups">
-                  {#each serviceGroupSkeletons as group (group)}
-                    <div class="service-group">
-                      <div class="service-group-title">
-                        <Skeleton class="island-loading-service-label" />
-                        <Skeleton class="island-loading-service-total" />
-                      </div>
-                      <div class="service-items">
-                        <Skeleton class="service-item island-loading-service-item" />
-                        <Skeleton class="service-item island-loading-service-item island-loading-service-item-short" />
-                      </div>
+                    <div class="access-mode-heading">
+                      <Skeleton class="island-loading-access-icon" /><Skeleton class="island-loading-access-label" />
                     </div>
-                  {/each}
-                </div>
-              </Card.Root>
-
-              <Card.Root class="insight-card island-loading-card" size="sm">
-                <div class="card-heading">
-                  <Skeleton class="island-loading-panel-heading" />
-                </div>
-                <div class="island-loading-stat-list">
-                  {#each transportStatSkeletons as row (row)}
-                    <div class="island-loading-stat-row">
-                      <Skeleton class="island-loading-stat-label" />
-                      <Skeleton class="island-loading-stat-value" />
-                    </div>
-                  {/each}
-                </div>
-              </Card.Root>
-            </div>
-
-            <Card.Root class="insight-card connections-panel island-loading-card" size="sm">
-              <div class="card-heading">
-                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
-                <Skeleton class="island-loading-badge" />
-              </div>
-              <div class="connection-modes">
-                {#each connectionModeSkeletons as mode (mode)}
-                  <div class="connection-mode">
-                    <Skeleton class="connection-mode-icon island-loading-connection-mode-icon" />
-                    <Skeleton class="island-loading-connection-count" />
-                    <Skeleton class="island-loading-connection-type" />
-                  </div>
-                {/each}
-              </div>
-              <div class="connection-list">
-                {#each connectionRowSkeletons as row (row)}
-                  <div class="connection-row">
-                    <Skeleton class="connection-row-icon island-loading-connection-row-icon" />
-                    <div class="connection-copy">
-                      <Skeleton class="island-loading-connection-name" />
-                      <Skeleton class="island-loading-connection-caption" />
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </Card.Root>
-
-            <div class="demand-grid">
-              <Card.Root class="insight-card demand-card island-loading-card" size="sm">
-                <div class="card-heading demand-heading">
-                  <Skeleton class="island-loading-panel-heading" />
-                  <Skeleton class="island-loading-demand-percentage" />
-                </div>
-                <div class="island-loading-demand-metrics">
-                  {#each healthDemandSkeletons as row (row)}
-                    <div>
-                      <Skeleton class="island-loading-demand-label" />
-                      <Skeleton class="island-loading-demand-value" />
-                    </div>
-                  {/each}
-                </div>
-                <Skeleton class="island-loading-demand-progress" />
-              </Card.Root>
-
-              <Card.Root class="insight-card demand-card island-loading-card" size="sm">
-                <div class="card-heading demand-heading">
-                  <Skeleton class="island-loading-panel-heading" />
-                  <Skeleton class="island-loading-demand-percentage" />
-                </div>
-                <div class="island-loading-demand-metrics">
-                  {#each educationDemandSkeletons as row (row)}
-                    <div>
-                      <Skeleton class="island-loading-demand-label" />
-                      <Skeleton class="island-loading-demand-value" />
-                    </div>
-                  {/each}
-                </div>
-                <Skeleton class="island-loading-demand-progress" />
-              </Card.Root>
-
-              <Card.Root class="insight-card demand-card employment-balance-card island-loading-card" size="sm">
-                <div class="card-heading">
-                  <Skeleton class="island-loading-panel-heading" />
-                </div>
-                <div class="employment-scoreline">
-                  <Skeleton class="island-loading-demand-percentage" />
-                  <Skeleton class="island-loading-demand-value" />
-                </div>
-                <div class="island-loading-demand-metrics">
-                  {#each employmentDemandSkeletons as row (row)}
-                    <div>
-                      <Skeleton class="island-loading-demand-label" />
-                      <Skeleton class="island-loading-demand-value" />
-                    </div>
-                  {/each}
-                </div>
-                <Skeleton class="island-loading-demand-progress" />
-                <Skeleton class="island-loading-demand-progress" />
-              </Card.Root>
-
-              <Card.Root class="insight-card demand-card transport-demand-card island-loading-card" size="sm">
-                <div class="card-heading">
-                  <Skeleton class="island-loading-panel-heading" />
-                </div>
-                <div class="island-loading-demand-metrics">
-                  {#each transportDemandSkeletons as row (row)}
-                    <div>
-                      <Skeleton class="island-loading-demand-label" />
-                      <Skeleton class="island-loading-demand-value" />
-                    </div>
-                  {/each}
-                </div>
-                <div class="hub-list">
-                  {#each transportStopSkeletons as stop (stop)}
-                    <div class="hub-row">
-                      <div class="hub-row-main">
-                        <div class="hub-row-heading">
-                          <Skeleton class="hub-mode-icon island-loading-hub-icon" />
-                          <div class="hub-row-copy">
-                            <Skeleton class="island-loading-hub-name" />
-                            <Skeleton class="island-loading-hub-caption" />
-                          </div>
-                        </div>
-                        <Skeleton class="hub-load-bar island-loading-hub-bar" />
-                        <div class="hub-load-legend">
-                          <Skeleton class="island-loading-hub-legend-item" />
-                          <Skeleton class="island-loading-hub-legend-item" />
-                          <Skeleton class="island-loading-hub-legend-item" />
-                        </div>
-                      </div>
-                      <div class="hub-row-values">
-                        <Skeleton class="island-loading-hub-value" />
-                        <Skeleton class="island-loading-hub-value-caption" />
-                      </div>
-                    </div>
-                  {/each}
-                </div>
-              </Card.Root>
-            </div>
-
-            <Card.Root class="insight-card inbound-sources-card island-loading-card" size="sm">
-              <div class="card-heading">
-                <Skeleton class="island-loading-panel-heading island-loading-panel-heading-wide" />
-                <Skeleton class="island-loading-badge" />
-              </div>
-              <div class="inbound-source-list">
-                {#each inboundSourceSkeletons as source (source)}
-                  <div class="inbound-source-row">
-                    <div class="island-loading-source-copy">
-                      <Skeleton class="island-loading-source-name" />
-                      <Skeleton class="island-loading-source-caption" />
-                    </div>
-                    <Skeleton class="island-loading-source-total" />
+                    <Skeleton class="island-loading-access-score" />
                   </div>
                 {/each}
               </div>
@@ -414,559 +276,612 @@
         {:else if error}
           <p class="analytics-state" role="alert">{error}</p>
         {:else if island}
-          <Card.Root class="insight-card" size="sm">
-            <div class="card-heading">
-              <div>
-                <h3>Score drivers</h3>
-              </div>
-            </div>
-            <div class="driver-list">
-              {#each drivers as driver (driver.key)}
-                {@const value = driverScore(driver.key)}
-                <div class="driver-row">
-                  <div class="driver-topline">
-                    <span>{driver.label}</span><strong
-                      class="driver-score"
-                      style={`color: ${driverColor(driver.key, value)}`}>{percentage(value)}</strong
-                    >
-                  </div>
-                  <Progress
-                    class="driver-progress"
-                    style={`--driver-score-color: ${driverColor(driver.key, value)}`}
-                    value={value ?? 0}
-                    max={100}
-                    aria-label={`${driver.label} score`}
-                  />
-                  <small
-                    >{driver.note}{driver.key === 'demand'
-                      ? ` - ${number(island.demand.inboundTotal)} inbound · ${number(island.demand.outboundTotal)} outbound`
-                      : ''}</small
-                  >
-                </div>
-              {/each}
-            </div>
-          </Card.Root>
+          {#key island.id}
+            <Tabs.Root value="accessibility" class="island-analytics-tabs">
+              <Tabs.List class="analytics-tab-list" aria-label="Island analytics sections">
+                <Tabs.Trigger value="accessibility">Access</Tabs.Trigger>
+                <Tabs.Trigger value="people">People &amp; services</Tabs.Trigger>
+                <Tabs.Trigger value="network">Model detail</Tabs.Trigger>
+              </Tabs.List>
 
-          {#if profile}
-            <Card.Root class="insight-card population-panel" size="sm" data-story-target="island-population">
-              <div class="card-heading">
-                <div>
-                  <h3>Population</h3>
-                </div>
-                <strong class="people-total">{number(profile.population.total)}</strong>
-              </div>
-              <div class="population-list">
-                {#each profile.population.bands as band (band.key)}
-                  <div
-                    class={['population-row', { 'population-overlap': band.overlapping }]}
-                    data-story-target={band.key === 'elderly_population_65_plus'
-                      ? 'island-elderly-population'
-                      : undefined}
-                  >
-                    <div class="population-topline">
-                      <span>{band.label}</span><b>{number(band.amount)}</b>
-                    </div>
-                    <Progress value={band.share ?? 0} max={100} aria-label={`${band.label} population`} />
-                    {#if band.overlapping}<small>Overlapping age range</small>{/if}
-                  </div>
-                {:else}
-                  <p class="empty-state">No population breakdown is available.</p>
-                {/each}
-              </div>
-            </Card.Root>
+              <Tabs.Content value="accessibility" class="analytics-tab-panel">
+                {#if currentProfile}
+                  <Card.Root class="insight-card access-overview" size="sm">
+                    <div class="card-heading"><h3>Where connections matter most</h3></div>
+                    {#if !currentProfile.demand.health.hospitalDemand}
+                      <p class="chart-note health-fallback-note">
+                        Health includes all recorded care needs; a hospital-only breakdown is unavailable.
+                      </p>
+                    {/if}
+                    <IslandAllocationLanes rows={allocationRows} />
+                  </Card.Root>
 
-            <Card.Root class="insight-card employment-card" size="sm">
-              <div class="card-heading">
-                <div>
-                  <h3>Workplace breakdown</h3>
-                </div>
-                <strong class="employment-heading-total">{number(profile.employment.jobLocationCount)}</strong>
-              </div>
-              <div class="employment-breakdown">
-                {#each profile.employment.categories as category (category.key)}
-                  <div class="employment-category">
-                    <div class="employment-category-heading">
-                      <span>{titleCase(category.label)}</span>
-                      <strong>{number(category.count)}</strong>
+                  <Card.Root
+                    class={`insight-card connection-network-card${connectionNetworkFullscreen ? ' connection-network-fullscreen' : ''}`}
+                    size="sm"
+                  >
+                    <div class="card-heading">
+                      {#if !connectionNetworkFullscreen}
+                        <h3>Connection network</h3>
+                      {/if}
+                      <Button
+                        class="connection-network-toggle"
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        aria-label={connectionNetworkFullscreen
+                          ? 'Exit full screen connection network'
+                          : 'Open connection network full screen'}
+                        title={connectionNetworkFullscreen ? 'Exit full screen' : 'Open full screen'}
+                        onclick={() => (connectionNetworkFullscreen = !connectionNetworkFullscreen)}
+                      >
+                        {#if connectionNetworkFullscreen}
+                          <Minimize2 size={16} strokeWidth={2.1} />
+                        {:else}
+                          <Maximize2 size={16} strokeWidth={2.1} />
+                        {/if}
+                      </Button>
                     </div>
-                    <Progress
-                      value={categoryShare(category.count, profile.employment.jobLocationCount)}
-                      max={100}
-                      aria-label={`${titleCase(category.label)} workplace share`}
+                    <ConnectionNetwork
+                      profile={currentProfile}
+                      {network}
+                      {networkLoading}
+                      {networkError}
+                      selectedIslandId={currentProfile.island.id}
+                      view={connectionNetworkFullscreen ? 'fullscreen' : 'sidebar'}
+                      {onIslandSelect}
+                      onSimulate={simulateJourney}
                     />
-                    <div class="employment-subcategory-list">
-                      {#each category.subcategories as subcategory (subcategory.key)}
-                        <span><b>{titleCase(subcategory.label)}</b><strong>{number(subcategory.count)}</strong></span>
+                  </Card.Root>
+                  <Card.Root class="insight-card transport-access-overview" size="sm">
+                    <div class="card-heading">
+                      <h3>Transport Demand</h3>
+                    </div>
+                    <div class="access-mode-grid">
+                      {#each accessModes as mode (mode.key)}
+                        {@const Icon = connectionIcon(mode.key)}
+                        <div
+                          role="img"
+                          style:--access-color={accessColor(mode.score)}
+                          aria-label={`${mode.label} access index ${percentage(mode.score)}`}
+                        >
+                          <div class="access-mode-heading">
+                            <span class="access-mode-icon" aria-hidden="true"><Icon size={20} strokeWidth={2} /></span>
+                            <span class="access-mode-label">{mode.label}</span>
+                          </div>
+                          <strong>{percentage(mode.score)}</strong>
+                        </div>
                       {/each}
                     </div>
-                  </div>
+                  </Card.Root>
                 {:else}
-                  <span class="empty-inline">No workplace categories are available.</span>
-                {/each}
-              </div>
-            </Card.Root>
+                  <p class="analytics-state" role="status">Island details are unavailable.</p>
+                {/if}
+              </Tabs.Content>
 
-            <Card.Root class="insight-card sustainability-card" size="sm">
-              <div class="card-heading">
-                <div>
-                  <h3>Pollution pressure</h3>
-                </div>
-                <strong class="card-heading-score">{percentage(profile.sustainability.score)}</strong>
-              </div>
-              <div class="sustainability-metrics">
-                <span>Vehicles <b>{number(profile.sustainability.vehicleTotal)}</b></span>
-              </div>
-              <div class="sustainability-factors">
-                <div class="sustainability-factor sustainability-benefit-factor">
-                  <div class="sustainability-factor-heading">
-                    <span>Public transport benefit</span>
-                    <strong>{signedPercentage(publicTransportBenefitPercent(profile.sustainability))}</strong>
-                  </div>
-                  <Progress
-                    value={publicTransportBenefitProgress(profile.sustainability)}
-                    max={100}
-                    aria-label="Public transport benefit relative to private vehicle pressure"
-                  />
-                  <small class="sustainability-factor-note"
-                    >{decimal(profile.sustainability.publicTransportBenefit)} pressure units avoided</small
-                  >
-                </div>
-                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
-                  <div class="sustainability-factor">
-                    <div class="sustainability-factor-heading">
-                      <span>{factor.label}</span>
-                      <strong>{signedPercentage(factorContribution(profile.sustainability, factor.key))}</strong>
+              <Tabs.Content value="people" class="analytics-tab-panel">
+                {#if profile}
+                  <Card.Root class="insight-card population-panel" size="sm">
+                    <div class="card-heading">
+                      <div>
+                        <h3>Population</h3>
+                      </div>
+                      <strong class="people-total">{number(profile.population.total)}</strong>
                     </div>
-                    <Progress
-                      value={factorProgress(profile.sustainability, factor.key)}
-                      max={100}
-                      aria-label={`${factor.label} net pressure effect`}
-                    />
-                  </div>
-                {/each}
-              </div>
-              <div class="vehicle-category-list">
-                {#each profile.sustainability.vehicleCategoryBreakdown.slice(0, 6) as category (category.category)}
-                  <div class="vehicle-category-row">
-                    <div class="vehicle-category-heading">
-                      <span>{vehicleCategoryLabel(category.category)}</span>
-                      <strong>{number(category.total)}</strong>
+                    <IslandPopulationComposition bands={profile.population.bands} total={profile.population.total} />
+                    <div class="population-list">
+                      {#each profile.population.bands as band (band.key)}
+                        <div class={['population-row', { 'population-overlap': band.overlapping }]}>
+                          <div class="population-topline">
+                            <span>{band.label}</span><b>{number(band.amount)}</b>
+                          </div>
+                          <Progress value={band.share ?? 0} max={100} aria-label={`${band.label} population`} />
+                          {#if band.overlapping}<small>Overlapping age range</small>{/if}
+                        </div>
+                      {:else}
+                        <p class="empty-state">No population breakdown is available.</p>
+                      {/each}
                     </div>
-                    <Progress
-                      value={category.sharePercent}
-                      max={100}
-                      aria-label={`${vehicleCategoryLabel(category.category)} vehicle share`}
-                    />
-                  </div>
-                {:else}
-                  <p class="empty-inline">No vehicle-category rows are available.</p>
-                {/each}
-              </div>
-            </Card.Root>
+                  </Card.Root>
 
-            <div class="detail-grid">
-              <Card.Root class="insight-card" size="sm">
-                <div class="card-heading">
-                  <div>
-                    <h3>Services</h3>
-                  </div>
-                </div>
-                <div class="service-groups">
-                  {#each profile.services as group (group.key)}
-                    <div class="service-group">
-                      <div class="service-group-title"><span>{group.label}</span><b>{group.total}</b></div>
-                      <div class="service-items">
-                        {#each group.items as item (item.key)}
-                          <span class="service-item" title={item.names.join(', ') || item.label}
-                            ><b>{item.count}</b> {item.label}</span
-                          >
-                        {:else}
-                          <span class="empty-inline">Not recorded</span>
+                  <Card.Root class="insight-card employment-card" size="sm">
+                    <div class="card-heading">
+                      <div>
+                        <h3>Workplace breakdown</h3>
+                      </div>
+                      <strong class="employment-heading-total">{number(profile.employment.jobLocationCount)}</strong>
+                    </div>
+                    <div class="employment-breakdown">
+                      {#each profile.employment.categories as category (category.key)}
+                        <div class="employment-category">
+                          <div class="employment-category-heading">
+                            <span>{titleCase(category.label)}</span>
+                            <strong>{number(category.count)}</strong>
+                          </div>
+                          <Progress
+                            value={categoryShare(category.count, profile.employment.jobLocationCount)}
+                            max={100}
+                            aria-label={`${titleCase(category.label)} workplace share`}
+                          />
+                          <div class="employment-subcategory-list">
+                            {#each category.subcategories as subcategory (subcategory.key)}
+                              <span
+                                ><b>{titleCase(subcategory.label)}</b><strong>{number(subcategory.count)}</strong></span
+                              >
+                            {/each}
+                          </div>
+                        </div>
+                      {:else}
+                        <span class="empty-inline">No workplace categories are available.</span>
+                      {/each}
+                    </div>
+                  </Card.Root>
+
+                  <Card.Root class="insight-card sustainability-card" size="sm">
+                    <div class="card-heading">
+                      <div>
+                        <h3>Pollution pressure</h3>
+                      </div>
+                      <strong class="card-heading-score">{percentage(profile.sustainability.score)}</strong>
+                    </div>
+                    <div class="sustainability-metrics">
+                      <span>Vehicles <b>{number(profile.sustainability.vehicleTotal)}</b></span>
+                    </div>
+                    <div class="sustainability-factors">
+                      <div class="sustainability-factor sustainability-benefit-factor">
+                        <div class="sustainability-factor-heading">
+                          <span>Public transport benefit</span>
+                          <strong>{signedPercentage(publicTransportBenefitPercent(profile.sustainability))}</strong>
+                        </div>
+                        <Progress
+                          value={publicTransportBenefitProgress(profile.sustainability)}
+                          max={100}
+                          aria-label="Public transport benefit relative to private vehicle pressure"
+                        />
+                        <small class="sustainability-factor-note"
+                          >{decimal(profile.sustainability.publicTransportBenefit)} pressure units avoided</small
+                        >
+                      </div>
+                      {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
+                        <div class="sustainability-factor">
+                          <div class="sustainability-factor-heading">
+                            <span>{factor.label}</span>
+                            <strong>{signedPercentage(factorContribution(profile.sustainability, factor.key))}</strong>
+                          </div>
+                          <Progress
+                            value={factorProgress(profile.sustainability, factor.key)}
+                            max={100}
+                            aria-label={`${factor.label} net pressure effect`}
+                          />
+                        </div>
+                      {/each}
+                    </div>
+                    <div class="vehicle-category-list">
+                      {#each profile.sustainability.vehicleCategoryBreakdown.slice(0, 6) as category (category.category)}
+                        <div class="vehicle-category-row">
+                          <div class="vehicle-category-heading">
+                            <span>{vehicleCategoryLabel(category.category)}</span>
+                            <strong>{number(category.total)}</strong>
+                          </div>
+                          <Progress
+                            value={category.sharePercent}
+                            max={100}
+                            aria-label={`${vehicleCategoryLabel(category.category)} vehicle share`}
+                          />
+                        </div>
+                      {:else}
+                        <p class="empty-inline">No vehicle-category rows are available.</p>
+                      {/each}
+                    </div>
+                  </Card.Root>
+
+                  <div class="detail-grid">
+                    <Card.Root class="insight-card" size="sm">
+                      <div class="card-heading">
+                        <div>
+                          <h3>Services</h3>
+                        </div>
+                      </div>
+                      <div class="service-groups">
+                        {#each profile.services as group (group.key)}
+                          <div class="service-group">
+                            <div class="service-group-title"><span>{group.label}</span><b>{group.total}</b></div>
+                            <div class="service-items">
+                              {#each group.items as item (item.key)}
+                                <span class="service-item" title={item.names.join(', ') || item.label}
+                                  ><b>{item.count}</b> {item.label}</span
+                                >
+                              {:else}
+                                <span class="empty-inline">Not recorded</span>
+                              {/each}
+                            </div>
+                          </div>
                         {/each}
                       </div>
-                    </div>
-                  {/each}
-                </div>
-              </Card.Root>
+                    </Card.Root>
 
-              <Card.Root class="insight-card" size="sm">
-                <div class="card-heading">
-                  <div>
-                    <h3>Transport access</h3>
-                  </div>
-                </div>
-                <div class="stat-list">
-                  <span>Land access <b>{percentage(profile.transportAccess.land.score)}</b></span><span
-                    >Marine access <b>{percentage(profile.transportAccess.marine.score)}</b></span
-                  ><span>Air access <b>{percentage(profile.transportAccess.air.score)}</b></span>
-                </div>
-              </Card.Root>
-            </div>
-
-            <Card.Root class="insight-card connections-panel" size="sm" data-story-target="island-connections">
-              <div class="card-heading">
-                <div>
-                  <h3>Available connections</h3>
-                </div>
-                {#if profile.connections.direct.length > 2}
-                  <div class="card-heading-actions">
-                    <Badge variant="outline">{profile.connections.direct.length}</Badge>
-                    <Button
-                      class="view-more-button"
-                      variant="ghost"
-                      size="xs"
-                      type="button"
-                      aria-expanded={connectionsExpanded}
-                      aria-controls="island-connections-details"
-                      onclick={() => (connectionsExpanded = !connectionsExpanded)}
-                    >
-                      {connectionsExpanded ? 'View less' : 'View more'}
-                    </Button>
-                  </div>
-                {/if}
-              </div>
-              <div id="island-connections-details">
-                {#if connectionsExpanded || profile.connections.direct.length <= 2}
-                  <div class="connection-modes">
-                    {#each profile.connections.byType as connection (connection.type)}
-                      {@const Icon = connectionIcon(connection.type)}
-                      <div class="connection-mode">
-                        <span class="connection-mode-icon"><Icon size={15} strokeWidth={2.2} /></span>
-                        <strong>{connection.count}</strong>
-                        <span>{titleCase(connection.type)}</span>
-                      </div>
-                    {/each}
-                  </div>
-                  <div class="connection-list">
-                    {#each profile.connections.direct as connection (connection.id)}
-                      {@const Icon = connectionIcon(connection.type)}
-                      <div class="connection-row">
-                        <span class="connection-row-icon"><Icon size={15} strokeWidth={2.2} /></span>
-                        <div class="connection-copy">
-                          <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
-                          <span
-                            >{titleCase(connection.type)}{connection.routeName
-                              ? ` · ${connection.routeName}`
-                              : ''}</span
-                          >
+                    <Card.Root class="insight-card" size="sm">
+                      <div class="card-heading">
+                        <div>
+                          <h3>Transport Demand</h3>
                         </div>
                       </div>
-                    {:else}
-                      <p class="empty-state">No mapped transport connections.</p>
-                    {/each}
+                      <div class="stat-list">
+                        <span>Land access <b>{percentage(profile.transportAccess.land.score)}</b></span><span
+                          >Marine access <b>{percentage(profile.transportAccess.marine.score)}</b></span
+                        ><span>Air access <b>{percentage(profile.transportAccess.air.score)}</b></span>
+                      </div>
+                    </Card.Root>
                   </div>
                 {:else}
-                  <div class="connection-list collapsed-connection-list">
-                    {#each profile.connections.direct.slice(0, 2) as connection (connection.id)}
-                      <div class="connection-row collapsed-connection-row">
-                        <div class="connection-copy">
-                          <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
-                          <span
-                            >{titleCase(connection.type)}{connection.routeName
-                              ? ` · ${connection.routeName}`
-                              : ''}</span
+                  <p class="analytics-state" role="status">Population and service details are unavailable.</p>
+                {/if}
+              </Tabs.Content>
+
+              <Tabs.Content value="network" class="analytics-tab-panel">
+                {#if profile}
+                  <Card.Root class="insight-card score-comparison-panel" size="sm">
+                    <div class="card-heading"><div><h3>Category profile</h3></div></div>
+                    <IslandScoreComparison metrics={scoreMetrics} overall={island.overall.score} />
+                    {#if scoreHighlights.strongest && scoreHighlights.weakest}
+                      <div class="score-highlights">
+                        <div>
+                          <span>Highest category</span><strong>{scoreHighlights.strongest.label}</strong><b
+                            >{percentage(scoreHighlights.strongest.value)}</b
+                          >
+                        </div>
+                        <div>
+                          <span>Lowest category</span><strong>{scoreHighlights.weakest.label}</strong><b
+                            >{percentage(scoreHighlights.weakest.value)}</b
                           >
                         </div>
                       </div>
-                    {:else}
-                      <p class="empty-state">No mapped transport connections.</p>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </Card.Root>
+                    {/if}
+                    <p class="chart-note">
+                      Five equally weighted categories, using available data. These are index scores, not shares of
+                      residents served.
+                    </p>
+                  </Card.Root>
 
-            <div class="demand-grid">
-              <Card.Root class="insight-card demand-card" size="sm" data-story-target="island-health-demand">
-                <div class="card-heading demand-heading">
-                  <div>
-                    <h3>Health demand</h3>
-                  </div>
-                  <strong class="demand-percentage">{percentage(profile.demand.health.demand.demandPercent)}</strong>
-                </div>
-                <div class="demand-metrics">
-                  <span>Local demand <b>{number(profile.demand.health.demand.local)}</b></span><span
-                    >Inbound demand <b>{number(profile.demand.health.demand.inbound)}</b></span
-                  ><span>Outbound demand <b>{number(profile.demand.health.demand.outbound)}</b></span><span
-                    >Non-elderly baseline <b>{number(profile.demand.health.allAgeDemand?.combined)}</b></span
-                  ><span
-                    >Hospital demand <b>{percentage(profile.demand.health.hospitalDemand?.demandPercent ?? null)}</b
-                    ></span
-                  ><span
-                    >Children/adolescent demand <b>{number(profile.demand.health.youngerCareDemand?.combined)}</b></span
-                  ><span
-                    >Elderly hospital outbound <b>{number(profile.demand.health.elderlyCareDemand?.outbound)}</b></span
-                  ><span>Population basis <b>{number(profile.demand.health.populationBasis)}</b></span>
-                </div>
-                <Progress
-                  value={profile.demand.health.demand.demandPercent ?? 0}
-                  max={100}
-                  aria-label="Health service demand percentage"
-                />
-              </Card.Root>
-
-              <Card.Root class="insight-card demand-card" size="sm">
-                <div class="card-heading demand-heading">
-                  <div>
-                    <h3>Education demand</h3>
-                  </div>
-                  <strong class="demand-percentage">{percentage(profile.demand.education.demand.demandPercent)}</strong>
-                </div>
-                <div class="demand-metrics">
-                  <span>Local demand <b>{number(profile.demand.education.demand.local)}</b></span><span
-                    >Inbound demand <b>{number(profile.demand.education.demand.inbound)}</b></span
-                  ><span>Outbound demand <b>{number(profile.demand.education.demand.outbound)}</b></span><span
-                    >Children <b>{number(profile.demand.education.childPopulation)}</b></span
-                  ><span>Adolescents <b>{number(profile.demand.education.adolescentPopulation)}</b></span><span
-                    >Youth <b>{number(profile.demand.education.youthPopulation)}</b></span
-                  >
-                </div>
-                <Progress
-                  value={profile.demand.education.demand.demandPercent ?? 0}
-                  max={100}
-                  aria-label="Education service demand percentage"
-                />
-              </Card.Root>
-
-              <Card.Root class="insight-card demand-card employment-balance-card" size="sm">
-                <div class="card-heading">
-                  <div>
-                    <h3>Employment balance</h3>
-                  </div>
-                  <strong class="card-heading-score">{percentage(profile.employment.score)}</strong>
-                </div>
-                <div class="demand-metrics">
-                  <span>Foreign residents <b>{number(profile.employment.foreignPopulation)}</b></span>
-                  <span>Working age 15-64 <b>{number(profile.employment.workingAgePopulation)}</b></span>
-                  <span
-                    >Foreign / working age <b
-                      >{percentage(
-                        profile.employment.foreignPerWorkingAge === null
-                          ? null
-                          : profile.employment.foreignPerWorkingAge * 100
-                      )}</b
-                    ></span
-                  >
-                  <span
-                    >Workplaces / 1,000 working age <b
-                      >{decimal(profile.employment.jobLocationsPerThousandWorkingAge)}</b
-                    ></span
-                  >
-                  <span>Foreign / workplace <b>{decimal(profile.employment.foreignPerJobLocation)}</b></span>
-                </div>
-                <div class="employment-balance-bars">
-                  <div>
-                    <span>Demand balance <b>{percentage(profile.employment.pressureScore)}</b></span>
-                    <Progress
-                      value={profile.employment.pressureScore ?? 0}
-                      max={100}
-                      aria-label="Job demand balance score"
-                    />
-                  </div>
-                  <div>
-                    <span>Supply balance <b>{percentage(profile.employment.supplyScore)}</b></span>
-                    <Progress
-                      value={profile.employment.supplyScore ?? 0}
-                      max={100}
-                      aria-label="Job supply balance score"
-                    />
-                  </div>
-                </div>
-                {#if profile.employment.foreignPopulationSource === 'assumed_zero'}
-                  <p class="employment-assumption">Missing `foregner` row treated as zero.</p>
-                {/if}
-              </Card.Root>
-
-              <Card.Root class="insight-card demand-card transport-demand-card" size="sm">
-                <div class="card-heading">
-                  <div>
-                    <h3>Transport load</h3>
-                  </div>
-                  {#if profile.demand.transport.stops.length > 2}
-                    <Button
-                      class="view-more-button"
-                      variant="ghost"
-                      size="xs"
-                      type="button"
-                      aria-expanded={transportLoadExpanded}
-                      aria-controls="island-transport-load-details"
-                      onclick={() => (transportLoadExpanded = !transportLoadExpanded)}
-                    >
-                      {transportLoadExpanded ? 'View less' : 'View more'}
-                    </Button>
-                  {/if}
-                </div>
-                <div id="island-transport-load-details">
-                  {#if transportLoadExpanded || profile.demand.transport.stops.length <= 2}
-                    <div class="demand-metrics transport-demand-metrics">
-                      <span>Resident population <b>{number(profile.demand.transport.residentPopulation)}</b></span><span
-                        >Inbound care + education
-                        <b
-                          >{number(
-                            profile.demand.transport.careTransferDemand +
-                              profile.demand.transport.educationTransferDemand
-                          )}</b
-                        ></span
-                      ><span>Outbound load <b>{number(profile.demand.transport.outboundPopulation)}</b></span><span
-                        >Working demand <b>{number(profile.demand.transport.workingDemand)}</b></span
-                      ><span>Student demand <b>{number(profile.demand.transport.studentDemand)}</b></span><span
-                        >Elderly demand <b>{number(profile.demand.transport.elderlyDemand)}</b></span
-                      ><span>Care transfers <b>{number(profile.demand.transport.careTransferDemand)}</b></span><span
-                        >Education transfers <b>{number(profile.demand.transport.educationTransferDemand)}</b></span
-                      ><span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span><span
-                        >Transport score <b>{percentage(profile.demand.transport.score)}</b></span
-                      ><span>Marine load <b>{percentage(profile.demand.transport.modes.marine.averageLoad)}</b></span
-                      ><span>Air load <b>{percentage(profile.demand.transport.modes.air.averageLoad)}</b></span><span
-                        >Stops <b>{profile.demand.transport.stops.length}</b></span
-                      >
+                  <Card.Root class="insight-card" size="sm">
+                    <div class="card-heading"><div><h3>Pressure and balance</h3></div></div>
+                    <div class="context-metrics">
+                      <IslandContextGauge
+                        label="Crowding pressure"
+                        value={island.crowdedness.score}
+                        note="Higher means more density pressure"
+                      />
+                      <IslandContextGauge
+                        label="Service demand balance"
+                        value={island.demand.score}
+                        note="Higher means less modeled demand pressure"
+                      />
                     </div>
-                    <div class="hub-list">
-                      <div class="hub-row vehicle-hub-row">
-                        <div class="hub-row-main">
-                          <div class="hub-row-heading">
-                            <span class="hub-mode-icon" aria-hidden="true"><Car size={13} strokeWidth={2.2} /></span>
-                            <span class="hub-row-copy">
-                              <b>Vehicle registrations</b>
-                              <small>Road · registration-based proxy</small>
-                            </span>
-                          </div>
-                          <div
-                            class="hub-load-bar"
-                            role="img"
-                            aria-label={`${percentage(vehicleIntensity)} registration-based vehicle intensity`}
-                          >
-                            <div class="hub-load-fill" style={`width: ${vehicleIntensity ?? 0}%`}>
-                              <span class="hub-load-local" style="width: 100%"></span>
-                            </div>
-                          </div>
-                          <div class="hub-load-legend">
-                            <span
-                              ><i class="hub-dot hub-dot-vehicle"></i>{number(profile.sustainability.vehicleTotal)} registered</span
-                            >
-                            <span
-                              ><i class="hub-dot hub-dot-vehicle-density"></i>{decimal(
-                                profile.sustainability.vehiclesPerThousandPopulation
-                              )} / 1,000 residents</span
-                            >
-                          </div>
-                        </div>
-                        <div
-                          class="hub-row-values"
-                          aria-label={`${percentage(vehicleIntensity)} registration-based vehicle intensity`}
-                        >
-                          <strong>{percentage(vehicleIntensity)}</strong>
-                        </div>
+                    <p class="chart-note">Context measures are separate from the five-category index.</p>
+                  </Card.Root>
+
+                  <Card.Root class="insight-card connections-panel" size="sm">
+                    <div class="card-heading">
+                      <div>
+                        <h3>Available connections</h3>
                       </div>
-                      {#each profile.demand.transport.stops as stop (stop.stopId)}
-                        {@const Icon = connectionIcon(stop.mode === 'marine' ? 'ferry' : stop.mode)}
-                        {@const routedDemand = stop.localDemand + stop.connectedDemand}
-                        {@const localShare = routedDemand > 0 ? (stop.localDemand / routedDemand) * 100 : 0}
-                        {@const loadPercent = Math.min(100, Math.max(0, stop.loadRatio * 100))}
-                        <div class="hub-row">
-                          <div class="hub-row-main">
-                            <div class="hub-row-heading">
-                              <span class="hub-mode-icon" aria-hidden="true"><Icon size={13} strokeWidth={2.2} /></span>
-                              <span class="hub-row-copy">
-                                <b>{stop.stopName ?? titleCase(stop.subtype)}</b>
-                                <small>{titleCase(stop.mode)} · {stop.connectedIslandIds.length} islands</small>
-                              </span>
+                      {#if profile.connections.direct.length > 2}
+                        <div class="card-heading-actions">
+                          <Badge variant="outline">{profile.connections.direct.length}</Badge>
+                          <Button
+                            class="view-more-button"
+                            variant="ghost"
+                            size="xs"
+                            type="button"
+                            aria-expanded={connectionsExpanded}
+                            aria-controls="island-connections-details"
+                            onclick={() => (connectionsExpanded = !connectionsExpanded)}
+                          >
+                            {connectionsExpanded ? 'View less' : 'View more'}
+                          </Button>
+                        </div>
+                      {/if}
+                    </div>
+                    <div id="island-connections-details">
+                      {#if connectionsExpanded || profile.connections.direct.length <= 2}
+                        <div class="connection-modes">
+                          {#each profile.connections.byType as connection (connection.type)}
+                            {@const Icon = connectionIcon(connection.type)}
+                            <div class="connection-mode">
+                              <span class="connection-mode-icon"><Icon size={15} strokeWidth={2.2} /></span>
+                              <strong>{connection.count}</strong>
+                              <span>{titleCase(connection.type)}</span>
                             </div>
-                            <div
-                              class="hub-load-bar"
-                              role="img"
-                              aria-label={`${percentage(loadPercent)} capacity load with ${number(stop.localDemand)} local demand and ${number(stop.connectedDemand)} linked demand`}
-                            >
-                              <div class="hub-load-fill" style={`width: ${loadPercent}%`}>
-                                <span class="hub-load-local" style={`width: ${localShare}%`}></span>
-                                <span class="hub-load-linked" style={`width: ${100 - localShare}%`}></span>
+                          {/each}
+                        </div>
+                        <div class="connection-list">
+                          {#each profile.connections.direct as connection (connection.id)}
+                            {@const Icon = connectionIcon(connection.type)}
+                            <div class="connection-row">
+                              <span class="connection-row-icon"><Icon size={15} strokeWidth={2.2} /></span>
+                              <div class="connection-copy">
+                                <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
+                                <span
+                                  >{titleCase(connection.type)}{connection.routeName
+                                    ? ` · ${connection.routeName}`
+                                    : ''}</span
+                                >
                               </div>
                             </div>
-                            <div class="hub-load-legend">
-                              <span><i class="hub-dot hub-dot-local"></i>{number(stop.localDemand)} local</span>
-                              <span><i class="hub-dot hub-dot-linked"></i>{number(stop.connectedDemand)} linked</span>
-                              {#if stop.careTransferDemand > 0}
-                                <span><i class="hub-dot hub-dot-care"></i>{number(stop.careTransferDemand)} care</span>
-                              {/if}
-                              {#if stop.educationTransferDemand > 0}
+                          {:else}
+                            <p class="empty-state">No mapped transport connections.</p>
+                          {/each}
+                        </div>
+                      {:else}
+                        <div class="connection-list collapsed-connection-list">
+                          {#each profile.connections.direct.slice(0, 2) as connection (connection.id)}
+                            <div class="connection-row collapsed-connection-row">
+                              <div class="connection-copy">
+                                <b>{connection.neighbor?.name ?? 'Unknown island'}</b>
                                 <span
-                                  ><i class="hub-dot hub-dot-education"></i>{number(stop.educationTransferDemand)} student
-                                  transfers</span
+                                  >{titleCase(connection.type)}{connection.routeName
+                                    ? ` · ${connection.routeName}`
+                                    : ''}</span
                                 >
-                              {/if}
+                              </div>
                             </div>
-                          </div>
-                          <div class="hub-row-values" aria-label={`${percentage(loadPercent)} capacity load`}>
-                            <strong>{percentage(loadPercent)}</strong>
-                          </div>
+                          {:else}
+                            <p class="empty-state">No mapped transport connections.</p>
+                          {/each}
                         </div>
-                      {:else}
-                        <p class="empty-state">No transport stop load is available.</p>
-                      {/each}
+                      {/if}
                     </div>
-                  {:else}
-                    <div class="collapsed-summary transport-summary">
-                      <span>Score <b>{percentage(profile.demand.transport.score)}</b></span>
-                      <span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span>
-                      <span>Stops <b>{profile.demand.transport.stops.length}</b></span>
-                    </div>
-                    <div class="collapsed-hub-list">
-                      {#each profile.demand.transport.stops.slice(0, 2) as stop (stop.stopId)}
-                        {@const loadPercent = Math.min(100, Math.max(0, stop.loadRatio * 100))}
-                        <div class="collapsed-hub-row">
-                          <span class="collapsed-hub-copy">
-                            <b>{stop.stopName ?? titleCase(stop.subtype)}</b>
-                            <small>{titleCase(stop.mode)} · {stop.connectedIslandIds.length} islands</small>
-                          </span>
-                          <strong>{percentage(loadPercent)}</strong>
-                        </div>
-                      {:else}
-                        <p class="empty-state">No transport stop load is available.</p>
-                      {/each}
-                    </div>
-                  {/if}
-                </div>
-              </Card.Root>
-            </div>
+                  </Card.Root>
 
-            <Card.Root class="insight-card inbound-sources-card" size="sm">
-              <div class="card-heading">
-                <div>
-                  <h3>Highest inbound demand from</h3>
-                </div>
-                {#if island.demand.inboundSources.length > 2}
-                  <div class="card-heading-actions">
-                    <Badge variant="outline">{island.demand.inboundSources.length}</Badge>
-                    <Button
-                      class="view-more-button"
-                      variant="ghost"
-                      size="xs"
-                      type="button"
-                      aria-expanded={inboundDemandExpanded}
-                      aria-controls="island-inbound-demand-details"
-                      onclick={() => (inboundDemandExpanded = !inboundDemandExpanded)}
-                    >
-                      {inboundDemandExpanded ? 'View less' : 'View more'}
-                    </Button>
+                  <div class="demand-grid">
+                    <Card.Root class="insight-card demand-card" size="sm">
+                      <div class="card-heading demand-heading">
+                        <div>
+                          <h3>Health demand</h3>
+                        </div>
+                        <strong class="demand-percentage"
+                          >{percentage(profile.demand.health.demand.demandPercent)}</strong
+                        >
+                      </div>
+                      <IslandDemandFlow metric={profile.demand.health.demand} label="Health" />
+                      <div class="demand-metrics">
+                        <span>Local demand <b>{number(profile.demand.health.demand.local)}</b></span><span
+                          >Inbound demand <b>{number(profile.demand.health.demand.inbound)}</b></span
+                        ><span>Outbound demand <b>{number(profile.demand.health.demand.outbound)}</b></span><span
+                          >Non-elderly baseline <b>{number(profile.demand.health.allAgeDemand?.combined)}</b></span
+                        ><span
+                          >Hospital demand <b
+                            >{percentage(profile.demand.health.hospitalDemand?.demandPercent ?? null)}</b
+                          ></span
+                        ><span
+                          >Children/adolescent demand <b>{number(profile.demand.health.youngerCareDemand?.combined)}</b
+                          ></span
+                        ><span
+                          >Elderly hospital outbound <b>{number(profile.demand.health.elderlyCareDemand?.outbound)}</b
+                          ></span
+                        ><span>Population basis <b>{number(profile.demand.health.populationBasis)}</b></span>
+                      </div>
+                      <Progress
+                        value={profile.demand.health.demand.demandPercent ?? 0}
+                        max={100}
+                        aria-label="Health service demand percentage"
+                      />
+                    </Card.Root>
+
+                    <Card.Root class="insight-card demand-card" size="sm">
+                      <div class="card-heading demand-heading">
+                        <div>
+                          <h3>Education demand</h3>
+                        </div>
+                        <strong class="demand-percentage"
+                          >{percentage(profile.demand.education.demand.demandPercent)}</strong
+                        >
+                      </div>
+                      <IslandDemandFlow metric={profile.demand.education.demand} label="Education" />
+                      <div class="demand-metrics">
+                        <span>Local demand <b>{number(profile.demand.education.demand.local)}</b></span><span
+                          >Inbound demand <b>{number(profile.demand.education.demand.inbound)}</b></span
+                        ><span>Outbound demand <b>{number(profile.demand.education.demand.outbound)}</b></span><span
+                          >Children <b>{number(profile.demand.education.childPopulation)}</b></span
+                        ><span>Adolescents <b>{number(profile.demand.education.adolescentPopulation)}</b></span><span
+                          >Youth <b>{number(profile.demand.education.youthPopulation)}</b></span
+                        >
+                      </div>
+                      <Progress
+                        value={profile.demand.education.demand.demandPercent ?? 0}
+                        max={100}
+                        aria-label="Education service demand percentage"
+                      />
+                    </Card.Root>
+
+                    <Card.Root class="insight-card demand-card employment-balance-card" size="sm">
+                      <div class="card-heading">
+                        <div>
+                          <h3>Employment balance</h3>
+                        </div>
+                        <strong class="card-heading-score">{percentage(profile.employment.score)}</strong>
+                      </div>
+                      <div class="demand-metrics">
+                        <span>Foreign residents <b>{number(profile.employment.foreignPopulation)}</b></span>
+                        <span>Working age 15-64 <b>{number(profile.employment.workingAgePopulation)}</b></span>
+                        <span
+                          >Foreign / working age <b
+                            >{percentage(
+                              profile.employment.foreignPerWorkingAge === null
+                                ? null
+                                : profile.employment.foreignPerWorkingAge * 100
+                            )}</b
+                          ></span
+                        >
+                        <span
+                          >Workplaces / 1,000 working age <b
+                            >{decimal(profile.employment.jobLocationsPerThousandWorkingAge)}</b
+                          ></span
+                        >
+                        <span>Foreign / workplace <b>{decimal(profile.employment.foreignPerJobLocation)}</b></span>
+                      </div>
+                      <div class="employment-balance-bars">
+                        <div>
+                          <span>Demand balance <b>{percentage(profile.employment.pressureScore)}</b></span>
+                          <Progress
+                            value={profile.employment.pressureScore ?? 0}
+                            max={100}
+                            aria-label="Job demand balance score"
+                          />
+                        </div>
+                        <div>
+                          <span>Supply balance <b>{percentage(profile.employment.supplyScore)}</b></span>
+                          <Progress
+                            value={profile.employment.supplyScore ?? 0}
+                            max={100}
+                            aria-label="Job supply balance score"
+                          />
+                        </div>
+                      </div>
+                      {#if profile.employment.foreignPopulationSource === 'assumed_zero'}
+                        <p class="employment-assumption">Missing `foregner` row treated as zero.</p>
+                      {/if}
+                    </Card.Root>
+
+                    <Card.Root class="insight-card demand-card transport-demand-card" size="sm">
+                      <div class="card-heading">
+                        <div>
+                          <h3>Transport stops</h3>
+                        </div>
+                      </div>
+                      <div id="island-transport-stop-details">
+                        <div class="demand-metrics transport-demand-metrics">
+                          <span>Resident population <b>{number(profile.demand.transport.residentPopulation)}</b></span
+                          ><span
+                            >Inbound care + education
+                            <b
+                              >{number(
+                                profile.demand.transport.careTransferDemand +
+                                  profile.demand.transport.educationTransferDemand
+                              )}</b
+                            ></span
+                          ><span>Outbound load <b>{number(profile.demand.transport.outboundPopulation)}</b></span><span
+                            >Working demand <b>{number(profile.demand.transport.workingDemand)}</b></span
+                          ><span>Student demand <b>{number(profile.demand.transport.studentDemand)}</b></span><span
+                            >Elderly demand <b>{number(profile.demand.transport.elderlyDemand)}</b></span
+                          ><span>Care transfers <b>{number(profile.demand.transport.careTransferDemand)}</b></span><span
+                            >Education transfers <b>{number(profile.demand.transport.educationTransferDemand)}</b></span
+                          ><span>Average stop load <b>{percentage(profile.demand.transport.averageLoad)}</b></span><span
+                            >Transport score <b>{percentage(profile.demand.transport.score)}</b></span
+                          ><span
+                            >Marine load <b>{percentage(profile.demand.transport.modes.marine.averageLoad)}</b></span
+                          ><span>Air load <b>{percentage(profile.demand.transport.modes.air.averageLoad)}</b></span
+                          ><span>Stops <b>{profile.demand.transport.stops.length}</b></span>
+                        </div>
+                        <div class="hub-list">
+                          {#each transportStopGroups as group (group.mode)}
+                            <div class="transport-stop-group">
+                              <div class="transport-stop-group-heading">
+                                <strong>{titleCase(group.mode)} stops</strong>
+                                <span>{group.stops.length}</span>
+                              </div>
+                              {#each group.stops as stop (stop.stopId)}
+                                {@const Icon = connectionIcon(stop.mode === 'marine' ? 'ferry' : stop.mode)}
+                                {@const routedDemand = stop.localDemand + stop.connectedDemand}
+                                {@const localShare = routedDemand > 0 ? (stop.localDemand / routedDemand) * 100 : 0}
+                                {@const loadPercent = Math.min(100, Math.max(0, stop.loadRatio * 100))}
+                                <div class="hub-row">
+                                  <div class="hub-row-main">
+                                    <div class="hub-row-heading">
+                                      <span class="hub-mode-icon" aria-hidden="true"
+                                        ><Icon size={13} strokeWidth={2.2} /></span
+                                      >
+                                      <span class="hub-row-copy">
+                                        <b>{stop.stopName ?? titleCase(stop.subtype)}</b>
+                                        <small>{titleCase(stop.mode)} · {stop.connectedIslandIds.length} islands</small>
+                                      </span>
+                                    </div>
+                                    <div
+                                      class="hub-load-bar"
+                                      role="img"
+                                      aria-label={`${percentage(loadPercent)} capacity load with ${number(stop.localDemand)} local demand and ${number(stop.connectedDemand)} linked demand`}
+                                    >
+                                      <div class="hub-load-fill" style={`width: ${loadPercent}%`}>
+                                        <span class="hub-load-local" style={`width: ${localShare}%`}></span>
+                                        <span class="hub-load-linked" style={`width: ${100 - localShare}%`}></span>
+                                      </div>
+                                    </div>
+                                    <div class="hub-load-legend">
+                                      <span><i class="hub-dot hub-dot-local"></i>{number(stop.localDemand)} local</span>
+                                      <span
+                                        ><i class="hub-dot hub-dot-linked"></i>{number(stop.connectedDemand)} linked</span
+                                      >
+                                      {#if stop.careTransferDemand > 0}
+                                        <span
+                                          ><i class="hub-dot hub-dot-care"></i>{number(stop.careTransferDemand)} care</span
+                                        >
+                                      {/if}
+                                      {#if stop.educationTransferDemand > 0}
+                                        <span
+                                          ><i class="hub-dot hub-dot-education"></i>{number(
+                                            stop.educationTransferDemand
+                                          )} student transfers</span
+                                        >
+                                      {/if}
+                                    </div>
+                                  </div>
+                                  <div class="hub-row-values" aria-label={`${percentage(loadPercent)} capacity load`}>
+                                    <strong>{percentage(loadPercent)}</strong>
+                                  </div>
+                                </div>
+                              {/each}
+                            </div>
+                          {/each}
+                        </div>
+                        {#if transportStopGroups.length === 0}
+                          <p class="empty-state">No transport stops are available.</p>
+                        {/if}
+                      </div>
+                    </Card.Root>
                   </div>
-                {/if}
-              </div>
-              <div id="island-inbound-demand-details" class="inbound-source-list">
-                {#each inboundDemandExpanded ? island.demand.inboundSources : island.demand.inboundSources.slice(0, 2) as source (source.originIslandId)}
-                  <div class="inbound-source-row">
-                    <span>
-                      <b>{source.originAtollName} {source.originName}</b>
-                      <small>Health {number(source.health)} · Education {number(source.education)}</small>
-                    </span>
-                    <strong>{number(source.total)}</strong>
-                  </div>
+
+                  <Card.Root class="insight-card inbound-sources-card" size="sm">
+                    <div class="card-heading">
+                      <div>
+                        <h3>Highest inbound demand from</h3>
+                      </div>
+                      {#if inboundSources.length > 2}
+                        <div class="card-heading-actions">
+                          <Badge variant="outline">{inboundSources.length}</Badge>
+                          <Button
+                            class="view-more-button"
+                            variant="ghost"
+                            size="xs"
+                            type="button"
+                            aria-expanded={inboundDemandExpanded}
+                            aria-controls="island-inbound-demand-details"
+                            onclick={() => (inboundDemandExpanded = !inboundDemandExpanded)}
+                          >
+                            {inboundDemandExpanded ? 'View less' : 'View more'}
+                          </Button>
+                        </div>
+                      {/if}
+                    </div>
+                    <div id="island-inbound-demand-details" class="inbound-source-list">
+                      {#each inboundDemandExpanded ? inboundSources : inboundSources.slice(0, 2) as source (source.originIslandId)}
+                        <div class="inbound-source-row">
+                          <span>
+                            <b>{source.originAtollName} {source.originName}</b>
+                            <small>Health {number(source.health)} · Education {number(source.education)}</small>
+                          </span>
+                          <strong>{number(source.total)}</strong>
+                        </div>
+                      {:else}
+                        <p class="empty-state">No inbound demand from other islands.</p>
+                      {/each}
+                    </div>
+                  </Card.Root>
                 {:else}
-                  <p class="empty-state">No inbound demand from other islands.</p>
-                {/each}
-              </div>
-            </Card.Root>
-          {:else}
-            <p class="analytics-state" role="status">Island details are unavailable.</p>
-          {/if}
+                  <p class="analytics-state" role="status">Island details are unavailable.</p>
+                {/if}
+              </Tabs.Content>
+            </Tabs.Root>
+          {/key}
         {/if}
       </div>
     </Card.Root>
@@ -981,6 +896,10 @@
     display: flex;
     justify-content: flex-end;
     pointer-events: none;
+  }
+
+  .connection-network-layer-fullscreen {
+    z-index: 1000;
   }
 
   .proposal-mode-right {
@@ -1021,9 +940,198 @@
     overflow-y: auto;
     padding: 1rem;
   }
+  :global(.island-analytics-tabs) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 0.8rem;
+  }
+  :global(.island-analytics-tabs .analytics-tab-list) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin: 0;
+    border: 1px solid var(--mobility-border, #e4e4e7);
+    background: var(--mobility-surface-muted, #f4f4f5);
+  }
+  :global(.analytics-tab-list [data-slot='tabs-trigger']) {
+    min-width: 0;
+    padding: 0.3rem 0.2rem;
+    color: var(--mobility-muted, #71717a);
+    font-size: 0.58rem;
+  }
+  :global(.analytics-tab-list [data-slot='tabs-trigger']:hover),
+  :global(.analytics-tab-list [data-slot='tabs-trigger']:focus-visible) {
+    color: var(--mobility-accent, #09090b);
+  }
+  :global(.analytics-tab-list [data-slot='tabs-trigger'][data-state='active']),
+  :global(.analytics-tab-list [data-slot='tabs-trigger'][data-active]) {
+    background: var(--mobility-surface, #ffffff);
+    color: var(--mobility-accent, #09090b);
+    box-shadow: 0 1px 2px rgb(16 24 32 / 8%);
+  }
+  :global(.island-analytics-tabs .analytics-tab-panel) {
+    min-width: 0;
+  }
+  :global(.analytics-tab-panel > .insight-card:first-child) {
+    margin-top: 0.05rem;
+  }
+  .score-highlights {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-top: 0.8rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #e4e4e7;
+  }
+  .score-highlights > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.2rem 0.35rem;
+  }
+  .score-highlights span {
+    grid-column: 1 / -1;
+    color: #71717a;
+    font-size: 0.55rem;
+  }
+  .score-highlights strong {
+    overflow-wrap: anywhere;
+    font-size: 0.58rem;
+    font-weight: 700;
+  }
+  .score-highlights b {
+    font-size: 0.64rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+  .health-fallback-note {
+    margin-top: 0.55rem;
+  }
+  :global(.transport-access-overview .card-heading) {
+    align-items: baseline;
+  }
+  .access-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 0.8rem;
+  }
+  .access-mode-grid > div {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.9rem;
+    min-height: 5.2rem;
+  }
+  .access-mode-grid > div + div {
+    padding-left: 0.65rem;
+    border-left: 1px solid #e4e4e7;
+  }
+  .access-mode-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #09090b;
+  }
+  .access-mode-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.6rem;
+    background: var(--mobility-surface-muted, #f4f4f5);
+    color: #09090b;
+  }
+  .access-mode-label {
+    color: #09090b;
+    font-size: 0.75rem;
+    font-weight: 750;
+  }
+  .access-mode-grid strong {
+    color: var(--access-color, #09090b);
+    font-size: 1.45rem;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+  }
+  :global(.island-analytics-card.connection-network-fullscreen) {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: none;
+    margin: 0 !important;
+    padding: 1rem !important;
+    overflow: hidden;
+    box-sizing: border-box;
+    border-radius: 0;
+    box-shadow: 0 1rem 3rem rgb(16 24 32 / 24%);
+  }
+  :global(.connection-network-toggle) {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.4rem;
+    color: #27272a;
+  }
+  :global(.connection-network-toggle:hover),
+  :global(.connection-network-toggle:focus-visible) {
+    border-color: #a1a1aa;
+    background: #f4f4f5;
+    color: #09090b;
+  }
+
+  :global(.connection-network-card.connection-network-fullscreen > .card-heading) {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 30;
+    height: 0;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  :global(.connection-network-card.connection-network-fullscreen .connection-network-toggle) {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    margin: 0;
+    pointer-events: auto;
+  }
+
+  :global(.connection-network-card.connection-network-fullscreen .connection-network) {
+    position: static;
+    padding-top: 0;
+  }
+
+  :global(.connection-network-card.connection-network-fullscreen .connection-destination-search) {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    width: min(22rem, calc(100vw - 6rem));
+    margin: 0;
+  }
+  .chart-note {
+    margin: 0.7rem 0 0;
+    color: #71717a;
+    font-size: 0.56rem;
+    line-height: 1.45;
+  }
+  .context-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 0.7rem;
+  }
   .analytics-heading,
-  .card-heading,
-  .driver-topline {
+  .card-heading {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1097,11 +1205,6 @@
     color: #71717a;
     font-size: 0.54rem;
   }
-  .collapsed-hub-row > strong {
-    color: #09090b;
-    font-size: 0.65rem;
-    font-variant-numeric: tabular-nums;
-  }
   h2 {
     margin: 0;
     font-size: clamp(1.7rem, 3vw, 2.15rem);
@@ -1138,50 +1241,6 @@
     color: #27272a;
     box-shadow: none;
     font-size: 0.56rem;
-  }
-  .driver-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-    margin-top: 0.75rem;
-  }
-  .driver-row {
-    display: grid;
-    align-content: start;
-    gap: 0.3rem;
-    min-width: 0;
-    min-height: 4.35rem;
-    padding: 0.48rem 0.55rem;
-    border: 1px solid #e4e4e7;
-    border-radius: 0.4rem;
-    background: #fafafa;
-  }
-  .driver-topline span {
-    font-size: 0.66rem;
-    font-weight: 780;
-  }
-  .driver-topline {
-    align-items: center;
-  }
-  .driver-score {
-    flex: 0 0 auto;
-    font-size: 1rem;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  :global(.driver-row [data-slot='progress']) {
-    height: 0.38rem;
-    background: #e4e4e7;
-  }
-  :global(.driver-row [data-slot='progress-indicator']) {
-    background: var(--driver-score-color, var(--mobility-accent, #09090b));
-  }
-  .driver-row small {
-    color: #71717a;
-    font-size: 0.56rem;
-    line-height: 1.25;
   }
   .detail-grid {
     display: grid;
@@ -1352,22 +1411,6 @@
   }
   :global(.sustainability-card .vehicle-category-row [data-slot='progress-indicator']) {
     background: var(--mobility-accent, #09090b);
-  }
-  .island-loading-sustainability-score {
-    width: 5rem;
-    height: 1.25rem;
-    margin-top: 0.72rem;
-    border-radius: 0.3rem;
-  }
-  .island-loading-sustainability-factors {
-    display: grid;
-    gap: 0.58rem;
-    margin-top: 0.72rem;
-  }
-  :global(.island-loading-sustainability-factor) {
-    width: 100%;
-    height: 1.2rem;
-    border-radius: 0.25rem;
   }
   .population-list {
     display: grid;
@@ -1589,6 +1632,41 @@
     padding-top: 0.55rem;
     border-top: 1px solid #e4e4e7;
   }
+  .transport-stop-group {
+    display: grid;
+    gap: 0.25rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid #f4f4f5;
+  }
+  .transport-stop-group:first-of-type {
+    padding-top: 0;
+    border-top: 0;
+  }
+  .transport-stop-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: #71717a;
+    font-size: 0.55rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .transport-stop-group-heading strong {
+    color: #3f3f46;
+    font-weight: 800;
+  }
+  .transport-stop-group-heading span {
+    display: grid;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    place-items: center;
+    border: 1px solid #e4e4e7;
+    border-radius: 999px;
+    color: #52525b;
+    font-size: 0.52rem;
+    font-variant-numeric: tabular-nums;
+  }
   .inbound-source-list {
     display: grid;
     gap: 0.4rem;
@@ -1716,12 +1794,6 @@
   .hub-dot-linked {
     background: #a1a1aa;
   }
-  .hub-dot-vehicle {
-    background: var(--mobility-accent, #09090b);
-  }
-  .hub-dot-vehicle-density {
-    background: #a1a1aa;
-  }
   .hub-dot-care {
     background: #c69a5c;
   }
@@ -1744,208 +1816,151 @@
     color: #71717a;
     font-size: 0.65rem;
   }
+  .island-loading-content {
+    margin-top: 0.8rem;
+  }
+  .island-loading-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.25rem;
+    padding: 0.2rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.4rem;
+    background: #f4f4f5;
+  }
+  :global(.island-loading-tab) {
+    width: 100%;
+    height: 1.65rem;
+    border-radius: 0.3rem;
+  }
+  :global(.island-loading-tab-active) {
+    background-color: #fff !important;
+  }
+  :global(.island-loading-title) {
+    width: 8rem;
+    height: 1.35rem;
+  }
+  .island-loading-title-wrap {
+    height: 1.35rem;
+  }
   :global(.island-loading-panel-heading) {
     width: 6.2rem;
     height: 0.68rem;
     border-radius: 999px;
   }
   :global(.island-loading-panel-heading-wide) {
-    width: 8.8rem;
+    width: 10rem;
   }
-  :global(.island-loading-driver-label) {
-    width: 5.8rem;
-    height: 0.55rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-driver-score) {
-    width: 2.35rem;
-    height: 0.95rem;
-    border-radius: 0.2rem;
-  }
-  :global(.island-loading-progress) {
-    width: 100%;
-    height: 0.38rem;
-  }
-  :global(.island-loading-driver-note) {
-    width: 11rem;
-    height: 0.45rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-people-total) {
-    width: 4.5rem;
-    height: 1.25rem;
-    border-radius: 0.3rem;
-  }
-  :global(.island-loading-population-label) {
-    width: 5.2rem;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-population-value) {
-    width: 2.1rem;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-population-progress) {
-    width: 100%;
-    height: 0.34rem;
-  }
-  :global(.island-loading-service-label) {
-    width: 4rem;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-service-total) {
-    width: 1.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-service-item) {
-    width: 3.5rem;
-    height: 1.25rem;
-  }
-  :global(.island-loading-service-item-short) {
-    width: 2.7rem;
-  }
-  .island-loading-stat-list {
+  .island-loading-allocation-lanes {
     display: grid;
-    gap: 0.48rem;
-    margin-top: 0.7rem;
+    gap: 0.75rem;
+    margin-top: 0.8rem;
   }
-  .island-loading-stat-row,
-  .island-loading-demand-metrics > div {
+  .island-loading-allocation-lane {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.65rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.4rem;
+  }
+  .island-loading-allocation-lane > div {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.4rem;
+    gap: 0.5rem;
   }
-  :global(.island-loading-stat-label) {
-    width: 5rem;
-    height: 0.48rem;
+  :global(.island-loading-lane-icon) {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 0.5rem;
+  }
+  :global(.island-loading-lane-label) {
+    width: 7.5rem;
+    height: 0.55rem;
+    margin-right: auto;
     border-radius: 999px;
   }
-  :global(.island-loading-stat-value) {
-    width: 2.2rem;
-    height: 0.48rem;
+  :global(.island-loading-lane-track) {
+    width: 100%;
+    height: 0.4rem;
     border-radius: 999px;
   }
-  :global(.island-loading-badge) {
-    width: 1.35rem;
-    height: 1.1rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-connection-mode-icon) {
-    width: 1.35rem;
-    height: 1.35rem;
-  }
-  :global(.island-loading-connection-count) {
-    width: 1.5rem;
-    height: 0.65rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-connection-type) {
-    width: 2.6rem;
+  :global(.island-loading-lane-caption) {
+    width: 9rem;
     height: 0.45rem;
     border-radius: 999px;
   }
-  :global(.island-loading-connection-row-icon) {
-    width: 1.35rem;
-    height: 1.35rem;
-  }
-  .island-loading-connection-name,
-  .island-loading-connection-caption {
-    display: block;
-  }
-  :global(.island-loading-connection-name) {
-    width: 7rem;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-connection-caption) {
-    width: 4rem;
-    height: 0.42rem;
-    margin-top: 0.12rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-demand-percentage) {
-    width: 2.9rem;
-    height: 1.15rem;
-    border-radius: 0.2rem;
-  }
-  .island-loading-demand-metrics {
-    display: grid;
-    gap: 0.35rem;
-    margin-top: 0.65rem;
-  }
-  :global(.island-loading-demand-label) {
-    width: 6.7rem;
-    height: 0.46rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-demand-value) {
-    width: 2.5rem;
-    height: 0.46rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-demand-progress) {
-    width: 100%;
-    height: 0.34rem;
-    margin-top: 0.7rem;
-  }
-  :global(.island-loading-hub-icon) {
-    width: 1.3rem;
-    height: 1.3rem;
-  }
-  :global(.island-loading-hub-name) {
-    width: 6rem;
-    height: 0.5rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-hub-caption) {
-    width: 4.2rem;
-    height: 0.42rem;
-    margin-top: 0.08rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-hub-bar) {
-    width: 100%;
-    height: 0.32rem;
-  }
-  :global(.island-loading-hub-legend-item) {
-    width: 3rem;
-    height: 0.4rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-hub-value) {
+  :global(.island-loading-lane-value) {
     width: 2.4rem;
-    height: 0.75rem;
-    border-radius: 0.2rem;
-  }
-  :global(.island-loading-hub-value-caption) {
-    width: 3.2rem;
-    height: 0.4rem;
-    margin-top: 0.05rem;
+    height: 0.55rem;
     border-radius: 999px;
   }
-  .island-loading-source-copy {
-    display: grid;
-    min-width: 0;
-    gap: 0.12rem;
+  :global(.island-loading-network-toggle) {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.35rem;
   }
-  :global(.island-loading-source-name) {
-    width: 7.4rem;
-    height: 0.5rem;
+  .island-loading-network {
+    position: relative;
+    height: 14rem;
+    margin-top: 0.8rem;
+    overflow: hidden;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.45rem;
+    background: #fafafa;
+  }
+  :global(.island-loading-network-node) {
+    position: absolute;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+  }
+  :global(.island-loading-network-node-1) {
+    top: 42%;
+    left: 42%;
+  }
+  :global(.island-loading-network-node-2) {
+    top: 14%;
+    left: 14%;
+  }
+  :global(.island-loading-network-node-3) {
+    top: 16%;
+    right: 14%;
+  }
+  :global(.island-loading-network-node-4) {
+    bottom: 12%;
+    left: 18%;
+  }
+  :global(.island-loading-network-node-5) {
+    right: 18%;
+    bottom: 14%;
+  }
+  :global(.island-loading-network-line) {
+    position: absolute;
+    top: 49%;
+    left: 18%;
+    width: 64%;
+    height: 0.25rem;
+    border-radius: 999px;
+    transform: rotate(22deg);
+  }
+  :global(.island-loading-network-line-two) {
+    transform: rotate(-25deg);
+  }
+  :global(.island-loading-access-icon) {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.6rem;
+  }
+  :global(.island-loading-access-label) {
+    width: 3rem;
+    height: 0.55rem;
     border-radius: 999px;
   }
-  :global(.island-loading-source-caption) {
-    width: 5.2rem;
-    height: 0.42rem;
-    border-radius: 999px;
-  }
-  :global(.island-loading-source-total) {
-    width: 2.2rem;
-    height: 0.58rem;
-    border-radius: 999px;
+  :global(.island-loading-access-score) {
+    width: 3.3rem;
+    height: 1.45rem;
+    border-radius: 0.3rem;
   }
   :global(.island-analytics-card [data-slot='skeleton']) {
     background-color: #f4f4f5;
@@ -1963,13 +1978,23 @@
       align-self: flex-end;
       margin: 0.5rem;
     }
+    :global(.island-analytics-card.connection-network-fullscreen) {
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      padding: 0.75rem !important;
+    }
     .detail-grid {
       grid-template-columns: 1fr;
     }
     .demand-grid {
       grid-template-columns: 1fr;
     }
-    .driver-list {
+    :global(.analytics-tab-list [data-slot='tabs-trigger']) {
+      padding-inline: 0.2rem;
+      font-size: 0.54rem;
+    }
+    .context-metrics {
       grid-template-columns: 1fr;
     }
   }
@@ -2007,7 +2032,6 @@
   }
 
   :global(.island-analytics-card .card-heading > div > p),
-  :global(.island-analytics-card .driver-row small),
   :global(.island-analytics-card .population-row small),
   :global(.island-analytics-card .stat-list),
   :global(.island-analytics-card .service-item),
@@ -2041,7 +2065,7 @@
   }
 
   :global(.island-analytics-card [data-slot='progress-indicator']) {
-    background: var(--driver-score-color, var(--mobility-accent, #09090b));
+    background: var(--mobility-accent, #09090b);
   }
 
   :global(.island-analytics-card .service-group),
@@ -2071,5 +2095,18 @@
   :global(.island-analytics-card .hub-load-local),
   :global(.island-analytics-card .hub-dot-local) {
     background: var(--mobility-accent, #09090b);
+  }
+
+  :global(.connection-network-fullscreen) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1000 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+    box-sizing: border-box !important;
+    border-radius: 0 !important;
   }
 </style>

@@ -1,4 +1,29 @@
 {
+  "landTopology": {
+    "path": "normalized/osm-land-crossings.json",
+    "sourcePath": "raw/osm/maldives-latest.osm.pbf",
+    "sourceChecksum": "121626f2d071f50259e92649021863b8e33caa715410b327b441fb5f465dc0ff",
+    "schemaVersion": "osm-land-crossings-v1",
+    "recordCount": 19,
+    "usedByMvp": true,
+    "knownLimitations": [
+      "Road crossings establish physical land connectivity, not timetables or measured journey times.",
+      "The supplement contains source vertex spans missing from the bridge-only extract; runtime also resolves normalized bridge/causeway and RTL roadshape geometry.",
+      "Missing or ambiguous island geometry does not justify a proximity-derived connection."
+    ]
+  },
+  "airportEvidence": {
+    "path": "normalized/airport-evidence.json",
+    "sourcePath": "raw/osm/maldives-latest.osm.pbf",
+    "sourceChecksum": "121626f2d071f50259e92649021863b8e33caa715410b327b441fb5f465dc0ff",
+    "schemaVersion": "osm-airport-evidence-v1",
+    "recordCount": 20,
+    "usedByMvp": true,
+    "knownLimitations": [
+      "Aerodrome classification is not evidence of an operating flight route.",
+      "Unclassified OSM landing areas cannot qualify a historical modeled domestic-airport gateway link."
+    ]
+  },
   "rtlFerries": {
     "path": "transport/rtl-ferry-coverage.json",
     "sourcePath": "external-reference-snapshot",

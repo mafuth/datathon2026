@@ -13,6 +13,7 @@ import type {
   ServiceScore
 } from './types';
 
+import { isGroundAirport } from './airport-evidence';
 import { scoringConfig } from './config';
 import {
   AIR_TRANSPORT_TYPES,
@@ -127,12 +128,7 @@ export function calculateCrowdedness(island: Island, population: number | null):
 
 function airportAccess(snapshot: ScoringSnapshot, islandId: string): AirportAccess {
   const hasAirport = (targetIslandId: string) =>
-    snapshot.services.some(
-      (service) =>
-        service.islandId === targetIslandId &&
-        service.serviceType === 'transport' &&
-        AIR_TRANSPORT_TYPES.includes(service.subtype as (typeof AIR_TRANSPORT_TYPES)[number])
-    );
+    snapshot.services.some((service) => service.islandId === targetIslandId && isGroundAirport(service));
   if (hasAirport(islandId)) return { available: true, source: 'own_airport', airportIslandId: islandId };
 
   const visited = new Set([islandId]);

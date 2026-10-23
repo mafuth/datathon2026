@@ -114,7 +114,7 @@
     </Button>
   </Card.Header>
 
-  {#if !proposalMode && availableDemandRows.length > 0}
+  {#if availableDemandRows.length > 0}
     <Card.Content class="service-popup-content">
       <div class="demand-list">
         {#each availableDemandRows as row (row.key)}
@@ -124,6 +124,14 @@
               <h4>Demand breakdown</h4>
             </div>
             <dl class="metric-grid">
+              {#if demand.total !== null}<div class="metric-card">
+                  <dt>Total demand</dt>
+                  <dd>{value(demand.total)}</dd>
+                </div>{/if}
+              {#if demand.outbound !== undefined}<div class="metric-card">
+                  <dt>Outbound</dt>
+                  <dd>{demand.outbound === null ? 'Unavailable' : value(demand.outbound)}</dd>
+                </div>{/if}
               {#if demand.local !== null}<div class="metric-card">
                   <dt>Local</dt>
                   <dd>{value(demand.local)}</dd>
@@ -157,6 +165,7 @@
                   <dd>{loadRatio(demand.loadRatio)}</dd>
                 </div>{/if}
             </dl>
+            {#if demand.limitation}<Card.Description>{demand.limitation}</Card.Description>{/if}
           </section>
         {/each}
       </div>

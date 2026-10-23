@@ -11,6 +11,7 @@ type Coordinate = [number, number];
 
 export type ServiceHexInput = {
   coordinates: Coordinate;
+  projectTransportHeatToLand?: boolean;
   weights: Record<ServiceDemandCategory, number>;
   coverageWeights?: Record<ServiceDemandCategory, number>;
   statuses: Record<ServiceDemandCategory, ServiceDemandStatus>;
@@ -145,11 +146,6 @@ function hexVertices(center: LocalPoint, includeClosingPoint = false): LocalPoin
   return includeClosingPoint ? [...vertices, vertices[0] as LocalPoint] : vertices;
 }
 
-function hexPolygon(center: LocalPoint, origin: Coordinate): Coordinate[][] {
-  const coordinates = hexVertices(center, true).map((vertex) => fromLocal(vertex, origin));
-  return [coordinates];
-}
-
 function prepareHexGrid(parsedGeometry: ParsedGeometry, origin: Coordinate): PreparedHexGrid {
   const serviceSigma = scoringConfig.serviceHeatmap.serviceInfluenceSigmaMeters;
   const residentialSigma = scoringConfig.serviceHeatmap.residentialInfluenceSigmaMeters;
@@ -170,6 +166,7 @@ function prepareHexGrid(parsedGeometry: ParsedGeometry, origin: Coordinate): Pre
     maxY: toLocal([origin[0], parsedGeometry.bounds.maxY], origin).y + influenceRadius
   };
   const cells: PreparedHexCell[] = [];
+  const centerContainedCells: PreparedHexCell[] = [];
   for (
     let row = Math.floor(localBounds.minY / HEX_Y_SPACING) - 1;
     row <= Math.ceil(localBounds.maxY / HEX_Y_SPACING) + 1;
@@ -181,12 +178,16 @@ function prepareHexGrid(parsedGeometry: ParsedGeometry, origin: Coordinate): Pre
       column += 1
     ) {
       const center = hexCenter(column, row);
-      if (!pointInGeometry(fromLocal(center, origin), parsedGeometry.polygons)) continue;
-      cells.push({ id: `${row}:${column}`, center, polygon: hexPolygon(center, origin) });
+      const centerCoordinate = fromLocal(center, origin);
+      if (!pointInGeometry(centerCoordinate, parsedGeometry.polygons)) continue;
+      const vertices = hexVertices(center).map((vertex) => fromLocal(vertex, origin));
+      const cell = { id: `${row}:${column}`, center, polygon: [[...vertices, vertices[0] as Coordinate]] };
+      centerContainedCells.push(cell);
+      if (vertices.every((vertex) => pointInGeometry(vertex, parsedGeometry.polygons))) cells.push(cell);
     }
   }
 
-  const prepared = { cells, influenceRadius };
+  const prepared = { cells: cells.length > 0 ? cells : centerContainedCells, influenceRadius };
   grids.set(cacheKey, prepared);
   return prepared;
 }
@@ -197,8 +198,7 @@ function combineStatuses(statuses: ServiceDemandStatus[]): ServiceDemandStatus {
   return 'unavailable';
 }
 
-function normalize(values: number[]): number[] {
-  const maximum = Math.max(0, ...values);
+function normalize(values: number[], maximum: number): number[] {
   return maximum === 0 ? values.map(() => 0) : values.map((value) => Number((value / maximum).toFixed(3)));
 }
 
@@ -251,10 +251,8 @@ function nearbyResidentialPoints(
 function combinedHeatValue(
   facilityPressure: number,
   residentialAccessGap: number,
-  hasFacilityPressure: boolean,
   hasResidentialAccessGap: boolean
 ): number {
-  if (!hasFacilityPressure) return residentialAccessGap;
   if (!hasResidentialAccessGap) return facilityPressure;
 
   const facilityWeight = scoringConfig.serviceHeatmap.facilityPressureWeight;
@@ -300,10 +298,31 @@ export function buildServiceDemandHexes(
   const serviceSigma = scoringConfig.serviceHeatmap.serviceInfluenceSigmaMeters;
   const residentialSigma = scoringConfig.serviceHeatmap.residentialInfluenceSigmaMeters;
   const influenceRadius = preparedGrid.influenceRadius;
-  const localServices = services.map((service) => ({
-    ...service,
-    point: toLocal(service.coordinates, origin)
-  }));
+  const localServices = services.map((service) => {
+    const recordedPoint = toLocal(service.coordinates, origin);
+    if (!service.projectTransportHeatToLand || pointInGeometry(service.coordinates, parsedGeometry.polygons))
+      return { ...service, point: recordedPoint };
+    let nearest = preparedGrid.cells[0]?.center;
+    let nearestDistance = nearest
+      ? Math.hypot(recordedPoint.x - nearest.x, recordedPoint.y - nearest.y)
+      : Number.POSITIVE_INFINITY;
+    for (const cell of preparedGrid.cells.slice(1)) {
+      const distance = Math.hypot(recordedPoint.x - cell.center.x, recordedPoint.y - cell.center.y);
+      if (distance >= nearestDistance) continue;
+      nearest = cell.center;
+      nearestDistance = distance;
+    }
+    return {
+      ...service,
+      point:
+        nearest &&
+        nearestDistance <=
+          scoringConfig.serviceHeatmap.transportVisualProjectionMeters +
+            scoringConfig.serviceHeatmap.transportVisualProjectionGraceMeters
+          ? nearest
+          : { x: Number.POSITIVE_INFINITY, y: Number.POSITIVE_INFINITY }
+    };
+  });
   const localResidentialPoints: LocalResidentialPoint[] = residentialPoints.map((point) => ({
     ...point,
     point: toLocal(point.coordinates, origin)
@@ -316,6 +335,7 @@ export function buildServiceDemandHexes(
     polygon: Coordinate[][];
     facilityPressure: Record<ServiceDemandCategory, number>;
     residentialAccessGap: Record<ServiceDemandCategory, number>;
+    residentialDensity: number;
     serviceCoverage: Record<ServiceDemandCategory, number>;
     hasCoverageData: Record<ServiceDemandCategory, boolean>;
     statuses: Record<ServiceDemandCategory, ServiceDemandStatus[]>;
@@ -373,6 +393,7 @@ export function buildServiceDemandHexes(
       polygon: cell.polygon,
       facilityPressure,
       residentialAccessGap,
+      residentialDensity,
       serviceCoverage,
       hasCoverageData,
       statuses
@@ -380,6 +401,10 @@ export function buildServiceDemandHexes(
   }
 
   const hasResidentialData = localResidentialPoints.length > 0;
+  // Density depends only on baseline residences and geometry, not proposed services.
+  // Reusing this reference keeps relief visible rather than stretching each result
+  // back to its own maximum. Zero-valued components retain the same blend weights.
+  const residentialReference = Math.max(0, ...rawFeatures.map((feature) => feature.residentialDensity));
   const normalizedValues = {
     facilityPressure: {
       health: boundFacilityPressure(rawFeatures.map((feature) => feature.facilityPressure.health)),
@@ -387,9 +412,18 @@ export function buildServiceDemandHexes(
       transport: boundFacilityPressure(rawFeatures.map((feature) => feature.facilityPressure.transport))
     },
     residentialAccessGap: {
-      health: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.health)),
-      education: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.education)),
-      transport: normalize(rawFeatures.map((feature) => feature.residentialAccessGap.transport))
+      health: normalize(
+        rawFeatures.map((feature) => feature.residentialAccessGap.health),
+        residentialReference
+      ),
+      education: normalize(
+        rawFeatures.map((feature) => feature.residentialAccessGap.education),
+        residentialReference
+      ),
+      transport: normalize(
+        rawFeatures.map((feature) => feature.residentialAccessGap.transport),
+        residentialReference
+      )
     }
   };
   const healthPressures = rawFeatures.map((feature, index) =>
@@ -409,37 +443,23 @@ export function buildServiceDemandHexes(
     )
   );
 
-  const hasFacilityPressure = {
-    health: healthPressures.some((value) => value > 0),
-    education: educationPressures.some((value) => value > 0),
-    transport: normalizedValues.facilityPressure.transport.some((value) => value > 0)
-  };
-  const hasResidentialAccessGap = {
-    health: normalizedValues.residentialAccessGap.health.some((value) => value > 0),
-    education: normalizedValues.residentialAccessGap.education.some((value) => value > 0),
-    transport: normalizedValues.residentialAccessGap.transport.some((value) => value > 0)
-  };
-
   return {
     type: 'FeatureCollection',
     features: rawFeatures.map((feature, index) => {
       const healthWeight = combinedHeatValue(
         healthPressures[index] ?? 0,
         normalizedValues.residentialAccessGap.health[index] ?? 0,
-        hasFacilityPressure.health,
-        hasResidentialAccessGap.health
+        hasResidentialData
       );
       const educationWeight = combinedHeatValue(
         educationPressures[index] ?? 0,
         normalizedValues.residentialAccessGap.education[index] ?? 0,
-        hasFacilityPressure.education,
-        hasResidentialAccessGap.education
+        hasResidentialData
       );
       const transportWeight = combinedHeatValue(
         normalizedValues.facilityPressure.transport[index] ?? 0,
         normalizedValues.residentialAccessGap.transport[index] ?? 0,
-        hasFacilityPressure.transport,
-        hasResidentialAccessGap.transport
+        hasResidentialData
       );
       const statuses = {
         healthStatus: combinedStatus(feature.statuses.health, hasResidentialData),

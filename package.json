@@ -42,6 +42,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
+    "@dagrejs/dagre": "2.0.4",
     "@eslint/js": "^10.0.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@internationalized/date": "^3.12.3",
@@ -54,6 +55,7 @@
     "@types/eslint": "^9.6.1",
     "@types/node": "^26.1.2",
     "@types/qrcode": "^1.5.6",
+    "@xyflow/svelte": "1.7.0",
     "bits-ui": "2.18.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
@@ -96,6 +98,7 @@
     "better-auth": "^1.6.26",
     "drizzle-orm": "^0.45.2",
     "maplibre-gl": "^6.14.0",
+    "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "resend": "^6.18.1",
     "uuid": "^14.0.1"

@@ -1,5 +1,6 @@
 import type { DemandAllocationResult, ResidentialDemandPoint, ScoringSnapshot } from './types';
 import type {
+  IslandMapService,
   IslandServiceDemand,
   IslandServicesResponse,
   ServiceDemandCategory,
@@ -17,7 +18,7 @@ import { buildServiceDemandHexes } from './service-hex-grid';
 import { calculateTransportDemand } from './transport-demand';
 
 type Coordinate = [number, number];
-const islandGeometryCache = new WeakMap<ScoringSnapshot, Map<string, unknown>>();
+const islandGeometryCache = new Map<string, { source: string; geometry: unknown }>();
 const residentialPointsCache = new WeakMap<ScoringSnapshot, Map<string, ResidentialDemandPoint[]>>();
 
 export type IslandServiceIslandRow = {
@@ -250,10 +251,16 @@ function transportDemandForService(
   const stop = stops.find((entry) => entry.stopId === serviceId);
   if (!stop) return emptyDemand();
 
+  const transportFlowDemand = stop.careTransferDemand + stop.educationTransferDemand;
   return {
-    value: round(stop.totalDemand),
+    value:
+      transportFlowDemand === 0 && (stop.departureTransferDemand === null || stop.arrivalTransferDemand === null)
+        ? null
+        : round(transportFlowDemand),
+    outbound: stop.outboundDemand,
+    limitation: stop.limitation,
     local: round(stop.localDemand),
-    inbound: round(stop.connectedDemand),
+    inbound: stop.arrivalTransferDemand,
     connected: round(stop.connectedDemand),
     transfer: round(stop.careTransferDemand + stop.educationTransferDemand),
     careTransfer: round(stop.careTransferDemand),
@@ -267,32 +274,36 @@ function transportDemandForService(
   };
 }
 
-export function normalizeDemandWeights(values: readonly (number | null)[]): number[] {
-  const availableCount = values.filter(
+export function normalizeDemandWeights(
+  values: readonly (number | null)[],
+  reference: readonly (number | null)[] = values
+): number[] {
+  const availableCount = reference.filter(
     (value): value is number => value !== null && Number.isFinite(value) && value > 0
   ).length;
-  const share = availableCount > 0 ? round(1 / availableCount) : 0;
+  const share = round(1 / Math.max(1, availableCount));
   return values.map((value) => (value === null || !Number.isFinite(value) || value <= 0 ? 0 : share));
 }
 
-export function normalizeProportionalDemandWeights(values: readonly (number | null)[]): number[] {
-  const total = values.reduce(
+export function normalizeProportionalDemandWeights(
+  values: readonly (number | null)[],
+  reference: readonly (number | null)[] = values
+): number[] {
+  const total = reference.reduce<number>(
     (sum, value) => sum + (value !== null && Number.isFinite(value) && value > 0 ? value : 0),
     0
   );
-  return total === 0
-    ? values.map(() => 0)
-    : values.map((value) => (value === null || !Number.isFinite(value) || value <= 0 ? 0 : round(value / total)));
+  return values.map((value) =>
+    value === null || !Number.isFinite(value) || value <= 0 ? 0 : round(value / (total > 0 ? total : 1))
+  );
 }
 
 function buildPopulationDemand(
-  service: { serviceType: ServiceDemandCategory; subtype: string },
+  service: { serviceType: 'education'; subtype: string },
   servicesOnIsland: Array<{ serviceType: string; subtype: string }>,
   population: number | null,
   totals: Map<string, AllocationTotals>
 ): IslandServiceDemand {
-  if (service.serviceType === 'health') return emptyDemand('population-allocation');
-  if (service.serviceType !== 'education') return emptyDemand();
   return populationDemandForService(service, servicesOnIsland, population, totals);
 }
 
@@ -312,20 +323,16 @@ function serviceCoverageWeights(service: { serviceType: string; subtype: string 
   } satisfies Record<ServiceDemandCategory, number>;
 }
 
-function islandGeometry(snapshot: ScoringSnapshot, islandId: string, geoJson: string): unknown {
-  let geometries = islandGeometryCache.get(snapshot);
-  if (!geometries) {
-    geometries = new Map();
-    islandGeometryCache.set(snapshot, geometries);
-  }
-  if (geometries.has(islandId)) return geometries.get(islandId);
+function islandGeometry(_snapshot: ScoringSnapshot, islandId: string, geoJson: string): unknown {
+  const cached = islandGeometryCache.get(islandId);
+  if (cached?.source === geoJson) return cached.geometry;
   let geometry: unknown = null;
   try {
     geometry = JSON.parse(geoJson) as unknown;
   } catch {
     // Invalid optional geometry produces no heatmap rather than failing the services response.
   }
-  geometries.set(islandId, geometry);
+  islandGeometryCache.set(islandId, { source: geoJson, geometry });
   return geometry;
 }
 
@@ -345,7 +352,8 @@ function residentialPointsForIsland(snapshot: ScoringSnapshot, islandId: string)
 export async function getIslandServices(
   islandId: string,
   snapshotOverride: ScoringSnapshot | undefined = undefined,
-  islandRowOverride: IslandServiceIslandRow | undefined = undefined
+  islandRowOverride: IslandServiceIslandRow | undefined = undefined,
+  heatmapReference?: readonly IslandMapService[]
 ): Promise<IslandServicesResponse> {
   const normalizedId = islandId.trim();
   if (!normalizedId) throw new IslandServicesNotFoundError(islandId);
@@ -369,6 +377,33 @@ export async function getIslandServices(
         left.id.localeCompare(right.id)
     );
   const population = allocations.byIsland.get(normalizedId)?.population ?? null;
+  // Canonical resident allocations only: omit destination overlays and terminal shares.
+  // Unlike legacy aggregate education.local, local here means served on this island.
+  const planningDemand: NonNullable<IslandServicesResponse['planningDemand']> | null =
+    population === null
+      ? null
+      : {
+          health: { local: 0, outbound: 0, unserved: 0 },
+          education: { local: 0, outbound: 0, unserved: 0 }
+        };
+  if (planningDemand) {
+    const residentAllocations = [
+      ...[...allocations.byOriginNeed.values()].filter(
+        (allocation) => allocation.category === 'health' && ['primary', 'chronic_elderly'].includes(allocation.needKey)
+      ),
+      ...[...allocations.byOriginCohort.values()].filter((allocation) => allocation.category === 'education')
+    ];
+    for (const allocation of residentAllocations) {
+      if (allocation.originIslandId !== normalizedId) continue;
+      const field =
+        allocation.destinationIslandId === null
+          ? 'unserved'
+          : allocation.destinationIslandId === normalizedId
+            ? 'local'
+            : 'outbound';
+      planningDemand[allocation.category][field] += allocation.demand;
+    }
+  }
   const populationTotals = aggregatePopulationDemand(allocations, normalizedId);
   const healthTotals = aggregateHealthDemand(allocations, normalizedId);
   const transportStops = transportDemand.stops;
@@ -377,7 +412,7 @@ export async function getIslandServices(
     subtype: service.subtype
   }));
 
-  const mapServices = services.map((service) => {
+  const mapServices: IslandMapService[] = services.map((service) => {
     const coordinates = finiteCoordinate(service.longitude, service.latitude);
     const demand = {
       health:
@@ -414,9 +449,50 @@ export async function getIslandServices(
     };
   });
 
-  const healthWeights = normalizeProportionalDemandWeights(mapServices.map((service) => service.demand.health.value));
-  const educationWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.education.value));
-  const transportWeights = normalizeDemandWeights(mapServices.map((service) => service.demand.transport.value));
+  const mappedIds = new Set(mapServices.map((service) => service.id));
+  for (const stop of snapshot.transportStops) {
+    if (stop.islandId !== normalizedId || mappedIds.has(stop.id)) continue;
+    const coordinates = finiteCoordinate(stop.longitude, stop.latitude);
+    if (!coordinates) continue;
+    mappedIds.add(stop.id);
+    mapServices.push({
+      id: stop.id,
+      serviceType: 'transport',
+      subtype: stop.subtype,
+      name: stop.name,
+      coordinates,
+      change: 'unchanged',
+      eligibility: {
+        canUpgrade: false,
+        upgrades: [],
+        canDowngrade: false,
+        downgrades: [],
+        canMove: false,
+        canDelete: false
+      },
+      demand: {
+        health: emptyDemand(),
+        education: emptyDemand(),
+        transport: transportDemandForService(stop.id, transportStops)
+      }
+    });
+  }
+
+  // A preview uses baseline denominators instead of independently stretching its
+  // service weights. A zero baseline uses a fixed unit reference, never the draft maximum.
+  const reference = heatmapReference ?? mapServices;
+  const healthWeights = normalizeProportionalDemandWeights(
+    mapServices.map((service) => service.demand.health.value),
+    reference.map((service) => service.demand.health.value)
+  );
+  const educationWeights = normalizeDemandWeights(
+    mapServices.map((service) => service.demand.education.value),
+    reference.map((service) => service.demand.education.value)
+  );
+  const transportWeights = normalizeProportionalDemandWeights(
+    mapServices.map((service) => service.demand.transport.value),
+    reference.map((service) => service.demand.transport.value)
+  );
   const geometry = islandGeometry(snapshot, normalizedId, islandRow.island.geoJson);
   const islandResidentialPoints = residentialPointsForIsland(snapshot, normalizedId);
   const hexes = buildServiceDemandHexes(
@@ -427,6 +503,7 @@ export async function getIslandServices(
         ? [
             {
               coordinates: service.coordinates,
+              projectTransportHeatToLand: service.serviceType === 'transport',
               weights: {
                 health: healthWeights[index] ?? 0,
                 education: educationWeights[index] ?? 0,
@@ -453,6 +530,7 @@ export async function getIslandServices(
 
   return {
     status: numericDemandCount > 0 ? 'partial' : 'unavailable',
+    planningDemand,
     island: {
       id: islandRow.island.id,
       name: islandRow.island.name,
@@ -473,6 +551,8 @@ export async function getIslandServices(
       'Health and education demand is an age-based population proxy, not measured facility usage.',
       'Health map demand uses a non-elderly baseline, a children/adolescents clinic preference, and hospital-only elderly/emergency overlays; elderly overlays can intentionally increase central and nearest-hospital inbound demand. Education map demand routes each required level through eligible paths and uses same-atoll or Malé/Hulhumalé overlays when route evidence is missing.',
       'Transport demand uses estimated stop capacity and load proxies.',
+      'Terminal care transfers belong to transport demand, not healthcare facility coverage. Transfer pressure is split between evidenced departure and arrival terminals; outbound pressure is part of that transfer, not additional demand.',
+      ...transportDemand.limitations,
       'Heat-map intensity combines facility demand pressure with residential building distance as a planning proxy; it does not affect island or national scores.',
       ...(islandResidentialPoints.length > 0
         ? ['Residential demand assumes one unit of population pressure per mapped residential building.']

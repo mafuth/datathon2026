@@ -65,6 +65,8 @@ export type IslandTransportConnection = {
   neighbor: {
     id: string;
     name: string;
+    atollName: string | null;
+    islandType: string;
   } | null;
 };
 
@@ -80,6 +82,7 @@ export type IslandDemandMetric = {
 
 export type IslandTransportDemandStop = {
   stopId: string;
+  islandId: string;
   stopName: string | null;
   subtype: string;
   mode: 'land' | 'marine' | 'air';
@@ -179,6 +182,7 @@ export type IslandDemandProfile = {
   inboundSources: Array<{
     originIslandId: string;
     originName: string;
+    originAtollName: string;
     health: number;
     education: number;
     total: number;

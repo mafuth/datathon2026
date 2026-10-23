@@ -1,0 +1,297 @@
+{
+  "schema_version": "osm-land-crossings-v1",
+  "source": "data/mobility/raw/osm/maldives-latest.osm.pbf",
+  "extraction": "Consecutive source vertices spanning distinct baseline island polygons; vertex_range is zero-based and inclusive. Coordinates are source vertices, not centroid or proximity links. Existing normalized bridge/causeway geometries remain available in transport-connections.json.",
+  "elements": [
+    {
+      "id": "osm:way:91440767",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [9, 10],
+          "coordinates": [
+            [73.1232272, -0.6717011],
+            [73.1226584, -0.6710211]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:91440776",
+      "tags": { "highway": "residential", "name": "Rahdhebai Magu" },
+      "crossings": [
+        {
+          "vertex_range": [0, 1],
+          "coordinates": [
+            [73.1222527, -0.6714033],
+            [73.1225464, -0.6711239]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:150455651",
+      "tags": { "highway": "secondary", "name": "Shamsudheen Bodu Fandiyaaru Thakurufaanu Magu" },
+      "crossings": [
+        {
+          "vertex_range": [47, 48],
+          "coordinates": [
+            [73.124548, -0.6699134],
+            [73.1242476, -0.6695272]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:150455660",
+      "tags": { "highway": "residential", "name": "Nooraany Magu" },
+      "crossings": [
+        {
+          "vertex_range": [13, 14],
+          "coordinates": [
+            [73.1244526, -0.6706704],
+            [73.1238139, -0.6699219]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:150618665",
+      "tags": { "highway": "residential", "name": "Isdhoo Bodumagu" },
+      "crossings": [
+        {
+          "vertex_range": [25, 26],
+          "coordinates": [
+            [73.5718811, 2.1194141],
+            [73.5699201, 2.1177786]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:376411181",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [2, 4],
+          "coordinates": [
+            [73.1220595, -0.6712157],
+            [73.1221221, -0.6712363],
+            [73.1222527, -0.6714033]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:376412211",
+      "tags": { "highway": "service" },
+      "crossings": [
+        {
+          "vertex_range": [0, 1],
+          "coordinates": [
+            [73.5699201, 2.1177786],
+            [73.5705961, 2.1170305]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:478205522",
+      "tags": { "highway": "service" },
+      "crossings": [
+        {
+          "vertex_range": [3, 13],
+          "coordinates": [
+            [73.3447132, 5.6942434],
+            [73.3447142, 5.694226],
+            [73.3447239, 5.6942074],
+            [73.3449139, 5.6939043],
+            [73.3450082, 5.6937497],
+            [73.3451048, 5.6935959],
+            [73.3451151, 5.6935761],
+            [73.3451081, 5.6935488],
+            [73.345085, 5.693397],
+            [73.3450668, 5.6932339],
+            [73.345068, 5.6930536]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:738361797",
+      "tags": { "highway": "service" },
+      "crossings": [
+        {
+          "vertex_range": [0, 11],
+          "coordinates": [
+            [73.5803439, 4.5867599],
+            [73.5814069, 4.5868252],
+            [73.5821266, 4.5869761],
+            [73.5829638, 4.5869019],
+            [73.583361, 4.586961],
+            [73.5837582, 4.5870843],
+            [73.5844564, 4.5872672],
+            [73.5851249, 4.5873254],
+            [73.5855955, 4.5874537],
+            [73.585991, 4.5876033],
+            [73.5864402, 4.5878225],
+            [73.5866962, 4.5880738]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:965514421",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [2, 3],
+          "coordinates": [
+            [73.2216318, -0.5902006],
+            [73.2256613, -0.5896672]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:966176507",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [1, 2],
+          "coordinates": [
+            [73.2259211, -0.5893725],
+            [73.2259222, -0.5894454]
+          ]
+        },
+        {
+          "vertex_range": [5, 6],
+          "coordinates": [
+            [73.2258369, -0.589613],
+            [73.2257826, -0.5896339]
+          ]
+        },
+        {
+          "vertex_range": [6, 7],
+          "coordinates": [
+            [73.2257826, -0.5896339],
+            [73.2256613, -0.5896672]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:966176508",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [1, 2],
+          "coordinates": [
+            [73.2280043, -0.5888757],
+            [73.2279989, -0.5894688]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:966176509",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [4, 5],
+          "coordinates": [
+            [73.2265489, -0.5894059],
+            [73.2259211, -0.5893725]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:966176516",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [0, 1],
+          "coordinates": [
+            [73.226589, -0.5885229],
+            [73.2265489, -0.5894059]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:966340694",
+      "tags": { "highway": "residential" },
+      "crossings": [
+        {
+          "vertex_range": [122, 123],
+          "coordinates": [
+            [73.2367321, -0.5886478],
+            [73.2354557, -0.590762]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:1210925103",
+      "tags": { "highway": "service", "name": "Hulhumale-Hulhule Link Road" },
+      "crossings": [
+        {
+          "vertex_range": [4, 5],
+          "coordinates": [
+            [73.5403967, 4.2007473],
+            [73.5404225, 4.2007992]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:1246827895",
+      "tags": { "highway": "primary", "name:en": "Midhili Magu", "oneway": "yes" },
+      "crossings": [
+        {
+          "vertex_range": [14, 15],
+          "coordinates": [
+            [73.5405882, 4.2006173],
+            [73.5404225, 4.2007992]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:1409575123",
+      "tags": { "highway": "service" },
+      "crossings": [
+        {
+          "vertex_range": [0, 2],
+          "coordinates": [
+            [73.3608393, 5.7331944],
+            [73.3614405, 5.7334805],
+            [73.3627531, 5.7341051]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osm:way:1549998557",
+      "tags": { "highway": "primary", "name:en": "Midhili Magu", "oneway": "yes" },
+      "crossings": [
+        {
+          "vertex_range": [7, 8],
+          "coordinates": [
+            [73.5403495, 4.2010012],
+            [73.5407236, 4.2005678]
+          ]
+        }
+      ]
+    }
+  ],
+  "way_tags": {
+    "osm:way:150401745": { "oneway": "yes" },
+    "osm:way:1418963955": { "oneway": "yes" },
+    "osm:way:318417247": { "oneway": "yes" },
+    "osm:way:1462731870": { "oneway": "yes" },
+    "osm:way:1157988101": { "oneway": "yes" },
+    "osm:way:1157988102": { "oneway": "yes" }
+  }
+}

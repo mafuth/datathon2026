@@ -277,23 +277,34 @@ export const GET: RequestHandler = async () => {
 
   const rankingInputs = islands.map((island) => ({
     id: island.id,
+    label: `${island.atollName} ${island.name}`,
     overall: island.overall.score,
     health: island.health.score,
     education: island.education.score,
     transport: island.transport.score,
     employment: island.employment.score,
-    jobDensity:
-      island.population !== null && island.population > 0
-        ? (island.employment.jobLocationCount / island.population) * 1000
-        : null,
+    workingAgePopulation: island.employment.workingAgePopulation,
+    jobDensity: island.employment.jobLocationsPerThousandWorkingAge,
     jobDemand: island.employment.foreignPerWorkingAge,
     jobSupply: island.employment.jobLocationsPerThousandWorkingAge,
     demand: island.demand.inboundTotal,
     outboundDemand: island.demand.outboundTotal,
-    pressure: Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0),
+    pressure:
+      island.demand.healthPressure === null && island.demand.educationPressure === null
+        ? null
+        : Math.max(island.demand.healthPressure ?? 0, island.demand.educationPressure ?? 0),
     pollutionPressure: island.pollutionPressure
   }));
-  const rankings = buildAnalyticsRankings(rankingInputs);
+  const rankingDetails = buildAnalyticsRankings(rankingInputs);
+  const rankings = Object.fromEntries(
+    Object.entries(rankingDetails).map(([key, entries]) => [key, entries.map((entry) => entry.id)])
+  );
+  const rankingValues = Object.fromEntries(
+    Object.entries(rankingDetails).map(([key, entries]) => [
+      key,
+      Object.fromEntries(entries.map((entry) => [entry.id, entry.value]))
+    ])
+  );
 
   return json({
     national: {
@@ -322,6 +333,7 @@ export const GET: RequestHandler = async () => {
     },
     population,
     islands,
-    rankings
+    rankings,
+    rankingValues
   });
 };

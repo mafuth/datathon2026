@@ -47,12 +47,16 @@ export const scoringConfig = {
     air: 3
   },
   serviceHeatmap: {
-    facilityPressureWeight: 0.5,
-    residentialAccessGapWeight: 0.5,
+    facilityPressureWeight: 0.3,
+    residentialAccessGapWeight: 0.7,
     // Cap coverage relief so a service upgrade does not invert a hotspot into a ring.
-    coverageReliefWeight: 0.35,
-    serviceInfluenceSigmaMeters: 260,
-    residentialInfluenceSigmaMeters: 260
+    coverageReliefWeight: 0.7,
+    // Localized smoothing for small islands; these are visual proxy distances,
+    // not service catchments or walking-access thresholds.
+    serviceInfluenceSigmaMeters: 60,
+    residentialInfluenceSigmaMeters: 60,
+    transportVisualProjectionMeters: 150,
+    transportVisualProjectionGraceMeters: 60
   },
   hubCapacityProxyByType: {
     airport: 2,

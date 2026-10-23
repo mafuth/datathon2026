@@ -24,8 +24,6 @@ The central product message should become:
 
 Health and education should remain important because they explain who is affected by transport gaps. However, transport indicators should become the primary product output.
 
-The pitch itself already exists in the application's presentation mode. The project does not need a separate pitch system or a replacement presentation. The appropriate change is to strengthen the existing reader mode with a five-minute clock and story progress while preserving the current presentation choreography.
-
 ## Current Feature Inventory
 
 The current application includes:
@@ -46,9 +44,6 @@ The current application includes:
 - Healthcare routing and care-transfer demand calculations.
 - A draft scenario builder for adding, upgrading, downgrading, moving, and deleting services.
 - Island-boundary validation for proposed services.
-- A scripted presentation story showing a healthcare journey from Baarah to Hulhumale.
-- Keyboard-controlled presentation and reader modes.
-- Explicit labels for verified, modeled, narrative, and unavailable evidence in the presentation story.
 
 ## Requirement Comparison
 
@@ -67,14 +62,13 @@ The current application includes:
 | Demand forecasting                    | Partial           | Current demand is a modeled population and service-need proxy. It is not a time-series forecast based on historical movement data.                                                                                               |
 | Transport planning                    | Strong foundation | The scenario builder provides interactive draft planning. It currently changes facilities rather than ferry frequency, routes, capacity, or transport connections.                                                               |
 | Monitoring                            | Partial           | The application calculates static scores and load proxies. It does not yet provide a clear freshness status, update history, or live operational monitoring.                                                                     |
-| Sustainability and carbon             | Missing           | No emissions, fuel, carbon, energy, or mode-comparison metric is currently implemented.                                                                                                                                          |
+| Sustainability and carbon             | Partial           | A transparent sustainability proxy is implemented, but it is not a measured emissions inventory or validated route-level carbon comparison.                                                                                      |
 | Climate resilience                    | Missing           | No flooding, wave exposure, severe-weather, coastal-risk, or climate disruption layer is currently implemented.                                                                                                                  |
 | Road safety                           | Missing           | No crash, road-risk, speed, lighting, pedestrian, or road-safety dataset is currently implemented.                                                                                                                               |
 | Public and open data                  | Partial/strong    | OSM and RTL artifacts contain source URLs, timestamps, checksums, and limitations. The canonical baseline identifies `local.db` as its source and does not fully expose upstream provenance in the interface.                    |
 | Official statistical systems          | Partial           | MBS source links appear in the population estimate artifacts, but estimated data is explicitly excluded from official scoring. The production data register should distinguish official, estimated, and modeled values.          |
 | Interactive dashboard                 | Strong            | The map, analytics drawers, island search, demand tabs, service markers, and scenario builder provide a substantial interactive dashboard.                                                                                       |
 | API-first architecture                | Incomplete        | Only scenario preview and island services currently exist under `/api/v1`. The UI still calls several unversioned `/api/map/...` endpoints directly.                                                                             |
-| Expo demo                             | Strong foundation | The existing presentation mode and `presentation_story.md` provide an eight-step healthcare pitch. Reader mode currently has no five-minute timer or story progress indicator. No new pitch system is required.                  |
 
 ## What Already Matches Well
 
@@ -91,14 +85,13 @@ Relevant implementation:
 
 ### Multimodal connectivity
 
-The project represents sea, land, and air transport in the scoring model and in the presentation narrative. This is well aligned with the broad datathon scope.
+The project represents sea, land, and air transport in the scoring model. This is well aligned with the broad datathon scope.
 
 Relevant implementation:
 
 - `src/lib/db/models/transport-connection.ts`
 - `src/lib/db/models/transport-route.ts`
 - `src/lib/server/scoring/transport-demand.ts`
-- `src/lib/components/mobility/presentation-story.ts`
 
 ### GIS and public data integration
 
@@ -114,13 +107,13 @@ Relevant artifacts:
 
 ### Human-centered problem framing
 
-The presentation story makes the problem understandable through a healthcare journey from Baarah to a hospital destination. It demonstrates that reaching an airport or island is not equivalent to reaching care.
+A healthcare journey from Baarah to a hospital destination is a useful example because it demonstrates that reaching an airport or island is not equivalent to reaching care.
 
-This is a strong expo strategy because it gives judges a concrete human outcome before showing the national analytics.
+This framing gives judges a concrete human outcome before the national analytics.
 
 ### Honest evidence handling
 
-The presentation story distinguishes verified ferry schedule evidence from modeled sea paths and modeled air links. This is important because the current data does not contain complete vessel tracks, flight schedules, measured capacities, or approved travel times.
+The project should distinguish verified ferry schedule evidence from modeled sea paths and modeled air links. This is important because the current data does not contain complete vessel tracks, flight schedules, measured capacities, or approved travel times.
 
 The project should preserve this honesty rather than inventing operational data.
 
@@ -164,42 +157,21 @@ The interface should display confidence and evidence status beside every importa
 
 ### 4. Sustainability is modeled, not measured
 
-The backend now includes a transparent sustainability proxy using vehicle counts,
-configured category and mode factors, modeled transport demand, and explicit
-fallbacks. It is exposed as a fifth scoring domain and analytics data, but it is
-not an emissions inventory or a measured carbon-footprint comparison.
+The backend includes a transparent sustainability proxy using vehicle counts, configured category and mode factors, modeled transport demand, and explicit fallbacks. It is exposed as a fifth scoring domain and analytics data, but it is not an emissions inventory or a measured carbon-footprint comparison.
 
-The remaining gap is provenance-rich route emissions using observed trips,
-distance, occupancy, fuel type, and validated mode capacity. The current output
-must remain labeled as modeled or estimated.
+The remaining gap is provenance-rich route emissions using observed trips, distance, occupancy, fuel type, and validated mode capacity. The current output must remain labeled as modeled or estimated.
 
 ### 5. Operational journey data is not fully exposed
 
 The RTL artifact contains schedule entries, but the current product does not provide a complete journey calculation showing waiting time, transfer time, frequency, and total elapsed time.
 
-This is the most valuable transport-specific addition because it turns the emotional story into an operational insight.
+This is a valuable transport-specific addition because it turns a human-centered example into an operational insight.
 
 ### 6. Provenance is mostly hidden from the user
 
 The backend and data artifacts include limitations, but the main interface does not yet give judges a clear source register or evidence-quality view.
 
-Public data compliance should be visible in the demo, not only present in source files.
-
-### 7. Reader mode needs a five-minute clock
-
-The existing presentation mode is already the pitch. The reader mode is the presenter-facing version of that pitch and currently displays the script without a five-minute clock or step progress indicator.
-
-The requested change is intentionally narrow:
-
-- Start a five-minute countdown when reader mode begins.
-- Show the timer only inside `PresentationReader`.
-- Show the current story position as `Step N of 8`.
-- Keep the timer deadline in `PresentationController` so switching between reader and clean presentation modes does not restart the session.
-- Reset the deadline when the presentation session exits.
-- Display `00:00` without auto-advancing or exiting.
-- Leave the map, story choreography, keyboard shortcuts, and clean presentation mode unchanged.
-
-The timer should be visible only in reader mode. The clock may continue while the reader is temporarily hidden so the five-minute session remains a single clock, but no timer UI should appear in clean presentation mode.
+Public data compliance should be visible in the product, not only present in source files.
 
 ## Recommended Additions In Priority Order
 
@@ -213,7 +185,7 @@ Recommended positioning:
 
 The current accessibility score can remain, but it should be presented as a supporting impact score rather than the only headline.
 
-### Priority 2: Add a journey and connectivity analysis
+### Priority 2: Add journey and connectivity analysis
 
 Use the existing RTL schedule data to calculate:
 
@@ -226,7 +198,7 @@ Use the existing RTL schedule data to calculate:
 - Bottleneck island or hub.
 - Whether each leg is verified, modeled, or unavailable.
 
-The initial demo journey can remain Baarah to Tree Top Hospital, but the interface should show the journey as data rather than only as an animation.
+An initial example can use the Baarah-to-Tree-Top-Hospital journey, but the interface should show the journey as data.
 
 ### Priority 3: Add transport interventions to the scenario planner
 
@@ -250,9 +222,7 @@ The proposal can remain draft-only, but the interface must clearly say that it i
 
 ### Priority 4: Extend the sustainability estimate
 
-The backend has a clearly labeled pollution-pressure estimate using public
-vehicle and transport proxies. Extend it only if reliable route-level inputs
-and public emission-factor provenance become available.
+The backend has a clearly labeled pollution-pressure estimate using public vehicle and transport proxies. Extend it only if reliable route-level inputs and public emission-factor provenance become available.
 
 Suggested model:
 
@@ -284,40 +254,9 @@ Expose a visible data register containing:
 - Modeled or inferred records.
 - Missing capacity, travel-time, and schedule limitations.
 
-Avoid relying on Google Maps records in the final data story unless their use is permitted and properly attributed. Prefer OSM and official administrative records where possible.
+Avoid relying on Google Maps records in final data claims unless their use is permitted and properly attributed. Prefer OSM and official administrative records where possible.
 
-### Priority 6: Add reader-mode pitch timing
-
-The pitch already exists. Add only the reader-mode timing and progress overlay:
-
-- A five-minute timer.
-- A `Step N of 8` counter.
-- A story-step progress bar.
-- A reset through the existing presentation exit behavior.
-
-Minimal files for this change:
-
-- `src/lib/components/mobility/presentation-controller.svelte.ts` for the countdown deadline.
-- `src/routes/+page.svelte` for passing controller values to the reader.
-- `src/lib/components/mobility/presentation-reader.svelte` for the timer and progress UI.
-- `tests/unit/presentation-controller.spec.ts` for focused lifecycle assertions, without automatically running tests.
-- `presentation_story.md` for documenting reader-mode timing.
-
-Do not add the timer to `NationalAccessibilityMap`, `presentation-story.ts`, or clean presentation mode. Do not add automatic slide advancement.
-
-Recommended five-minute sequence:
-
-1. Show the national mobility gap.
-2. Select Baarah and show affected population and care demand.
-3. Show the verified ferry schedule and transfer chain.
-4. Show the airport and last-mile land connection.
-5. Apply a proposed transport intervention.
-6. Compare baseline and proposal outcomes.
-7. Open the sources and limitations panel.
-
-The source and limitations panel can initially reuse the existing `facts`, `note`, and `source` fields on `PresentationStep`. A new provenance system is not required for the timer change.
-
-### Priority 7: Complete the versioned API surface
+### Priority 6: Complete the versioned API surface
 
 Add stable endpoints for:
 
@@ -332,7 +271,7 @@ Then route the frontend through those contracts rather than relying primarily on
 
 This is valuable for credibility and future integration, although the first five priorities have more direct judging impact.
 
-### Priority 8: Remove starter branding
+### Priority 7: Remove starter branding
 
 Update the remaining starter references in:
 
@@ -344,25 +283,9 @@ The application should present itself consistently as the Maldives mobility prod
 
 ## Minimal Implementation Plan
 
-The implementation should be staged so the requested reader-mode feature is delivered without changing the application's core scoring or map behavior.
+### Phase 1: Add one transport journey summary
 
-### Phase 1: Reader timer and progress
-
-Implement only the five-minute reader-mode clock and eight-step progress indicator.
-
-The countdown should use an absolute deadline rather than decrementing a counter. This prevents timer drift when the browser throttles background tabs. The interval belongs to the reader component and must be cleaned up when the reader unmounts.
-
-The controller owns the deadline, while the reader owns display updates. This keeps the timer stable when switching between reader and clean presentation modes while ensuring that the timer is rendered only in reader mode.
-
-### Phase 2: Reuse existing pitch evidence
-
-Render the existing `PresentationStep.facts`, `PresentationStep.note`, and `PresentationStep.source` values in reader mode. This adds visible evidence and limitations without changing the data model, map, scoring formulas, or presentation choreography.
-
-The current verified, modeled, narrative, and proposal map styling should remain unchanged.
-
-### Phase 3: Add one transport journey summary
-
-Reuse the packaged RTL ferry artifact to calculate one read-only journey summary for the existing Baarah story:
+Reuse the packaged RTL ferry artifact to calculate one read-only journey summary for a Baarah example:
 
 - Ferry departure and arrival times.
 - Waiting time.
@@ -370,15 +293,13 @@ Reuse the packaged RTL ferry artifact to calculate one read-only journey summary
 - Ferry journey duration.
 - Verified, modeled, or unavailable status for each leg.
 
-Keep the existing animated route. Add the calculated summary as reader facts rather than rebuilding the map animation.
-
 The airport leg must remain explicitly modeled or unavailable where verified flight schedules and travel times are not present.
 
-### Phase 4: Add one transport intervention comparison
+### Phase 2: Add one transport intervention comparison
 
 Add one focused draft intervention, preferably an increase in frequency on an existing ferry route. Avoid replacing the existing scenario engine or adding a general-purpose transport planner at this stage.
 
-Compare only the metrics needed for the pitch:
+Compare only the metrics needed to assess the intervention:
 
 - Waiting time.
 - Total journey duration.
@@ -388,18 +309,15 @@ Compare only the metrics needed for the pitch:
 
 Keep the result draft-only and clearly label it as a planning simulation rather than an approved policy outcome.
 
-### Phase 5: Harden the transparent sustainability estimate
+### Phase 3: Harden the transparent sustainability estimate
 
-The current implementation provides a pure pollution-pressure calculation using
-vehicle categories, mode factors, modeled passenger demand, and limitations.
-Future route-level emissions work should add distance and factor provenance,
-then expose the assumptions and confidence in the response and reader display.
+The current implementation provides a pure pollution-pressure calculation using vehicle categories, mode factors, modeled passenger demand, and limitations. Future route-level emissions work should add distance and factor provenance, then expose assumptions and confidence in the response and interface.
 
 Do not present the current proxy as measured emissions or precise carbon output.
 
 ### Deferred work
 
-The following work should remain outside the minimal pitch-focused implementation unless time and reliable data are available:
+The following work should remain outside the minimal implementation unless time and reliable data are available:
 
 - Full versioned API migration.
 - Freight analytics.
@@ -455,10 +373,10 @@ The following is exactly 50 words. Replace `AtollLink` with the final team name 
 
 Proceed with the current project direction, but do not present it as finished yet.
 
-The project already matches the datathon strongly in GIS, multimodal transport representation, healthcare and education connectivity, public-data integration, interactive planning, and an existing presentation-mode pitch. It becomes a much stronger submission after adding the reader-mode five-minute timer and progress indicator, a transport-first journey analysis, one transport intervention comparison, transparent sustainability estimates, and visible data provenance.
+The project already matches the datathon strongly in GIS, multimodal transport representation, healthcare and education connectivity, public-data integration, and interactive planning. It becomes a much stronger submission after adding transport-first journey analysis, one transport intervention comparison, transparent sustainability estimates, and visible data provenance.
 
-The project does not need to cover every possible scope. A focused sea-air-land essential-journey problem is more credible and more memorable than a shallow attempt to cover freight, road safety, climate risk, traffic monitoring, and digital connectivity simultaneously.
+The project does not need to cover every possible scope. A focused sea-air-land essential-journey problem is more credible and memorable than a shallow attempt to cover freight, road safety, climate risk, traffic monitoring, and digital connectivity simultaneously.
 
 ## Review Status
 
-This document records the current assessment and proposed direction. The pitch already exists in presentation mode. The requested first implementation is limited to a five-minute timer and story progress indicator in reader mode. No other application functionality changes are authorized by this document alone.
+This document records the current assessment and proposed direction. It does not authorize application changes by itself.

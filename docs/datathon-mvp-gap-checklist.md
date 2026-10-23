@@ -12,7 +12,7 @@ It separates:
 - Recommended quick MVP changes.
 - The level of code change and expected impact for each recommendation.
 
-This document is intentionally focused on the smallest credible improvements for the existing pitch and demo. It does not propose rebuilding the application.
+This document is intentionally focused on the smallest credible improvements to the existing product. It does not propose rebuilding the application.
 
 The recommended focus is sea transport as the primary mode, with land and air treated as connected legs in an essential healthcare journey. The project should not attempt to implement every transport scope in the theme.
 
@@ -34,8 +34,6 @@ The recommended focus is sea transport as the primary mode, with land and air tr
 | Sustainability     | Implemented/partial | A modeled pollution-pressure score uses vehicle categories, transport-demand proxies, mode factors, fallback assumptions, and explicit limitations; measured emissions and fuel data remain unavailable. |
 | Climate resilience | Missing             | No flooding, weather disruption, coastal-risk, or climate exposure layer exists.                                                                                                                         |
 | Road safety        | Missing             | No crash, speed, lighting, pedestrian, or road-risk data exists.                                                                                                                                         |
-| Presentation pitch | Implemented         | The existing presentation mode contains an eight-step multimodal healthcare pitch.                                                                                                                       |
-| Reader timing      | Missing             | Reader mode has no five-minute countdown or story progress indicator.                                                                                                                                    |
 | Public API         | Partial             | Scenario preview and island-service APIs exist under `/api/v1`; several map requests still use unversioned routes.                                                                                       |
 
 ## Already Implemented
@@ -54,15 +52,10 @@ The following areas should be preserved rather than rebuilt:
 - Island-level analytics drawers.
 - Interactive service and demand map layers.
 - Draft facility scenario builder.
-- Existing presentation-mode pitch.
-- Existing reader-mode speaker script.
-- Verified versus modeled route distinctions in the presentation story.
 
 Key evidence files:
 
 - `src/lib/components/mobility/national-accessibility-map.svelte`
-- `src/lib/components/mobility/presentation-story.ts`
-- `src/lib/components/mobility/presentation-reader.svelte`
 - `src/lib/server/scoring/transport-demand.ts`
 - `src/lib/server/scoring/demand-allocation.ts`
 - `data/mobility/transport/rtl-ferry-coverage.json`
@@ -84,7 +77,7 @@ The current application estimates demand from population cohorts, care transfers
 
 ### Air transport
 
-Airport records and modeled airport links exist. Flight schedules and approved flight travel times are not available, so the air part of the pitch must remain modeled or unavailable.
+Airport records and modeled airport links exist. Flight schedules and approved flight travel times are not available, so air journey results must remain modeled or unavailable.
 
 ### Monitoring
 
@@ -112,15 +105,14 @@ These should not be simulated as real observations. If they are added later, the
 
 ## Must Implement
 
-| Area               | Current state                                                           | Recommended change                                                                                                     | Change level | Expected impact         |
-| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------ | ----------------------- |
-| Reader demo timing | The pitch exists, but reader mode has no clock                          | Add a five-minute countdown and `Step N of 8` progress only in reader mode.                                            | Low          | High for expo delivery  |
-| Ferry connectivity | RTL routes and schedules exist, but journey metrics are not exposed     | Calculate departure, arrival, waiting time, transfer count, and ferry duration for the Baarah journey.                 | Medium       | High                    |
-| Movement patterns  | Inbound and outbound demand exists, but it is not presented as movement | Add estimated inbound movement, outbound movement, total movement pressure, outbound dependence, and mode pressure.    | Low/medium   | High                    |
-| Transport planning | Facility scenarios exist, but no transport intervention exists          | Add one draft ferry-frequency intervention and compare before and after journey results.                               | Medium/high  | Very high               |
-| Sustainability     | No emissions feature exists                                             | Add a transparent estimate only if public distance and mode factors are available.                                     | Medium       | High if clearly labeled |
-| Data compliance    | Public artifacts exist, but source claims need review                   | Ensure RTL, OSM, MBS, and routing sources are documented for the declaration form.                                     | Low          | Critical for submission |
-| Challenge card     | The draft mentions jobs, which are now modeled as an explicit proxy     | Keep job access only with clear labels for workplace records, assumed-zero foreign rows, and unavailable job capacity. | Low          | Prevents overclaiming   |
+| Area               | Current state                                                           | Recommended change                                                                                                       | Change level | Expected impact         |
+| ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ----------------------- |
+| Ferry connectivity | RTL routes and schedules exist, but journey metrics are not exposed     | Calculate departure, arrival, waiting time, transfer count, and ferry duration for an initial Baarah journey.            | Medium       | High                    |
+| Movement patterns  | Inbound and outbound demand exists, but it is not presented as movement | Add estimated inbound movement, outbound movement, total movement pressure, outbound dependence, and mode pressure.      | Low/medium   | High                    |
+| Transport planning | Facility scenarios exist, but no transport intervention exists          | Add one draft ferry-frequency intervention and compare before and after journey results.                                 | Medium/high  | Very high               |
+| Sustainability     | A modeled pollution-pressure proxy exists                               | Extend it only when reliable public route distance and mode factors are available, while retaining explicit limitations. | Medium       | High if clearly labeled |
+| Data compliance    | Public artifacts exist, but source claims need review                   | Ensure RTL, OSM, MBS, and routing sources are documented for the declaration form.                                       | Low          | Critical for submission |
+| Challenge card     | The draft mentions jobs, which are now modeled as an explicit proxy     | Keep job access only with clear labels for workplace records, assumed-zero foreign rows, and unavailable job capacity.   | Low          | Prevents overclaiming   |
 
 ## Improve Existing Functionality
 
@@ -160,23 +152,9 @@ outbound dependence = outbound demand / island population
 
 Do not present these values as observed passenger counts.
 
-### Use the existing pitch
-
-Do not build another presentation system. Improve the current presentation mode by adding this sequence to the existing story:
-
-1. National mobility gap.
-2. Baarah healthcare demand.
-3. Verified ferry journey.
-4. Airport and land connection.
-5. Inbound and outbound movement pressure.
-6. Ferry-frequency proposal.
-7. Before-and-after result.
-
-The timer and progress indicator should appear only in reader mode.
-
 ### Review data claims
 
-The current pitch references Google Maps in one source label. Replace it with OSM or official administrative data unless its use is clearly permitted.
+Replace Google Maps source labels with OSM or official administrative data unless their use is clearly permitted.
 
 Keep all modeled, inferred, estimated, and unavailable values explicitly labeled.
 
@@ -199,64 +177,36 @@ This requires:
 
 If those inputs are not reliable, implement movement pressure only and do not claim precise carbon reduction.
 
-### MVP-01: Add reader-mode timer and progress
-
-| Field                 | Recommendation                                                                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Change level          | Low                                                                                                                    |
-| Expected impact       | High for expo delivery                                                                                                 |
-| User value            | Keeps the presenter within the five-minute demo window and shows progress through the eight-step pitch.                |
-| Files                 | `presentation-controller.svelte.ts`, `+page.svelte`, `presentation-reader.svelte`, `presentation_story.md`             |
-| Functional change     | Start a five-minute countdown in reader mode and show `Step N of 8` with a progress bar.                               |
-| Must remain unchanged | Clean presentation mode, map animation, slide order, keyboard shortcuts, and automatic navigation behavior.            |
-| Implementation note   | Store an absolute deadline in `PresentationController`; update the visible remaining time inside `PresentationReader`. |
-
-The timer should be visible only in reader mode. It should show `00:00` when expired without automatically advancing or exiting the pitch.
-
-### MVP-02: Show existing pitch facts and evidence
-
-| Field             | Recommendation                                                                                  |
-| ----------------- | ----------------------------------------------------------------------------------------------- |
-| Change level      | Low                                                                                             |
-| Expected impact   | Medium to high for judge comprehension                                                          |
-| User value        | Makes the existing facts, notes, and sources visible while presenting.                          |
-| Files             | `presentation-reader.svelte`, possibly `presentation-story.ts` for wording only                 |
-| Functional change | Render the existing `facts`, `note`, and `source` fields already defined on `PresentationStep`. |
-| New data required | None                                                                                            |
-| Scope boundary    | Do not build a separate sources and limitations panel.                                          |
-
-This is a presentation-only improvement. It does not change scoring or map behavior.
-
-### MVP-03: Add one verified ferry journey summary
+### MVP-01: Add one verified ferry journey summary
 
 | Field             | Recommendation                                                                                                       |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Change level      | Medium                                                                                                               |
 | Expected impact   | High for transport-theme alignment                                                                                   |
-| User value        | Converts the existing healthcare story into measurable transport insight.                                            |
-| Files             | New mobility journey service, existing mobility facade, one versioned journey endpoint, reader integration           |
+| User value        | Converts a healthcare journey into measurable transport insight.                                                     |
+| Files             | New mobility journey service, existing mobility facade, one versioned journey endpoint, and interface integration    |
 | Functional change | Calculate ferry departure, arrival, waiting time, transfer count, and ferry duration from the packaged RTL artifact. |
 | Data source       | `data/mobility/transport/rtl-ferry-coverage.json`                                                                    |
-| Scope boundary    | Keep the current visual route animation. Do not invent flight schedules or vessel positions.                         |
+| Scope boundary    | Do not invent flight schedules or vessel positions.                                                                  |
 
 The air leg should remain explicitly marked as modeled or unavailable when verified schedule data is not present.
 
-### MVP-04: Add one ferry-frequency intervention comparison
+### MVP-02: Add one ferry-frequency intervention comparison
 
-| Field             | Recommendation                                                                                  |
-| ----------------- | ----------------------------------------------------------------------------------------------- |
-| Change level      | Medium to high                                                                                  |
-| Expected impact   | Very high for judging because it demonstrates planning action, not only diagnosis               |
-| User value        | Shows what changes if a transport bottleneck is addressed.                                      |
-| Files             | `scenario-contracts.ts`, `scenario-engine.ts`, mobility facade, proposal UI, reader pitch facts |
-| Functional change | Support one draft operation such as increasing frequency on an existing ferry route.            |
-| Comparison output | Waiting time, total journey duration, transfer count, and affected movement demand.             |
-| Persistence       | Draft-only; no database migration or policy persistence.                                        |
-| Scope boundary    | Do not build a general route editor or full transport network simulator.                        |
+| Field             | Recommendation                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| Change level      | Medium to high                                                                       |
+| Expected impact   | Very high for judging because it demonstrates planning action, not only diagnosis    |
+| User value        | Shows what changes if a transport bottleneck is addressed.                           |
+| Files             | `scenario-contracts.ts`, `scenario-engine.ts`, mobility facade, and proposal UI      |
+| Functional change | Support one draft operation such as increasing frequency on an existing ferry route. |
+| Comparison output | Waiting time, total journey duration, transfer count, and affected movement demand.  |
+| Persistence       | Draft-only; no database migration or policy persistence.                             |
+| Scope boundary    | Do not build a general route editor or full transport network simulator.             |
 
 This should be presented as a planning estimate, not an approved operational recommendation.
 
-### MVP-05: Estimate inbound and outbound movement pressure
+### MVP-03: Estimate inbound and outbound movement pressure
 
 | Field             | Recommendation                                                                                                                                           |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -304,33 +254,28 @@ These are valid datathon topics but are not necessary for this focused solution:
 - Persisted transport-route planning.
 - Complete national transport-network simulation.
 
-These areas can be deferred because the current data and pitch are strongest around ferry-connected healthcare access.
+These areas can be deferred because the current data is strongest around ferry-connected healthcare access.
 
 ## Recommended MVP Order
 
-| Order | Change                                      | Level       | Expected impact |
-| ----- | ------------------------------------------- | ----------- | --------------- |
-| 1     | Reader-mode timer and progress              | Low         | High            |
-| 2     | Existing facts and evidence in reader mode  | Low         | Medium/high     |
-| 3     | RTL ferry journey summary                   | Medium      | High            |
-| 4     | Inbound/outbound movement-pressure estimate | Low/medium  | High            |
-| 5     | One ferry-frequency intervention comparison | Medium/high | Very high       |
+| Order | Change                                           | Level       | Expected impact         |
+| ----- | ------------------------------------------------ | ----------- | ----------------------- |
+| 1     | RTL ferry journey summary                        | Medium      | High                    |
+| 2     | Inbound/outbound movement-pressure estimate      | Low/medium  | High                    |
+| 3     | One ferry-frequency intervention comparison      | Medium/high | Very high               |
+| 4     | Source declarations and claim review             | Low         | Critical for submission |
+| 5     | Bounded carbon estimate when inputs are reliable | Medium      | High if clearly labeled |
 
 The implementation order is:
 
-1. Add reader-only timer and eight-step progress.
-2. Expose existing pitch facts and metrics.
-3. Calculate the RTL ferry journey summary.
-4. Add inbound and outbound movement-pressure metrics.
-5. Add one ferry-frequency intervention comparison.
-6. Add a bounded carbon estimate only if reliable public factors and distances are available.
-7. Finalize source declarations, challenge card, repository, presentation URL or PDF, and authenticity form.
+1. Calculate the RTL ferry journey summary.
+2. Add inbound and outbound movement-pressure metrics.
+3. Add one ferry-frequency intervention comparison.
+4. Add a bounded carbon estimate only if reliable public factors and distances are available.
+5. Finalize source declarations, challenge card, repository, submission materials, and authenticity form.
 
 ## Changes To Avoid In The MVP
 
-- Do not replace the existing presentation pitch.
-- Do not add a second presentation system.
-- Do not add a visible sources and limitations panel.
 - Do not rewrite the national scoring model.
 - Do not add a database migration for draft scenarios.
 - Do not claim measured passenger traffic from modeled demand.
@@ -339,12 +284,12 @@ The implementation order is:
 
 ## Data Claims And Submission Compliance
 
-The final submission must be able to identify the public or official source behind each important dataset. This does not require a new visible source panel in the application.
+The final submission must be able to identify the public or official source behind each important dataset.
 
 The submission package should include:
 
 - Repository link.
-- Presentation PDF or URL.
+- Required submission materials.
 - Authenticity declaration.
 - Dataset source list.
 - Retrieval or effective dates.
@@ -361,9 +306,9 @@ The smallest credible submission should demonstrate this flow:
 Existing public data -> island mobility gap -> inbound/outbound movement pressure -> ferry bottleneck -> draft frequency intervention -> changed journey estimate
 ```
 
-This preserves the current pitch and map while adding enough measurable transport functionality to align the product more directly with the datathon theme.
+This preserves the current map and scoring while adding enough measurable transport functionality to align the product more directly with the datathon theme.
 
-The key MVP assumption is that item 5 is primarily a modeled movement-pressure estimate. Carbon should remain deferred unless reliable route distances and public emission factors are available.
+The key MVP assumption is that movement is primarily a modeled movement-pressure estimate. Carbon should remain deferred unless reliable route distances and public emission factors are available.
 
 ## Review Status
 

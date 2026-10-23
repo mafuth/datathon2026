@@ -5,7 +5,7 @@ test('analytics labels inbound demand and preserves zero category values', async
   await expect(page.getByRole('button', { name: /Why/i })).toBeVisible({ timeout: 15_000 });
   await page.getByRole('button', { name: /Why/i }).click();
   await expect(page.getByRole('heading', { name: /Why/i })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Score drivers' })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Score drivers' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'External demand hotspots' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Inbound demand origins' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Most inaccessible islands' })).toBeVisible();

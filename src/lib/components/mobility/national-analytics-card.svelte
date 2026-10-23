@@ -3,9 +3,7 @@
 
   import Briefcase from '@lucide/svelte/icons/briefcase';
   import Car from '@lucide/svelte/icons/car';
-  import Hospital from '@lucide/svelte/icons/hospital';
   import Route from '@lucide/svelte/icons/route';
-  import School from '@lucide/svelte/icons/school';
   import Ship from '@lucide/svelte/icons/ship';
   import Users from '@lucide/svelte/icons/users';
   import X from '@lucide/svelte/icons/x';
@@ -19,7 +17,6 @@
   import { Skeleton } from '$components/ui/skeleton';
 
   import AccessLandscapeChart from './access-landscape-chart.svelte';
-  import { averagePercentage, scoreColor } from './score-presentation';
   import { SUSTAINABILITY_FACTORS, vehicleCategoryLabel } from './sustainability-types';
 
   type ComponentScore = {
@@ -72,6 +69,30 @@
     health: number;
     education: number;
     total: number;
+  };
+
+  type AnalyticsRank = {
+    id: string;
+    value: number;
+  };
+
+  type RankingEntry = string | AnalyticsRank;
+  type RankingKey =
+    | 'demand'
+    | 'outbound'
+    | 'underserved'
+    | 'overall'
+    | 'health'
+    | 'education'
+    | 'transport'
+    | 'employment'
+    | 'jobRichLowPopulation'
+    | 'jobDemandGaps'
+    | 'highestPollution';
+
+  type RankedIsland = {
+    island: AnalyticsIsland;
+    value: number;
   };
 
   type EmploymentScore = ComponentScore & {
@@ -211,27 +232,8 @@
     };
     population: { total: number; children: number; adolescents: number; youth: number; elderly: number };
     islands: AnalyticsIsland[];
-    rankings: {
-      demand: string[];
-      outbound: string[];
-      underserved: string[];
-      overall: string[];
-      health: string[];
-      education: string[];
-      transport: string[];
-      employment: string[];
-      jobRichLowPopulation: string[];
-      jobDemandGaps: string[];
-      highestPollution: string[];
-    };
-  };
-
-  type Driver = {
-    key: string;
-    label: string;
-    score: number | null;
-    status: string;
-    note: string;
+    rankings: Record<RankingKey, RankingEntry[]>;
+    rankingValues?: Partial<Record<RankingKey, Record<string, number>>>;
   };
 
   type Props = {
@@ -267,122 +269,91 @@
     { key: 'transport', label: 'Transport' },
     { key: 'employment', label: 'Employment' }
   ] as const;
-  const driverSkeletons = [
-    'Health',
-    'Education',
-    'Transport',
-    'Employment',
-    'Sustainability',
-    'Crowdedness',
-    'External demand'
-  ] as const;
-  const hotspotSkeletons = ['one', 'two', 'three'] as const;
-  const rankingSkeletons = [0, 1, 2, 3] as const;
+  const threeRowSkeletons = [0, 1, 2] as const;
+  const fourRowSkeletons = [0, 1, 2, 3] as const;
+  const demandSummarySkeletons = Array.from({ length: 11 }, (_, index) => index);
+  const employmentMetricSkeletons = Array.from({ length: 7 }, (_, index) => index);
+  const employmentCategorySkeletons = Array.from({ length: 3 }, (_, index) => index);
+  const pollutionFactorSkeletons = Array.from({ length: 5 }, (_, index) => index);
+  const vehicleCategorySkeletons = Array.from({ length: 8 }, (_, index) => index);
 
-  let drivers = $derived.by((): Driver[] => {
-    if (!data) return [];
-    const category = data.national.categories;
-    return [
-      {
-        key: 'health',
-        label: 'Health',
-        score: category.health?.score ?? null,
-        status: category.health?.status ?? 'unavailable',
-        note: 'Population-weighted health access'
-      },
-      {
-        key: 'education',
-        label: 'Education',
-        score: category.education?.score ?? null,
-        status: category.education?.status ?? 'unavailable',
-        note: 'Population-weighted school access'
-      },
-      {
-        key: 'transport',
-        label: 'Transport',
-        score: category.transport?.score ?? null,
-        status: category.transport?.status ?? 'unavailable',
-        note: 'Land, marine, and air connections'
-      },
-      {
-        key: 'employment',
-        label: 'Employment',
-        score: category.employment?.score ?? null,
-        status: category.employment?.status ?? 'unavailable',
-        note: 'Foreign residents balanced against recorded workplace supply'
-      },
-      {
-        key: 'sustainability',
-        label: 'Sustainability',
-        score: category.sustainability?.score ?? null,
-        status: category.sustainability?.status ?? 'unavailable',
-        note: 'Modeled pollution pressure from vehicles and transport demand'
-      },
-      {
-        key: 'crowdedness',
-        label: 'Crowdedness',
-        score: category.crowdedness?.score ?? null,
-        status: category.crowdedness?.status ?? 'unavailable',
-        note: 'Population density pressure'
-      },
-      {
-        key: 'external-demand',
-        label: 'External demand',
-        score: averagePercentage([
-          data.national.demand.health.demandPercent,
-          data.national.demand.education.demandPercent
-        ]),
-        status: category.externalDemand?.status ?? 'unavailable',
-        note: 'Combined local and inbound service pressure'
-      }
-    ];
-  });
+  function percentile(value: number, values: number[]): number {
+    if (values.length <= 1) return 50;
+    const less = values.filter((candidate) => candidate < value).length;
+    const equal = values.filter((candidate) => candidate === value).length;
+    return ((less + Math.max(0, equal - 1) / 2) / (values.length - 1)) * 100;
+  }
 
-  let categoryIslands = $derived(
-    (data?.rankings[selectedCategory] ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
-  );
-  let demandIslands = $derived(
-    (data?.rankings.demand ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
-  );
-  let inboundSources = $derived((data?.national.demand.inboundSources ?? []).slice(0, 3));
-  let underservedIslands = $derived(
-    (data?.rankings.underserved ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
-  );
-  let jobRichIslands = $derived(
-    (data?.rankings.jobRichLowPopulation ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
+  function fallbackRankingValue(key: RankingKey, island: AnalyticsIsland): number | null {
+    if (key === 'demand') return island.demand.inboundTotal;
+    if (key === 'outbound') return island.demand.outboundTotal;
+    if (key === 'overall' || key === 'health' || key === 'education' || key === 'transport' || key === 'employment') {
+      return island[key].score;
+    }
+    if (key === 'jobRichLowPopulation') return island.employment.jobLocationsPerThousandWorkingAge;
+    if (key === 'highestPollution') return island.pollutionPressure;
+    if (key === 'underserved' && island.overall.score !== null) {
+      const pressures = [island.demand.healthPressure, island.demand.educationPressure].filter(
+        (value): value is number => value !== null && Number.isFinite(value)
+      );
+      return (100 - island.overall.score) * (1 + (pressures.length > 0 ? Math.max(...pressures) : 0));
+    }
+    if (
+      key === 'jobDemandGaps' &&
+      island.employment.foreignPerWorkingAge !== null &&
+      island.employment.jobLocationsPerThousandWorkingAge !== null
+    ) {
+      const eligible = data?.islands.filter(
+        (candidate) =>
+          candidate.employment.foreignPerWorkingAge !== null &&
+          candidate.employment.jobLocationsPerThousandWorkingAge !== null
+      );
+      if (!eligible) return null;
+      const demandValues = eligible.map((candidate) => candidate.employment.foreignPerWorkingAge as number);
+      const supplyValues = eligible.map(
+        (candidate) => candidate.employment.jobLocationsPerThousandWorkingAge as number
+      );
+      return (
+        (percentile(island.employment.foreignPerWorkingAge, demandValues) +
+          (100 - percentile(island.employment.jobLocationsPerThousandWorkingAge, supplyValues))) /
+        2
+      );
+    }
+    return null;
+  }
+
+  function rankedIslands(key: RankingKey): RankedIsland[] {
+    return (data?.rankings[key] ?? []).flatMap((entry) => {
+      const id = typeof entry === 'string' ? entry : entry.id;
+      const island = data?.islands.find((candidate) => candidate.id === id);
+      if (!island) return [];
+      const value =
+        (typeof entry === 'string' ? data?.rankingValues?.[key]?.[id] : entry.value) ??
+        fallbackRankingValue(key, island);
+      return value === null || !Number.isFinite(value) ? [] : [{ island, value }];
+    });
+  }
+
+  let categoryIslands = $derived(rankedIslands(selectedCategory));
+  let demandIslands = $derived(rankedIslands('demand'));
+  let inboundSources = $derived(
+    (data?.national.demand.inboundSources ?? [])
+      .filter((source) => sourceIsland(source) !== null)
+      .sort(
+        (left, right) =>
+          right.total - left.total ||
+          `${left.originAtollName} ${left.originName}`.localeCompare(`${right.originAtollName} ${right.originName}`) ||
+          left.originIslandId.localeCompare(right.originIslandId)
+      )
       .slice(0, 3)
   );
-  let jobDemandGapIslands = $derived(
-    (data?.rankings.jobDemandGaps ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
-      .slice(0, 3)
-  );
-  let highestPollutionIslands = $derived(
-    (data?.rankings.highestPollution ?? [])
-      .map((id) => data?.islands.find((island) => island.id === id))
-      .filter((island): island is AnalyticsIsland => island !== undefined)
-  );
+  let underservedIslands = $derived(rankedIslands('underserved'));
+  let jobRichIslands = $derived(rankedIslands('jobRichLowPopulation').slice(0, 3));
+  let jobDemandGapIslands = $derived(rankedIslands('jobDemandGaps').slice(0, 3));
+  let highestPollutionIslands = $derived(rankedIslands('highestPollution'));
 
   function percentage(value: number | null): string {
     return value === null ? 'N/A' : `${Math.round(value)}%`;
-  }
-
-  function categoryCoverage(
-    island: AnalyticsIsland,
-    category: 'overall' | 'health' | 'education' | 'transport' | 'employment'
-  ): string {
-    const component = island[category];
-    if (component.score !== 0) return percentage(component.score);
-    return '0%';
   }
 
   function number(value: number | null): string {
@@ -437,24 +408,9 @@
     return total > 0 ? Math.min(100, (count / total) * 100) : 0;
   }
 
-  function jobDensity(island: AnalyticsIsland): number | null {
-    if (island.population === null || island.population <= 0) return null;
-    return (island.employment.jobLocationCount / island.population) * 1000;
-  }
-
   function outboundShare(island: AnalyticsIsland): number | null {
     if (island.population === null || island.population <= 0) return null;
     return Math.min(100, (island.demand.outboundTotal / island.population) * 100);
-  }
-
-  function driverWidth(value: number | null): number {
-    return value === null ? 0 : Math.min(100, Math.max(0, value));
-  }
-
-  function driverColor(driver: Driver): string {
-    return scoreColor(driver.score, {
-      higherIsWorse: driver.key === 'crowdedness' || driver.key === 'external-demand'
-    });
   }
 
   function islandLabel(island: AnalyticsIsland): string {
@@ -463,21 +419,6 @@
 
   function sourceIsland(source: DemandSource): AnalyticsIsland | null {
     return data?.islands.find((island) => island.id === source.originIslandId) ?? null;
-  }
-
-  function sourceShare(source: DemandSource): number | null {
-    const island = sourceIsland(source);
-    if (!island || island.population === null || island.population <= 0) return null;
-    return Math.min(100, (source.total / island.population) * 100);
-  }
-
-  function categoryIcon(key: string) {
-    if (key === 'health') return Hospital;
-    if (key === 'education') return School;
-    if (key === 'transport') return Ship;
-    if (key === 'employment') return Briefcase;
-    if (key === 'sustainability') return Car;
-    return Users;
   }
 
   $effect(() => {
@@ -492,13 +433,8 @@
     in:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 260 }}
     out:fly={{ x: prefersReducedMotion.current ? 0 : 360, duration: prefersReducedMotion.current ? 0 : 200 }}
   >
-    <Card.Root
-      class="analytics-card"
-      role="dialog"
-      aria-label="National accessibility analytics"
-      data-story-target="national-analytics"
-    >
-      <div class="analytics-scroll" data-story-scroll-container>
+    <Card.Root class="analytics-card" role="dialog" aria-label="National accessibility analytics">
+      <div class="analytics-scroll">
         <div class="analytics-heading">
           <div>
             {#if loading}
@@ -528,58 +464,12 @@
           </Button>
         </div>
 
-        <Card.Root class="insight-card score-drivers-card" size="sm">
-          {#if loading}
-            <div class="driver-list" role="status" aria-label="Loading national analytics">
-              {#each driverSkeletons as label (label)}
-                <div class="driver-row">
-                  <div class="driver-topline">
-                    <Skeleton class="loading-label" /><Skeleton class="loading-driver-score" />
-                  </div>
-                  <Skeleton class="loading-progress" /><Skeleton class="loading-note" />
-                </div>
-              {/each}
-            </div>
-          {:else if error}
-            <p class="analytics-state analytics-error" role="alert">{error}</p>
-          {:else if data}
-            <div class="card-heading">
-              <div>
-                <h3>Score drivers</h3>
-              </div>
-            </div>
-            <div class="driver-list">
-              {#each drivers as driver (driver.key)}
-                {@const Icon = categoryIcon(driver.key)}
-                <div class="driver-row">
-                  <div class="driver-topline">
-                    <span class="driver-label"><Icon size={15} strokeWidth={2.2} />{driver.label}</span>
-                    <strong class="driver-score" style={`color: ${driverColor(driver)}`}
-                      >{percentage(driver.score)}</strong
-                    >
-                  </div>
-                  <Progress
-                    class="driver-progress"
-                    style={`--driver-score-color: ${driverColor(driver)}`}
-                    value={driverWidth(driver.score)}
-                    max={100}
-                    aria-label={`${driver.label} score`}
-                  />
-                  <span class="driver-note">{driver.note}</span>
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </Card.Root>
-
         <AccessLandscapeChart islands={data?.islands ?? []} {loading} {onIslandSelect} />
 
         {#if loading}
           <div class="detail-grid" aria-hidden="true">
             <Card.Root class="insight-card loading-insight-card" size="sm">
-              <div class="card-heading">
-                <Skeleton class="loading-panel-heading" />
-              </div>
+              <div class="card-heading"><Skeleton class="loading-panel-heading" /></div>
               <Skeleton class="loading-people-total" />
               <div class="age-bars">
                 {#each populationGroups as group (group.key)}
@@ -591,65 +481,106 @@
                   </div>
                 {/each}
               </div>
+              <div class="loading-summary-list">
+                {#each demandSummarySkeletons as row (row)}
+                  <div><Skeleton class="loading-summary-label" /><Skeleton class="loading-summary-value" /></div>
+                {/each}
+              </div>
             </Card.Root>
 
             <Card.Root class="insight-card loading-insight-card" size="sm">
-              <div class="card-heading">
-                <Skeleton class="loading-panel-heading" />
-              </div>
+              <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
               <div class="mini-list">
-                {#each hotspotSkeletons as hotspot (hotspot)}
+                {#each threeRowSkeletons as row (row)}
                   <div class="loading-mini-row">
                     <span class="loading-row-copy"
                       ><Skeleton class="loading-row-title" /><Skeleton class="loading-row-caption" /></span
-                    ><Skeleton class="loading-row-arrow" />
+                    >
                   </div>
                 {/each}
               </div>
             </Card.Root>
           </div>
 
-          <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
+          <Card.Root class="insight-card employment-card loading-insight-card" size="sm" aria-hidden="true">
             <div class="card-heading">
               <Skeleton class="loading-panel-heading loading-wide-heading" />
+              <Skeleton class="loading-heading-score" />
             </div>
-            <div class="ranking-list">
-              {#each rankingSkeletons as row (row)}
-                <div class="loading-ranking-row">
-                  <span class="loading-row-copy"
-                    ><Skeleton class="loading-ranking-title" /><Skeleton class="loading-ranking-caption" /></span
-                  ><Skeleton class="loading-ranking-score" />
+            <div class="loading-summary-list loading-employment-metrics">
+              {#each employmentMetricSkeletons as row (row)}
+                <div><Skeleton class="loading-summary-label" /><Skeleton class="loading-summary-value" /></div>
+              {/each}
+            </div>
+            <div class="loading-employment-breakdown">
+              {#each employmentCategorySkeletons as category (category)}
+                <div class="loading-employment-category">
+                  <div><Skeleton class="loading-category-label" /><Skeleton class="loading-summary-value" /></div>
+                  <Skeleton class="loading-category-progress" />
+                  <div class="loading-subcategories">
+                    <Skeleton class="loading-subcategory" /><Skeleton
+                      class="loading-subcategory loading-subcategory-short"
+                    />
+                  </div>
                 </div>
               {/each}
             </div>
           </Card.Root>
 
-          <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
-            <div class="card-heading">
-              <Skeleton class="loading-panel-heading loading-wide-heading" />
-            </div>
-            <div class="ranking-list">
-              {#each rankingSkeletons as row (row)}
-                <div class="loading-ranking-row">
-                  <span class="loading-row-copy"
-                    ><Skeleton class="loading-ranking-title" /><Skeleton class="loading-ranking-caption" /></span
-                  ><Skeleton class="loading-ranking-score" />
-                </div>
-              {/each}
-            </div>
-          </Card.Root>
+          <div class="sustainability-grid" aria-hidden="true">
+            <Card.Root class="insight-card sustainability-card loading-insight-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="loading-panel-heading loading-wide-heading" /><Skeleton
+                  class="loading-heading-score"
+                />
+              </div>
+              <div class="loading-sustainability-factors">
+                {#each pollutionFactorSkeletons as row (row)}
+                  <div class="loading-factor-row">
+                    <div><Skeleton class="loading-factor-label" /><Skeleton class="loading-summary-value" /></div>
+                    <Skeleton class="loading-category-progress" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+            <Card.Root class="insight-card sustainability-card loading-insight-card" size="sm">
+              <div class="card-heading">
+                <Skeleton class="loading-panel-heading" /><Skeleton class="loading-heading-score" />
+              </div>
+              <div class="loading-sustainability-factors">
+                {#each vehicleCategorySkeletons as row (row)}
+                  <div class="loading-factor-row">
+                    <div><Skeleton class="loading-factor-label" /><Skeleton class="loading-summary-value" /></div>
+                    <Skeleton class="loading-category-progress" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+          </div>
+
+          {#each [fourRowSkeletons, threeRowSkeletons, threeRowSkeletons, threeRowSkeletons, fourRowSkeletons] as rows, card (card)}
+            <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
+              <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
+              {#if card === 1 || card === 2}<Skeleton class="loading-ranking-description" />{/if}
+              <div class="ranking-list">
+                {#each rows as row (row)}
+                  <div class="loading-ranking-row">
+                    <span class="loading-row-copy"
+                      ><Skeleton class="loading-ranking-title" /><Skeleton class="loading-ranking-caption" /></span
+                    ><Skeleton class="loading-ranking-score" />
+                  </div>
+                {/each}
+              </div>
+            </Card.Root>
+          {/each}
 
           <Card.Root class="insight-card ranking-card loading-insight-card" size="sm" aria-hidden="true">
-            <div class="card-heading">
-              <Skeleton class="loading-panel-heading loading-wide-heading" />
-            </div>
+            <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
             <div class="loading-category-tabs">
-              {#each categoryTabs as category (category.key)}
-                <Skeleton class="loading-category-tab" />
-              {/each}
+              {#each categoryTabs as category (category.key)}<Skeleton class="loading-category-tab" />{/each}
             </div>
             <div class="ranking-list">
-              {#each rankingSkeletons as row (row)}
+              {#each fourRowSkeletons as row (row)}
                 <div class="loading-ranking-row">
                   <Skeleton class="loading-ranking-title loading-single-ranking-title" /><Skeleton
                     class="loading-ranking-score"
@@ -658,26 +589,6 @@
               {/each}
             </div>
           </Card.Root>
-          <div class="sustainability-grid">
-            <Card.Root class="insight-card sustainability-card loading-insight-card" size="sm">
-              <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
-              <Skeleton class="loading-sustainability-score" />
-              <div class="loading-sustainability-factors">
-                {#each SUSTAINABILITY_FACTORS as factor (factor.key)}
-                  <Skeleton class="loading-sustainability-factor" />
-                {/each}
-              </div>
-            </Card.Root>
-            <Card.Root class="insight-card sustainability-card loading-insight-card" size="sm">
-              <div class="card-heading"><Skeleton class="loading-panel-heading loading-wide-heading" /></div>
-              <Skeleton class="loading-sustainability-score loading-sustainability-score-short" />
-              <div class="loading-sustainability-factors">
-                {#each rankingSkeletons as row (row)}
-                  <Skeleton class="loading-sustainability-factor" />
-                {/each}
-              </div>
-            </Card.Root>
-          </div>
         {:else if data && !error}
           <div class="detail-grid">
             <Card.Root class="insight-card" size="sm">
@@ -745,11 +656,11 @@
                 <Ship size={17} strokeWidth={2.2} />
               </div>
               <div class="mini-list">
-                {#each demandIslands as island (island.id)}
-                  <Button class="mini-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}
+                {#each demandIslands as ranked (ranked.island.id)}
+                  <Button class="mini-row" variant="ghost" type="button" onclick={() => onIslandSelect(ranked.island)}
                     ><span
-                      ><strong>{islandLabel(island)}</strong><small
-                        >{number(island.demand.inboundTotal)} inbound age-cohort demand</small
+                      ><strong>{islandLabel(ranked.island)}</strong><small
+                        >{number(ranked.value)} inbound age-cohort demand</small
                       ></span
                     ></Button
                   >
@@ -895,13 +806,13 @@
               <Car size={17} strokeWidth={2.2} />
             </div>
             <div class="ranking-list">
-              {#each highestPollutionIslands as island (island.id)}
-                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+              {#each highestPollutionIslands as ranked (ranked.island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(ranked.island)}>
                   <span>
-                    <strong>{islandLabel(island)}</strong>
-                    <small>{number(island.sustainability.vehicleTotal)} vehicles</small>
+                    <strong>{islandLabel(ranked.island)}</strong>
+                    <small>{number(ranked.island.sustainability.vehicleTotal)} vehicles</small>
                   </span>
-                  <b>{pollutionPressure(island.pollutionPressure)}</b>
+                  <b>{pollutionPressure(ranked.value)}</b>
                 </Button>
               {:else}
                 <p class="analytics-state">No pollution ranking is available.</p>
@@ -912,21 +823,23 @@
           <Card.Root class="insight-card ranking-card employment-ranking-card" size="sm">
             <div class="card-heading">
               <div>
-                <h3>Workplace density, lower population</h3>
+                <h3>Highest workplace density</h3>
               </div>
               <Briefcase size={17} strokeWidth={2.2} />
             </div>
-            <p class="ranking-description">Recorded workplaces per 1,000 residents.</p>
+            <p class="ranking-description">Recorded workplaces per 1,000 working-age residents.</p>
             <div class="ranking-list">
-              {#each jobRichIslands as island (island.id)}
-                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+              {#each jobRichIslands as ranked (ranked.island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(ranked.island)}>
                   <span>
-                    <strong>{islandLabel(island)}</strong>
+                    <strong>{islandLabel(ranked.island)}</strong>
                     <small
-                      >{number(island.employment.jobLocationCount)} workplaces · {number(island.population)} residents</small
+                      >{number(ranked.island.employment.jobLocationCount)} workplaces · {number(
+                        ranked.island.employment.workingAgePopulation
+                      )} working age</small
                     >
                   </span>
-                  <b>{decimal(jobDensity(island))}</b>
+                  <b>{decimal(ranked.value)}</b>
                 </Button>
               {:else}
                 <p class="analytics-state">No workplace-density ranking is available.</p>
@@ -943,20 +856,20 @@
             </div>
             <p class="ranking-description">Foreign residents are used as an estimated job-demand proxy.</p>
             <div class="ranking-list">
-              {#each jobDemandGapIslands as island (island.id)}
-                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+              {#each jobDemandGapIslands as ranked (ranked.island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(ranked.island)}>
                   <span>
-                    <strong>{islandLabel(island)}</strong>
+                    <strong>{islandLabel(ranked.island)}</strong>
                     <small
                       >{percentage(
-                        island.employment.foreignPerWorkingAge === null
+                        ranked.island.employment.foreignPerWorkingAge === null
                           ? null
-                          : island.employment.foreignPerWorkingAge * 100
-                      )} foreign / working age · {decimal(island.employment.jobLocationsPerThousandWorkingAge)} workplaces
+                          : ranked.island.employment.foreignPerWorkingAge * 100
+                      )} foreign / working age · {decimal(ranked.island.employment.jobLocationsPerThousandWorkingAge)} workplaces
                       / 1,000</small
                     >
                   </span>
-                  <b>{number(island.employment.jobLocationCount)}</b>
+                  <b>{percentage(ranked.value)}</b>
                 </Button>
               {:else}
                 <p class="analytics-state">No job-demand gap ranking is available.</p>
@@ -987,7 +900,7 @@
                     <strong>{source.originAtollName} {source.originName}</strong>
                     <small>{number(source.total)} outbound service demand</small>
                   </span>
-                  <b>{percentage(sourceShare(source))}</b>
+                  <b>{number(source.total)}</b>
                 </Button>
               {:else}
                 <p class="analytics-state">No inbound demand origins are available.</p>
@@ -995,23 +908,26 @@
             </div>
           </Card.Root>
 
-          <Card.Root class="insight-card ranking-card" size="sm" data-story-target="national-focus-areas">
+          <Card.Root class="insight-card ranking-card" size="sm">
             <div class="card-heading">
               <div>
                 <h3>Most inaccessible islands</h3>
               </div>
             </div>
             <div class="ranking-list">
-              {#each underservedIslands as island (island.id)}
-                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}>
+              {#each underservedIslands as ranked (ranked.island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(ranked.island)}>
                   <span
-                    ><strong>{islandLabel(island)}</strong><small
-                      >Overall {percentage(island.overall.score)} - inbound {number(island.demand.inboundTotal)} · outbound
-                      {percentage(outboundShare(island))}</small
+                    ><strong>{islandLabel(ranked.island)}</strong><small
+                      >Overall {percentage(ranked.island.overall.score)} - inbound {number(
+                        ranked.island.demand.inboundTotal
+                      )} · outbound {percentage(outboundShare(ranked.island))}</small
                     ></span
                   >
-                  <b>{percentage(island.overall.score)}</b>
+                  <b>{decimal(ranked.value)}</b>
                 </Button>
+              {:else}
+                <p class="analytics-state">No accessibility-need ranking is available.</p>
               {/each}
             </div>
           </Card.Root>
@@ -1035,9 +951,9 @@
               {/each}
             </div>
             <div class="ranking-list">
-              {#each categoryIslands as island (island.id)}
-                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(island)}
-                  ><strong>{islandLabel(island)}</strong><b>{categoryCoverage(island, selectedCategory)}</b></Button
+              {#each categoryIslands as ranked (ranked.island.id)}
+                <Button class="ranking-row" variant="ghost" type="button" onclick={() => onIslandSelect(ranked.island)}
+                  ><strong>{islandLabel(ranked.island)}</strong><b>{percentage(ranked.value)}</b></Button
                 >
               {/each}
             </div>
@@ -1099,8 +1015,7 @@
     scrollbar-color: #a1a1aa transparent;
   }
   .analytics-heading,
-  .card-heading,
-  .driver-topline {
+  .card-heading {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1145,57 +1060,6 @@
   :global(.card-heading > svg) {
     flex: 0 0 auto;
     color: #09090b;
-  }
-  .driver-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-    margin-top: 0.75rem;
-  }
-  .driver-row {
-    display: grid;
-    align-content: start;
-    gap: 0.3rem;
-    min-width: 0;
-    min-height: 4.35rem;
-    padding: 0.48rem 0.55rem;
-    border: 1px solid #e4e4e7;
-    border-radius: 0.4rem;
-    background: #fafafa;
-  }
-  .driver-topline {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-  .driver-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.38rem;
-    color: #09090b;
-    font-size: 0.66rem;
-    font-weight: 780;
-  }
-  .driver-score {
-    flex: 0 0 auto;
-    font-size: 1rem;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  :global(.driver-progress) {
-    height: 0.38rem;
-    background: #e4e4e7;
-  }
-  :global(.driver-progress [data-slot='progress-indicator']) {
-    background: var(--driver-score-color, var(--mobility-accent, #09090b));
-  }
-  .driver-note {
-    color: #71717a;
-    font-size: 0.56rem;
-    line-height: 1.25;
   }
   .detail-grid {
     display: grid;
@@ -1380,24 +1244,23 @@
   :global(.sustainability-card .vehicle-category-row [data-slot='progress-indicator']) {
     background: var(--mobility-accent, #09090b);
   }
-  .loading-sustainability-score {
-    width: 5.2rem;
-    height: 1.35rem;
-    margin-top: 0.72rem;
-    border-radius: 0.3rem;
-  }
-  .loading-sustainability-score-short {
-    width: 7rem;
-  }
   .loading-sustainability-factors {
     display: grid;
     gap: 0.58rem;
     margin-top: 0.72rem;
   }
-  :global(.loading-sustainability-factor) {
-    width: 100%;
-    height: 1.25rem;
-    border-radius: 0.25rem;
+  .loading-factor-row,
+  .loading-employment-category {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .loading-factor-row > div,
+  .loading-employment-category > div:first-child,
+  .loading-summary-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
   }
   .ranking-description {
     margin: 0.55rem 0 0;
@@ -1555,9 +1418,67 @@
     height: 0.45rem;
     border-radius: 999px;
   }
-  :global(.loading-row-arrow) {
-    width: 0.75rem;
-    height: 0.75rem;
+  .loading-summary-list {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.72rem;
+    padding-top: 0.62rem;
+    border-top: 1px solid #e4e4e7;
+  }
+  .loading-employment-metrics {
+    padding-top: 0;
+    border-top: 0;
+  }
+  .loading-employment-breakdown {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 0.72rem;
+    padding-top: 0.62rem;
+    border-top: 1px solid #e4e4e7;
+  }
+  .loading-subcategories {
+    display: grid;
+    gap: 0.2rem;
+    padding-left: 0.5rem;
+  }
+  :global(.loading-heading-score) {
+    width: 2.8rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+  }
+  :global(.loading-summary-label) {
+    width: 8.5rem;
+    height: 0.46rem;
+    border-radius: 999px;
+  }
+  :global(.loading-summary-value) {
+    width: 2.4rem;
+    height: 0.46rem;
+    border-radius: 999px;
+  }
+  :global(.loading-category-label),
+  :global(.loading-factor-label) {
+    width: 6.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+  :global(.loading-category-progress) {
+    width: 100%;
+    height: 0.3rem;
+    border-radius: 999px;
+  }
+  :global(.loading-subcategory) {
+    width: 70%;
+    height: 0.42rem;
+    border-radius: 999px;
+  }
+  :global(.loading-subcategory-short) {
+    width: 55%;
+  }
+  :global(.loading-ranking-description) {
+    width: 13rem;
+    height: 0.46rem;
+    margin-top: 0.55rem;
     border-radius: 999px;
   }
   :global(.loading-ranking-title) {
@@ -1596,22 +1517,6 @@
   .loading-title-wrap {
     height: 1.35rem;
   }
-  :global(.loading-label) {
-    width: 6rem;
-    height: 0.65rem;
-  }
-  :global(.loading-driver-score) {
-    width: 2.4rem;
-    height: 1rem;
-    border-radius: 0.2rem;
-  }
-  :global(.loading-progress) {
-    height: 0.38rem;
-  }
-  :global(.loading-note) {
-    width: 12rem;
-    height: 0.5rem;
-  }
   @media (max-width: 640px) {
     :global(.analytics-card-layer) {
       align-items: flex-end;
@@ -1628,9 +1533,6 @@
       grid-template-columns: 1fr;
     }
     .sustainability-grid {
-      grid-template-columns: 1fr;
-    }
-    .driver-list {
       grid-template-columns: 1fr;
     }
   }
@@ -1652,7 +1554,6 @@
 
   :global(.analytics-card h2),
   :global(.analytics-card h3),
-  :global(.analytics-card .driver-label),
   :global(.analytics-card .people-total),
   :global(.analytics-card .age-row strong),
   :global(.analytics-card .demand-summary strong),
@@ -1663,7 +1564,6 @@
     color: var(--mobility-text, #09090b);
   }
 
-  :global(.analytics-card .driver-note),
   :global(.analytics-card .age-row > div:first-child),
   :global(.analytics-card .demand-summary),
   :global(.analytics-card .mini-row small),
@@ -1685,14 +1585,12 @@
     color: var(--mobility-accent, #09090b);
   }
 
-  :global(.analytics-card .driver-progress),
   :global(.analytics-card .age-track) {
     background: var(--mobility-surface-muted, #f4f4f5);
   }
 
-  :global(.analytics-card .driver-progress [data-slot='progress-indicator']),
   :global(.analytics-card .age-track span) {
-    background: var(--driver-score-color, var(--mobility-accent, #09090b));
+    background: var(--mobility-accent, #09090b);
   }
 
   :global(.analytics-card .demand-summary) {

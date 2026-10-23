@@ -1,4 +1,4 @@
-import type { ScoringSnapshot, SustainabilityScoreDto } from './types';
+import type { ScoringIsland, ScoringSnapshot, SustainabilityScoreDto } from './types';
 import type {
   IslandDemandMetric,
   IslandDemandProfile,
@@ -159,7 +159,7 @@ function connectionType(connection: TransportConnection): string {
 function connectionDetails(
   island: Island,
   connections: TransportConnection[],
-  islandsById: Map<string, Island>,
+  islandsById: Map<string, ScoringIsland>,
   routesById: Map<string, { name: string | null; routeType: string }>
 ): IslandTransportConnection[] {
   return connections
@@ -179,7 +179,14 @@ function connectionDetails(
         routeName: route?.name ?? null,
         source: connection.source,
         modeled: connection.modeled,
-        neighbor: neighbor ? { id: neighbor.id, name: neighbor.name } : null
+        neighbor: neighbor
+          ? {
+              id: neighbor.id,
+              name: neighbor.name,
+              atollName: neighbor.atollName ?? null,
+              islandType: neighbor.islandType
+            }
+          : null
       } satisfies IslandTransportConnection;
     })
     .sort((left, right) => (left.neighbor?.name ?? '').localeCompare(right.neighbor?.name ?? ''));
@@ -198,7 +205,7 @@ function demandProfile(
   total: number | null,
   score: Awaited<ReturnType<typeof getIslandScore>>,
   services: Service[],
-  islands: Island[]
+  islands: ScoringIsland[]
 ): IslandDemandProfile {
   const childPopulation =
     populationAmount(records, 'child_population_0_14') ?? populationAmount(records, 'child_population_0_17');
@@ -264,6 +271,7 @@ function demandProfile(
       modes: score.transport.demand.modes,
       stops: score.transport.demand.stops.map((stop) => ({
         stopId: stop.stopId,
+        islandId: stop.islandId,
         stopName: stop.stopName,
         subtype: stop.subtype,
         mode: stop.mode,
@@ -296,13 +304,21 @@ function demandProfile(
         status: hub.status
       }))
     },
-    inboundSources: score.demand.inboundSources.map((source) => ({
-      originIslandId: source.originIslandId,
-      originName: islandById.get(source.originIslandId)?.name ?? source.originIslandId,
-      health: round(source.health),
-      education: round(source.education),
-      total: round(source.total)
-    }))
+    inboundSources: score.demand.inboundSources
+      .map((source) => ({
+        originIslandId: source.originIslandId,
+        originName: islandById.get(source.originIslandId)?.name ?? source.originIslandId,
+        originAtollName: islandById.get(source.originIslandId)?.atollName ?? 'Unknown atoll',
+        health: round(source.health),
+        education: round(source.education),
+        total: round(source.total)
+      }))
+      .sort(
+        (left, right) =>
+          right.total - left.total ||
+          `${left.originAtollName} ${left.originName}`.localeCompare(`${right.originAtollName} ${right.originName}`) ||
+          left.originIslandId.localeCompare(right.originIslandId)
+      )
   };
 }
 

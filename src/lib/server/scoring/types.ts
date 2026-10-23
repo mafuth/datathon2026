@@ -12,6 +12,12 @@ export type ScoreStatus = 'numeric' | 'partial' | 'unavailable';
 
 export type TransportStopMode = 'land' | 'marine' | 'air';
 
+export type ScoringIsland = Island & { atollName?: string };
+
+export type ScoringTransportConnection = TransportConnection & {
+  tripId?: string;
+};
+
 export type TransportStop = {
   id: string;
   name: string | null;
@@ -27,6 +33,7 @@ export type TransportRouteStop = {
   stopId: string;
   islandId: string;
   sequence: number;
+  terminalEvidence?: string;
 };
 
 export type ResidentialDemandPoint = {
@@ -37,12 +44,12 @@ export type ResidentialDemandPoint = {
 };
 
 export type ScoringSnapshot = {
-  islands: Island[];
+  islands: ScoringIsland[];
   population: Population[];
   vehicleCounts: VehicleCount[];
   services: Service[];
   jobLocations?: JobLocation[];
-  connections: TransportConnection[];
+  connections: ScoringTransportConnection[];
   routes: TransportRoute[];
   transportStops: TransportStop[];
   routeStops: TransportRouteStop[];
@@ -242,6 +249,9 @@ export type HubDemandImpact = {
 };
 
 export type TransportDemandStop = {
+  departureTransferDemand: number | null;
+  arrivalTransferDemand: number | null;
+  outboundDemand: number | null;
   stopId: string;
   stopName: string | null;
   islandId: string;
@@ -274,6 +284,7 @@ export type TransportDemandModeSummary = {
 };
 
 export type TransportDemandResult = {
+  limitations: string[];
   workingDemand: number;
   studentDemand: number;
   elderlyDemand: number;

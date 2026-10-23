@@ -20,6 +20,8 @@ export type IslandServiceEligibility = {
 };
 
 export type IslandServiceDemand = {
+  outbound?: number | null;
+  limitation?: string | null;
   value: number | null;
   local: number | null;
   inbound: number | null;
@@ -65,12 +67,20 @@ export type IslandServiceHexes = {
       educationStatus: ServiceDemandStatus;
       transportStatus: ServiceDemandStatus;
       allStatus: ServiceDemandStatus;
+      healthDelta?: number;
+      educationDelta?: number;
+      transportDelta?: number;
+      allDelta?: number;
       revealPhase?: number;
     };
   }>;
 };
 
 export type IslandServicesResponse = {
+  // Canonical resident-origin allocation units (health primary/chronic; education cohorts).
+  // local = served here; outbound = served elsewhere; unserved is separate. No destination overlays.
+  // Not annual trips or unique people. Same snapshot as services; absent/null means unavailable.
+  planningDemand?: Record<'health' | 'education', { local: number; outbound: number; unserved: number }> | null;
   status: ServiceDemandStatus | 'draft';
   baselineVersion?: string;
   island: {

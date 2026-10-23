@@ -52,6 +52,9 @@ export default defineConfig(() => ({
   preview: {
     allowedHosts: previewAllowedHosts
   },
+  ssr: {
+    noExternal: ['@xyflow/svelte']
+  },
   test: {
     expect: { requireAssertions: true },
     projects: [

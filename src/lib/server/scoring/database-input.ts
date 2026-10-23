@@ -15,6 +15,8 @@ import {
   VehicleCount
 } from '../../db/models';
 import db from '../database';
+import { loadLandTopology } from '../mobility/land-topology-data';
+import { retainEvidencedAirportLinks } from './airport-evidence';
 
 type RtlBusArtifact = {
   routes?: Array<{ id?: unknown; stop_ids?: unknown }>;
@@ -25,6 +27,25 @@ type RtlBusArtifact = {
     island_id?: unknown;
     latitude?: unknown;
     longitude?: unknown;
+  }>;
+};
+
+type RtlFerryArtifact = {
+  islands?: Array<{
+    rtl_stop_name?: unknown;
+    rtl_stop_code?: unknown;
+    latitude?: unknown;
+    longitude?: unknown;
+    official_island_id?: unknown;
+    reconciliation_status?: unknown;
+  }>;
+  routes?: Array<{
+    route_id?: unknown;
+    route_code?: unknown;
+    stop_names?: unknown;
+    schedule_entries?: Array<{
+      stop_timings?: Array<{ stopName?: unknown; order?: unknown }>;
+    }>;
   }>;
 };
 
@@ -39,6 +60,7 @@ type OsmBuildingArtifact = {
 };
 
 let rtlBusStopsCache: { transportStops: TransportStop[]; routeStops: TransportRouteStop[] } | undefined;
+let rtlFerryStopsCache: { transportStops: TransportStop[]; routeStops: TransportRouteStop[] } | undefined;
 let residentialDemandPointsCache: ResidentialDemandPoint[] | undefined;
 let scoringSnapshotCache: ScoringSnapshot | null = null;
 let scoringSnapshotRequest: Promise<ScoringSnapshot> | null = null;
@@ -91,6 +113,219 @@ function rtlBusStops(): { transportStops: TransportStop[]; routeStops: Transport
 
   rtlBusStopsCache = { transportStops: [...stops.values()], routeStops };
   return rtlBusStopsCache;
+}
+
+type MarineGeometry = { type: string; coordinates: unknown };
+
+function geometryPoints(value: unknown): number[][] {
+  if (!Array.isArray(value)) return [];
+  if (value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return [value];
+  return value.flatMap(geometryPoints);
+}
+
+function rtlFerryStops(services: ScoringSnapshot['services']): {
+  transportStops: TransportStop[];
+  routeStops: TransportRouteStop[];
+} {
+  if (rtlFerryStopsCache) return rtlFerryStopsCache;
+  const empty = { transportStops: [], routeStops: [] };
+  const path = resolve(process.cwd(), 'data/mobility/transport/rtl-ferry-coverage.json');
+  if (!existsSync(path)) {
+    rtlFerryStopsCache = empty;
+    return empty;
+  }
+
+  const artifact = JSON.parse(readFileSync(path, 'utf8')) as RtlFerryArtifact;
+  const sourceStops = new Map<string, NonNullable<RtlFerryArtifact['islands']>[number]>();
+  for (const stop of artifact.islands ?? []) {
+    const name = typeof stop.rtl_stop_name === 'string' ? stop.rtl_stop_name : null;
+    const code =
+      typeof stop.rtl_stop_code === 'string' || typeof stop.rtl_stop_code === 'number'
+        ? String(stop.rtl_stop_code)
+        : null;
+    const islandId = typeof stop.official_island_id === 'string' ? stop.official_island_id : null;
+    if (!name || !code || !islandId || stop.reconciliation_status !== 'matched_exact_atoll_name') continue;
+    sourceStops.set(name, stop);
+  }
+
+  const marineServices = services.filter(
+    (service) =>
+      service.serviceType === 'transport' &&
+      service.islandId &&
+      (service.subtype === 'jetty' || service.subtype === 'port')
+  );
+  const transportStops = new Map<string, TransportStop>();
+  const routeStops: TransportRouteStop[] = [];
+
+  // A route name identifies the RTL service; an exact shared OSM geometry vertex
+  // identifies its terminal. Proximity and island-name similarity are not evidence.
+  const marinePath = resolve(process.cwd(), 'data/mobility/normalized/osm-marine.json');
+  const marine = existsSync(marinePath)
+    ? (JSON.parse(readFileSync(marinePath, 'utf8')) as {
+        services: Array<{ id: string; geometry: MarineGeometry }>;
+        routes: Array<{ id: string; name: string | null; geometry: MarineGeometry; tags?: Record<string, string> }>;
+      })
+    : { services: [], routes: [] };
+  const geometries = new Map(
+    marine.services.map((service) => [service.id, geometryPoints(service.geometry.coordinates)])
+  );
+
+  const resolveServiceId = (
+    sourceStop: NonNullable<RtlFerryArtifact['islands']>[number],
+    routeCode: string
+  ): { id: string; evidence: string } => {
+    const islandId = sourceStop.official_island_id as string;
+    const sameIsland = marineServices.filter((service) => service.islandId === islandId);
+    const candidates = new Map<string, Set<string>>();
+    for (const route of marine.routes) {
+      const references = `${route.tags?.ref ?? ''} ${route.name ?? ''}`.toUpperCase().split(/[^A-Z0-9]+/);
+      if (!references.includes(routeCode.toUpperCase()) || route.geometry.type !== 'LineString') continue;
+      const points = geometryPoints(route.geometry.coordinates);
+      const endpoints = [points[0], points.at(-1)].filter((point) => point !== undefined);
+      for (const service of sameIsland) {
+        const vertices = geometries.get(service.id) ?? [];
+        if (!endpoints.some((point) => vertices.some((vertex) => vertex[0] === point[0] && vertex[1] === point[1])))
+          continue;
+        const evidence = candidates.get(service.id) ?? new Set<string>();
+        evidence.add(route.id);
+        candidates.set(service.id, evidence);
+      }
+    }
+    if (candidates.size === 1) {
+      const [id, evidence] = [...candidates][0];
+      return {
+        id,
+        evidence: `Exact OSM route endpoint / terminal geometry: ${[...evidence].sort().join(', ')}; ${id}`
+      };
+    }
+    return {
+      id: `rtl:ferry-stop:${routeCode}:${String(sourceStop.rtl_stop_code)}`,
+      evidence: 'RTL island call; physical terminal unresolved'
+    };
+  };
+
+  for (const route of artifact.routes ?? []) {
+    const routeCode = typeof route.route_code === 'string' ? route.route_code : null;
+    if (!routeCode || !Array.isArray(route.stop_names)) continue;
+    const routeId = `rtl:ferry:${routeCode}`;
+    route.stop_names.forEach((rawName, sequence) => {
+      if (typeof rawName !== 'string') return;
+      const sourceStop = sourceStops.get(rawName);
+      if (!sourceStop) return;
+      const islandId = sourceStop.official_island_id as string;
+      const { id: stopId, evidence } = resolveServiceId(sourceStop, routeCode);
+      const existing = transportStops.get(stopId) ?? services.find((service) => service.id === stopId);
+      if (!transportStops.has(stopId)) {
+        transportStops.set(stopId, {
+          id: stopId,
+          name: existing
+            ? (existing.name ?? `Unnamed ${existing.subtype} (${stopId})`)
+            : `${sourceStop.rtl_stop_name as string} — terminal unresolved`,
+          islandId: existing?.islandId ?? islandId,
+          subtype: existing?.subtype ?? 'jetty',
+          latitude: existing?.latitude ?? null,
+          longitude: existing?.longitude ?? null,
+          routeIds: []
+        });
+      }
+      const stop = transportStops.get(stopId);
+      if (stop && !stop.routeIds.includes(routeId)) stop.routeIds.push(routeId);
+      routeStops.push({ routeId, stopId, islandId, sequence, terminalEvidence: evidence });
+    });
+  }
+
+  rtlFerryStopsCache = { transportStops: [...transportStops.values()], routeStops };
+  return rtlFerryStopsCache;
+}
+
+function scheduledRtlFerryConnections(
+  existing: ScoringSnapshot['connections'],
+  routeStops: TransportRouteStop[]
+): ScoringSnapshot['connections'] {
+  const path = resolve(process.cwd(), 'data/mobility/transport/rtl-ferry-coverage.json');
+  if (!existsSync(path)) return existing;
+
+  const artifact = JSON.parse(readFileSync(path, 'utf8')) as RtlFerryArtifact;
+  const scheduledRouteIds = new Set<string>();
+  const generated: ScoringSnapshot['connections'] = [];
+
+  for (const route of artifact.routes ?? []) {
+    const routeCode = typeof route.route_code === 'string' ? route.route_code : null;
+    if (!routeCode || !Array.isArray(route.stop_names)) continue;
+    const schedules = route.schedule_entries ?? [];
+    if (schedules.length === 0) continue;
+
+    const routeId = `rtl:ferry:${routeCode}`;
+    const callsByName = new Map<string, TransportRouteStop[]>();
+    for (const call of routeStops.filter((entry) => entry.routeId === routeId)) {
+      const name = route.stop_names[call.sequence];
+      if (typeof name !== 'string') continue;
+      const calls = callsByName.get(name) ?? [];
+      calls.push(call);
+      callsByName.set(name, calls);
+    }
+    let generatedForRoute = false;
+
+    schedules.forEach((schedule, scheduleIndex) => {
+      const timings = [...(schedule.stop_timings ?? [])]
+        .filter(
+          (timing): timing is { stopName: string; order: number } =>
+            typeof timing.stopName === 'string' && Number.isInteger(timing.order)
+        )
+        .sort((left, right) => left.order - right.order);
+
+      for (let index = 1; index < timings.length; index += 1) {
+        const fromTiming = timings[index - 1];
+        const toTiming = timings[index];
+        if (toTiming.order !== fromTiming.order + 1) continue;
+
+        // Schedule order describes this trip and may be the reverse of the
+        // catalogue order. Resolve names to canonical route calls, then only
+        // accept an unambiguous adjacent pair in the route topology.
+        const adjacentPairs = (callsByName.get(fromTiming.stopName) ?? []).flatMap((from) =>
+          (callsByName.get(toTiming.stopName) ?? [])
+            .filter((to) => Math.abs(to.sequence - from.sequence) === 1 && to.islandId !== from.islandId)
+            .map((to) => ({ from, to }))
+        );
+        const pair = adjacentPairs.length === 1 ? adjacentPairs[0] : undefined;
+        const from = pair?.from;
+        const to = pair?.to;
+        if (!from || !to || from.islandId === to.islandId) {
+          continue;
+        }
+
+        generated.push({
+          id: `${routeId}:schedule:${scheduleIndex}:leg:${fromTiming.order}`,
+          routeId,
+          tripId: `${routeId}:schedule:${scheduleIndex}`,
+          sequence: Math.max(from.sequence, to.sequence),
+          fromIslandId: from.islandId,
+          toIslandId: to.islandId,
+          connectionType: 'ferry',
+          directionality: 'forward',
+          distanceM: null,
+          geoJson: null,
+          source: 'RTL',
+          sourceObjectId: `${route.route_id ?? routeCode}:schedule:${scheduleIndex}:orders:${fromTiming.order}-${toTiming.order}`,
+          modeled: false,
+          scoreEligible: true
+        });
+        generatedForRoute = true;
+      }
+    });
+    if (generatedForRoute) scheduledRouteIds.add(routeId);
+  }
+
+  return [
+    ...existing.filter(
+      (connection) =>
+        connection.source !== 'RTL' ||
+        connection.connectionType !== 'ferry' ||
+        !connection.routeId ||
+        !scheduledRouteIds.has(connection.routeId)
+    ),
+    ...generated
+  ];
 }
 
 function databaseTransportStops(services: ScoringSnapshot['services']): TransportStop[] {
@@ -201,7 +436,7 @@ function residentialDemandPoints(): ResidentialDemandPoint[] {
 
 async function loadScoringSnapshotUncached(): Promise<ScoringSnapshot> {
   const [islands, population, vehicleCounts, services, jobLocations, connections, routes] = await Promise.all([
-    db.select().from(Island),
+    db.select({ island: Island, atollName: Atoll.name }).from(Island).innerJoin(Atoll, eq(Island.atollId, Atoll.id)),
     db.select().from(Population),
     db.select().from(VehicleCount),
     db.select().from(Service),
@@ -211,6 +446,7 @@ async function loadScoringSnapshotUncached(): Promise<ScoringSnapshot> {
   ]);
 
   const rtl = rtlBusStops();
+  const rtlFerry = rtlFerryStops(services);
   const stops = new Map(databaseTransportStops(services).map((stop) => [stop.id, stop]));
   for (const stop of rtl.transportStops) {
     const existing = stops.get(stop.id);
@@ -220,17 +456,34 @@ async function loadScoringSnapshotUncached(): Promise<ScoringSnapshot> {
       stops.set(stop.id, stop);
     }
   }
+  for (const stop of rtlFerry.transportStops) {
+    const existing = stops.get(stop.id);
+    if (existing) {
+      existing.routeIds = [...new Set([...existing.routeIds, ...stop.routeIds])];
+    } else {
+      stops.set(stop.id, stop);
+    }
+  }
+
+  const baseConnections = loadLandTopology(
+    islands.map(({ island }) => island),
+    retainEvidencedAirportLinks(connections, services)
+  ).map((connection) =>
+    connection.source === 'RTL' && connection.connectionType === 'ferry' && connection.scoreEligible === false
+      ? { ...connection, scoreEligible: true }
+      : connection
+  );
 
   return {
-    islands,
+    islands: islands.map(({ island, atollName }) => ({ ...island, atollName })),
     population,
     vehicleCounts,
     services,
     jobLocations,
-    connections,
+    connections: scheduledRtlFerryConnections(baseConnections, rtlFerry.routeStops),
     routes,
     transportStops: [...stops.values()],
-    routeStops: rtl.routeStops
+    routeStops: [...rtl.routeStops, ...rtlFerry.routeStops]
   };
 }
 
@@ -283,6 +536,7 @@ export function loadScoringSnapshot(
 
 export function clearScoringSnapshotCache(): void {
   rtlBusStopsCache = undefined;
+  rtlFerryStopsCache = undefined;
   scoringSnapshotCache = null;
   scoringSnapshotRequest = null;
   residentialSnapshotRequest = null;

@@ -1,0 +1,37 @@
+{
+  "schema_version": "osm-airport-evidence-v1",
+  "source": "data/mobility/raw/osm/maldives-latest.osm.pbf",
+  "aerodromes": [
+    { "id": "osm:way:207073193", "tags": { "aeroway": "aerodrome", "man_made": "raft" } },
+    {
+      "id": "osm:way:318417225",
+      "tags": { "aeroway": "aerodrome", "aerodrome:type": "public", "icao": "VRMK", "iata": "KDO" }
+    },
+    { "id": "osm:way:364296622", "tags": { "aeroway": "aerodrome" } },
+    { "id": "osm:way:501718359", "tags": { "aeroway": "aerodrome", "icao": "VRMR", "iata": "FVM" } },
+    { "id": "osm:way:602758011", "tags": { "aeroway": "aerodrome", "icao": "VRMU", "iata": "DDD" } },
+    { "id": "osm:way:747425647", "tags": { "aeroway": "aerodrome", "icao": "VRDA", "iata": "NMF" } },
+    { "id": "osm:way:747433190", "tags": { "aeroway": "aerodrome", "icao": "VRMH", "iata": "HAQ" } },
+    { "id": "osm:way:747440857", "tags": { "aeroway": "aerodrome", "icao": "VRMM", "iata": "MLE" } },
+    { "id": "osm:way:749871864", "tags": { "aeroway": "aerodrome", "icao": "VRMD", "iata": "DRV" } },
+    { "id": "osm:way:752541163", "tags": { "aeroway": "aerodrome", "icao": "VRBK", "iata": "HDK" } },
+    { "id": "osm:way:757319579", "tags": { "aeroway": "aerodrome", "icao": "VRCF", "iata": "FND" } },
+    {
+      "id": "osm:way:870478342",
+      "tags": {
+        "aeroway": "aerodrome",
+        "aerodrome:type": "seaplane",
+        "seamark:type": "seaplane_landing_area",
+        "surface": "water"
+      }
+    },
+    { "id": "osm:way:978090098", "tags": { "aeroway": "aerodrome" } },
+    { "id": "osm:way:1165473041", "tags": { "aeroway": "aerodrome", "icao": "VRMT", "iata": "KDM" } },
+    { "id": "osm:way:1165473042", "tags": { "aeroway": "aerodrome", "icao": "VRQM", "iata": "RUL" } },
+    { "id": "osm:way:1255413502", "tags": { "aeroway": "aerodrome", "icao": "VRAH", "iata": "HRF" } },
+    { "id": "osm:way:1256311744", "tags": { "aeroway": "aerodrome", "icao": "VRGD", "iata": "LMV" } },
+    { "id": "osm:way:1319728541", "tags": { "aeroway": "aerodrome", "icao": "VRMV", "iata": "VAM" } },
+    { "id": "osm:way:1557297319", "tags": { "aeroway": "aerodrome", "icao": "VRKM", "iata": "MUM" } },
+    { "id": "osm:way:1557300131", "tags": { "aeroway": "aerodrome", "icao": "VRQF", "iata": "FMT" } }
+  ]
+}

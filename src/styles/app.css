@@ -16,6 +16,68 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Proposal consuming roots stay light, including beneath a dark application shell. */
+:is(.proposal-builder-panel, .proposal-financial-panel) {
+  color-scheme: light;
+  --background: #fff;
+  --foreground: #09090b;
+  --card: #fff;
+  --card-foreground: #09090b;
+  --popover: #fff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #3f3f46;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+/* Unlayered root overrides also win over primitives' explicit dark variants. */
+:is(.proposal-builder-panel, .proposal-financial-panel)
+  :is([data-slot='button'], [data-slot='input'], [data-slot='tabs-trigger']) {
+  background-color: var(--background);
+  color: var(--foreground);
+  border-color: var(--input);
+}
+
+:is(.proposal-builder-panel, .proposal-financial-panel)
+  [data-slot='button']:is(:hover, [aria-expanded='true'], [aria-pressed='true']) {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+:is(.proposal-builder-panel, .proposal-financial-panel) [data-slot='tabs-list'] {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+:is(.proposal-builder-panel, .proposal-financial-panel) [data-slot='tabs-trigger'] {
+  background-color: transparent;
+  color: var(--muted-foreground);
+  border-color: transparent;
+}
+
+:is(.proposal-builder-panel, .proposal-financial-panel)
+  [data-slot='tabs-trigger']:is([data-active], [data-state='active']) {
+  background-color: var(--background);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+:is(.proposal-builder-panel, .proposal-financial-panel) [aria-invalid='true'] {
+  border-color: var(--destructive);
+}
+
 :root {
   --background: var(--color-white);
   --foreground: var(--color-zinc-950);
@@ -144,6 +206,16 @@
 @layer base {
   * {
     @apply border-border;
+    cursor:
+      url('/cursor-small.png') 5 5,
+      auto !important;
+  }
+
+  *::before,
+  *::after {
+    cursor:
+      url('/cursor-small.png') 5 5,
+      auto !important;
   }
 
   *:focus-visible {
