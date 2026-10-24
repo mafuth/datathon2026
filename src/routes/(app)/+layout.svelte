@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { page } from '$app/state';
+
+  import { appPath } from '$lib/utils/app-path';
 
   import AppSidebar from '$components/app-sidebar.svelte';
   import ThemeDropdown from '$components/theme-dropdown.svelte';
@@ -12,11 +15,12 @@
   let breadcrumbs = $derived(
     page.data.metadata?.breadcrumbs ??
       page.url.pathname
+        .slice(base.length)
         .split('/')
         .filter(Boolean)
-        .map((item) => ({
+        .map((item, index, segments) => ({
           title: item.charAt(0).toUpperCase() + item.slice(1),
-          href: `/${item}`
+          href: appPath(`/${segments.slice(0, index + 1).join('/')}`)
         }))
   );
 </script>
@@ -39,7 +43,7 @@
                   {#if index === breadcrumbs.length - 1}
                     <Breadcrumb.Page>{item.title}</Breadcrumb.Page>
                   {:else}
-                    <Breadcrumb.Link href={item.href ?? '#'}>
+                    <Breadcrumb.Link href={appPath(item.href ?? '#')}>
                       {item.title}
                     </Breadcrumb.Link>
                   {/if}

@@ -1,4 +1,5 @@
 import { getRequestEvent } from '$app/server';
+import { base } from '$app/paths';
 
 import { error, redirect } from '@sveltejs/kit';
 import { and, eq, isNotNull } from 'drizzle-orm';
@@ -6,6 +7,7 @@ import { and, eq, isNotNull } from 'drizzle-orm';
 import { Account, Session, TwoFactor, User } from '$lib/db/models';
 import { requireAuth } from '$lib/server/auth';
 import db from '$lib/server/database';
+import { appPath } from '$lib/utils/app-path';
 
 import * as m from '$messages';
 import { config } from '$config/server';
@@ -66,11 +68,16 @@ export function getChallengeModeForState(
 }
 
 export function getSafeChallengeNext(value: string | null | undefined, fallback = SECURITY_PATH) {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) {
-    return fallback;
+  if (!value || !value.startsWith('/') || value.startsWith('//') || /[\\\u0000-\u001f]/.test(value)) {
+    return appPath(fallback);
   }
 
-  return value;
+  const target = new URL(appPath(value), 'https://application.invalid');
+  if (target.origin !== 'https://application.invalid' || (base && target.pathname !== base && !target.pathname.startsWith(`${base}/`))) {
+    return appPath(fallback);
+  }
+
+  return `${target.pathname}${target.search}${target.hash}`;
 }
 
 async function hasCredentialAccountByUserId(userId: string) {
@@ -155,7 +162,7 @@ function redirectToChallenge(next: string | undefined, fallback: string) {
   const redirectTo = getSafeChallengeNext(next ?? `${url.pathname}${url.search}`, fallback);
   const params = new URLSearchParams({ next: redirectTo });
 
-  redirect(303, `${CHALLENGE_PATH}?${params.toString()}`);
+  redirect(303, appPath(`${CHALLENGE_PATH}?${params.toString()}`));
 }
 
 function requireFreshChallenge(state: ChallengeState, next: string) {

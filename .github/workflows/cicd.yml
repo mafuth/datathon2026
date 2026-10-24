@@ -1,0 +1,196 @@
+name: Test and deploy Datathon 2026
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      full_checks:
+        description: Also run lint and the existing browser regression suite
+        type: boolean
+        default: false
+      deploy:
+        description: Deploy after all checks pass and deployment is enabled
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: datathon2026-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/mafuth/datathon2026
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      SKIP_INSTALL_SIMPLE_GIT_HOOKS: '1'
+      PUBLIC_APP_NAME: MobiliX
+      PUBLIC_BASE_URL: http://127.0.0.1:4173
+      PUBLIC_BASE_PATH: ''
+      PUBLIC_R2_BUCKET_NAME: ''
+      PUBLIC_R2_BUCKET_URL: ''
+      DATABASE_URL: file:local.db
+      DATABASE_AUTH_TOKEN: ''
+      BETTER_AUTH_URL: http://127.0.0.1:4173
+      BETTER_AUTH_SECRET: ci-only-placeholder-not-a-production-secret
+      GOOGLE_CLIENT_ID: ''
+      GOOGLE_CLIENT_SECRET: ''
+      R2_ACCOUNT_ID: ''
+      R2_ACCESS_KEY_ID: ''
+      R2_SECRET_ACCESS_KEY: ''
+      RESEND_API_KEY: ''
+      EMAIL_SENDER: ''
+      MOBILITY_API_DELAY_MS: '0'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install the locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check application types and unit tests
+        run: |
+          pnpm check
+          pnpm exec vitest run
+      - name: Check the restricted deployment gateway
+        run: python3 -I -m unittest discover -s deploy/server -p 'test_*.py' -v
+      - name: Full regression checks when requested
+        if: inputs.full_checks
+        run: |
+          pnpm lint
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e
+
+  image:
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate the deployment public origin
+        if: github.repository == 'mafuth/datathon2026' && github.ref == 'refs/heads/main' && vars.DATATHON_DEPLOY_ENABLED == 'true'
+        env:
+          PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.parse
+          url = urllib.parse.urlsplit(os.environ['PUBLIC_BASE_URL'])
+          assert url.scheme == 'https' and url.hostname and url.path == '/apps/datathon', 'Set repository PUBLIC_BASE_URL to https://yoosufsayyid.com/apps/datathon.'
+          assert not url.username and not url.password and not url.query and not url.fragment, 'PUBLIC_BASE_URL must be the public application URL.'
+          assert not os.environ['PUBLIC_BASE_URL'].endswith('/'), 'PUBLIC_BASE_URL must not end with a slash.'
+          PY
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        if: github.repository == 'mafuth/datathon2026' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the production image
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: ${{ github.repository == 'mafuth/datathon2026' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          tags: ghcr.io/mafuth/datathon2026:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/mafuth/datathon2026
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            PUBLIC_APP_NAME=${{ vars.PUBLIC_APP_NAME || 'MobiliX' }}
+            PUBLIC_BASE_URL=${{ vars.PUBLIC_BASE_URL || 'https://yoosufsayyid.com/apps/datathon' }}
+            PUBLIC_BASE_PATH=/apps/datathon
+            PUBLIC_R2_BUCKET_NAME=${{ vars.PUBLIC_R2_BUCKET_NAME }}
+            PUBLIC_R2_BUCKET_URL=${{ vars.PUBLIC_R2_BUCKET_URL }}
+          cache-from: type=gha,scope=datathon2026
+          cache-to: type=gha,scope=datathon2026,mode=max
+      - name: Smoke-test the immutable production image
+        env:
+          BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+          SOURCE_REVISION: ${{ github.sha }}
+          PUBLISHED: ${{ github.repository == 'mafuth/datathon2026' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          APP_BASE_PATH: /apps/datathon
+        run: |
+          if [[ "$PUBLISHED" == 'true' ]]; then
+            export DATATHON_IMAGE="$IMAGE_NAME@$BUILT_DIGEST"
+            docker pull "$DATATHON_IMAGE"
+          else
+            export DATATHON_IMAGE="$IMAGE_NAME:$SOURCE_REVISION"
+          fi
+          bash deploy/test-container.sh
+
+  deploy:
+    if: github.repository == 'mafuth/datathon2026' && github.ref == 'refs/heads/main' && vars.DATATHON_DEPLOY_ENABLED == 'true' && (github.event_name == 'push' || inputs.deploy)
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: read
+    environment:
+      name: production
+      url: ${{ vars.PUBLIC_BASE_URL }}
+    steps:
+      - name: Deploy through the restricted SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DATATHON_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.DATATHON_SSH_KNOWN_HOSTS }}
+          SSH_HOST: ${{ vars.DATATHON_SSH_HOST }}
+          SSH_USER: ${{ vars.DATATHON_SSH_USER }}
+          SSH_PORT: ${{ vars.DATATHON_SSH_PORT || '22' }}
+          IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
+          REVISION: ${{ github.sha }}
+          REGISTRY_USER: ${{ github.repository_owner }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]] || { echo 'Set DATATHON_SSH_HOST.'; exit 1; }
+          [[ "$SSH_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]] || { echo 'Set DATATHON_SSH_USER.'; exit 1; }
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] && (( SSH_PORT >= 1 && SSH_PORT <= 65535 )) || exit 1
+          [[ -n "$SSH_PRIVATE_KEY" && -n "$SSH_KNOWN_HOSTS" ]] || { echo 'Configure both DATATHON SSH secrets.'; exit 1; }
+          work=$(mktemp -d)
+          trap 'rm -rf -- "$work"' EXIT
+          chmod 700 "$work"
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$work/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > "$work/known_hosts"
+          chmod 600 "$work/key" "$work/known_hosts"
+          python3 - <<'PY' | ssh -F /dev/null -T -i "$work/key" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -- "$SSH_USER@$SSH_HOST" deploy
+          import json, os
+          print(json.dumps({
+              'digest': os.environ['IMAGE_DIGEST'],
+              'revision': os.environ['REVISION'],
+              'registry_user': os.environ['REGISTRY_USER'],
+              'registry_token': os.environ['REGISTRY_TOKEN'],
+          }))
+          PY
+      - name: Verify the public application and deployed revision
+        env:
+          PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+          EXPECTED_REVISION: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 --location "$PUBLIC_BASE_URL/" > /dev/null
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 "$PUBLIC_BASE_URL/api/health" | python3 -c 'import json,os,sys; data=json.load(sys.stdin); assert data.get("status") == "ok" and data.get("revision") == os.environ["EXPECTED_REVISION"]'

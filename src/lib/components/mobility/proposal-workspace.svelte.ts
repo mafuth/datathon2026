@@ -1,3 +1,5 @@
+import { base } from '$app/paths';
+
 import type { IslandServicesResponse, ServiceDemandCategory } from './island-services';
 import type { ProposalCosts, ProposalSettings } from '$lib/mobility/proposal-planning';
 import type { ProposalTransportOptions } from '$lib/mobility/proposal-transport';
@@ -166,7 +168,7 @@ export class ProposalWorkspace {
     this.transportOptionsError = null;
     const promise = (async () => {
       try {
-        const response = await fetch(`/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`, {
+        const response = await fetch(`${base}/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`, {
           cache: 'no-cache',
           signal: controller.signal
         });
@@ -236,7 +238,7 @@ export class ProposalWorkspace {
     this.pending = false;
   }
   private async evaluate(body: string, signal: AbortSignal): Promise<ScenarioPreviewResponse> {
-    const response = await fetch('/api/v1/scenarios/preview', {
+    const response = await fetch(`${base}/api/v1/scenarios/preview`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body,
@@ -548,7 +550,7 @@ export class ProposalWorkspace {
     this.exporting = true;
     this.exportError = null;
     try {
-      const response = await fetch('/api/v1/scenarios/report.pdf', {
+      const response = await fetch(`${base}/api/v1/scenarios/report.pdf`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: requestBody,

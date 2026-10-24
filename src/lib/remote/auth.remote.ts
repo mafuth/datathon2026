@@ -8,6 +8,7 @@ import { auth, requireGuest } from '$lib/server/auth';
 import { flashAndRedirect } from '$lib/server/flash';
 import { checkRateLimit } from '$lib/server/rate-limit';
 import { getSafeChallengeNext } from '$lib/server/security';
+import { appPath } from '$lib/utils/app-path';
 import {
   createUserSchema,
   loginSchema,
@@ -41,7 +42,7 @@ export const login = form(loginSchema, async ({ email, _password, next }, issue)
   }
 
   if ('twoFactorRedirect' in result && result.twoFactorRedirect) {
-    redirect(303, `/auth/challenge?${new URLSearchParams({ next: redirectTo }).toString()}`);
+    redirect(303, appPath(`/auth/challenge?${new URLSearchParams({ next: redirectTo }).toString()}`));
   }
 
   flashAndRedirect(redirectTo, 'success', m.auth.login.success);
@@ -88,7 +89,7 @@ export const requestPasswordReset = form(requestPasswordResetSchema, async ({ em
     await auth.api.requestPasswordReset({
       body: {
         email,
-        redirectTo: `/password/reset?${new URLSearchParams({ email }).toString()}`
+        redirectTo: appPath(`/password/reset?${new URLSearchParams({ email }).toString()}`)
       }
     });
   } catch (err) {

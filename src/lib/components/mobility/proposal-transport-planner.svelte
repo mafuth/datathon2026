@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   import type { ProposalTransportOperation, ProposalTransportOptions } from '$lib/mobility/proposal-transport';
 
   import ArrowDown from '@lucide/svelte/icons/arrow-down';
@@ -273,7 +275,7 @@
     }
     void (async () => {
       try {
-        const response = await fetch(`/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`, {
+        const response = await fetch(`${base}/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`, {
           signal: controller.signal
         });
         const body = await response.json();

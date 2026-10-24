@@ -1,4 +1,4 @@
-import { EMAIL_SENDER, RESEND_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 import type { Component } from 'svelte';
 
@@ -104,9 +104,13 @@ export const sendEmail = async <T extends EmailName>(
       return;
     }
 
-    const resend = new Resend(RESEND_API_KEY);
+    if (!env.RESEND_API_KEY || !env.EMAIL_SENDER) {
+      throw new Error('Email service is not configured');
+    }
+
+    const resend = new Resend(env.RESEND_API_KEY);
     const { data: result, error } = await resend.emails.send({
-      from: EMAIL_SENDER,
+      from: env.EMAIL_SENDER,
       html,
       subject,
       text,

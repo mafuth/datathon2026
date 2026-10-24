@@ -1,3 +1,5 @@
+import { base } from '$app/paths';
+
 import type { PreparedUpload, UploadedFile, UploadPolicy } from '$lib/upload/policies';
 
 import { browser } from '$app/environment';
@@ -18,7 +20,7 @@ export type UploadResult =
       success: false;
     };
 
-const UPLOAD_ENDPOINT = '/api/upload';
+const UPLOAD_ENDPOINT = `${base}/api/upload`;
 
 export class FileUploader {
   status = $state<UploadStatus>('ready');

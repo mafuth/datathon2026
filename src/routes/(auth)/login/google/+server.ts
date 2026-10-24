@@ -2,6 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 
 import { auth } from '$lib/server/auth';
 import { getSafeChallengeNext } from '$lib/server/security';
+import { appPath } from '$lib/utils/app-path';
 
 export async function GET({ url }: RequestEvent) {
   const callbackURL = getSafeChallengeNext(url.searchParams.get('next'), '/dashboard');
@@ -17,7 +18,7 @@ export async function GET({ url }: RequestEvent) {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: response.url?.toString() ?? '/login'
+        Location: response.url?.toString() ?? appPath('/login')
       }
     });
   } catch (error) {
@@ -25,7 +26,7 @@ export async function GET({ url }: RequestEvent) {
     return new Response(null, {
       status: 500,
       headers: {
-        Location: '/login'
+        Location: appPath('/login')
       }
     });
   }

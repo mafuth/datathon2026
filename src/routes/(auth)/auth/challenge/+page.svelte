@@ -8,6 +8,7 @@
   import { useFormValidation } from '$lib/hooks/use-form-validation.svelte';
   import { useRateLimitCountdown } from '$lib/hooks/use-rate-limit-countdown.svelte';
   import { useRemoteForm } from '$lib/hooks/use-remote-form';
+  import { appPath } from '$lib/utils/app-path';
   import { passwordChallengeSchema, recoveryChallengeSchema, totpChallengeSchema } from '$lib/validations/auth';
 
   import OtpCodeField from '$components/otp-code-field.svelte';
@@ -30,7 +31,7 @@
   const passwordErrors = useRateLimitCountdown(() => passwordForm.fields._password.issues());
   const otpErrors = useRateLimitCountdown(() => otpForm.fields._code.issues());
   const recoveryErrors = useRateLimitCountdown(() => recoveryForm.fields._recoveryCode.issues());
-  const loginRedirect = $derived(`/login?${new URLSearchParams({ next: data.next }).toString()}`);
+  const loginRedirect = $derived(appPath(`/login?${new URLSearchParams({ next: data.next }).toString()}`));
   const title = $derived.by(() => {
     if (data.method === 'totp' && challenge === 'recovery') return 'Enter recovery code';
     if (data.method === 'totp') return 'Enter authentication code';
@@ -117,7 +118,7 @@
       {challenge === 'recovery' ? 'Use authentication code' : 'Use recovery code'}
     </button>
   {:else if data.method === 'session'}
-    <form method="POST" action="/logout" class="space-y-4">
+    <form method="POST" action={appPath('/logout')} class="space-y-4">
       <input type="hidden" name="redirectTo" value={loginRedirect} />
       <button type="submit" class={buttonVariants({ class: 'group mt-1 h-10 w-full gap-1.5' })}>
         Continue to sign in
@@ -164,8 +165,8 @@
       </button>
     </form>
 
-    <form id="reset-password-logout" method="POST" action="/logout">
-      <input type="hidden" name="redirectTo" value="/password" />
+    <form id="reset-password-logout" method="POST" action={appPath('/logout')}>
+      <input type="hidden" name="redirectTo" value={appPath('/password')} />
     </form>
   {/if}
 </section>

@@ -14,6 +14,10 @@ export default defineConfig(() => ({
     tailwindcss(),
     sveltekit({
       adapter: adapter(),
+      paths: {
+        base: (process.env.PUBLIC_BASE_PATH ?? '') as '' | `/${string}`,
+        relative: false
+      },
 
       experimental: {
         remoteFunctions: true

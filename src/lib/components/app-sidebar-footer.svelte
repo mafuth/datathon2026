@@ -99,7 +99,7 @@
             <LogOut size="16" />
           {/if}
           Log out
-          <form bind:this={logoutForm} id="logout" method="POST" action="/logout"></form>
+          <form bind:this={logoutForm} id="logout" method="POST" action={resolve('/logout')}></form>
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>

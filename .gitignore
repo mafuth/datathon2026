@@ -31,9 +31,24 @@ node_modules/
 # -------------------------
 # Environment & secrets
 # -------------------------
-# .env
-# .env.*
-# !.env.example
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+*.pem
+*.key
+*.db
+*.db-*
+*.db.*
+*.sqlite
+*.sqlite-*
+*.sqlite.*
+*.bak-*
+*.backup-*
+/playwright-report
+/coverage
+__pycache__/
 
 # -------------------------
 # Databases & local data

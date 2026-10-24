@@ -4,13 +4,13 @@
 
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-VariableFont.ttf') format('truetype');
+  src: url('../../static/fonts/Montserrat-VariableFont.ttf') format('truetype');
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Sora';
-  src: url('/fonts/Sora-VariableFont.ttf') format('truetype');
+  src: url('../../static/fonts/Sora-VariableFont.ttf') format('truetype');
   font-display: swap;
 }
 
@@ -229,14 +229,14 @@
   * {
     @apply border-border;
     cursor:
-      url('/cursor-small.png') 5 5,
+      url('../../static/cursor-small.png') 5 5,
       auto !important;
   }
 
   *::before,
   *::after {
     cursor:
-      url('/cursor-small.png') 5 5,
+      url('../../static/cursor-small.png') 5 5,
       auto !important;
   }
 

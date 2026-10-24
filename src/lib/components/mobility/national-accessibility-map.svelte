@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   import type {
     FilterSpecification,
     GeoJSONSource,
@@ -744,7 +746,7 @@
     analyticsLoading = true;
     analyticsError = null;
     try {
-      const response = await fetch('/api/map/analytics', { cache: 'no-store' });
+      const response = await fetch(`${base}/api/map/analytics`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Analytics request failed with status ${response.status}`);
       analyticsData = (await response.json()) as AnalyticsData;
     } catch (error) {
@@ -765,7 +767,7 @@
     connectionNetworkLoading = true;
     connectionNetworkError = null;
     try {
-      const response = await fetch('/api/v1/map/network', { cache: 'no-store' });
+      const response = await fetch(`${base}/api/v1/map/network`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Connection network request failed with status ${response.status}`);
       const payload: unknown = await response.json();
       if (!isConnectionNetworkResponse(payload)) throw new Error('Connection network returned an invalid response.');
@@ -788,7 +790,7 @@
         if (requestId === islandProfileRequest) islandProfile = cachedProfile;
         return;
       }
-      const response = await fetch(`/api/map/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
+      const response = await fetch(`${base}/api/map/islands/${encodeURIComponent(id)}/profile`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Island profile request failed with status ${response.status}`);
       const profile = (await response.json()) as IslandProfile;
       islandProfileCache.set(id, profile);
@@ -1082,7 +1084,7 @@
     signal?: AbortSignal
   ): Promise<ScenarioPreviewResponse> {
     const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(60_000)]) : AbortSignal.timeout(60_000);
-    const response = await fetch('/api/v1/scenarios/preview', {
+    const response = await fetch(`${base}/api/v1/scenarios/preview`, {
       method: 'POST',
       signal: requestSignal,
       headers: { 'content-type': 'application/json' },
@@ -1165,7 +1167,7 @@
     if (cached) return Promise.resolve(cached);
     const pending = recommendationOptionsRequests.get(key);
     if (pending) return pending;
-    const request = fetch(`/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`)
+    const request = fetch(`${base}/api/v1/scenarios/transport-options?islandId=${encodeURIComponent(islandId)}`)
       .then(async (response) => {
         const payload = (await response.json()) as ProposalTransportOptions | { error?: string };
         if (!response.ok || 'error' in payload)
@@ -1312,7 +1314,7 @@
     try {
       const storyPromise = presentationStory
         ? Promise.resolve(presentationStory)
-        : fetch('/api/v1/presentation/story', { signal: abortController.signal }).then(async (response) => {
+        : fetch(`${base}/api/v1/presentation/story`, { signal: abortController.signal }).then(async (response) => {
             if (!response.ok) throw new Error('The current presentation journey is unavailable.');
             const story = (await response.json()) as PresentationStory;
             presentationStory = story;
@@ -2316,7 +2318,7 @@
         return;
       }
       const fastProposalServices = proposalMode ? '?includeResidentialDemandPoints=false' : '';
-      const response = await fetch(`/api/v1/islands/${encodeURIComponent(id)}/services${fastProposalServices}`, {
+      const response = await fetch(`${base}/api/v1/islands/${encodeURIComponent(id)}/services${fastProposalServices}`, {
         cache: 'no-store'
       });
       if (!response.ok) throw new Error(`Island services request failed with status ${response.status}`);
@@ -2758,7 +2760,7 @@
       heatmapError = false;
     }
     try {
-      const response = await fetch(`/api/map/islands${detail ? '?detail=true' : ''}`);
+      const response = await fetch(`${base}/api/map/islands${detail ? '?detail=true' : ''}`);
       if (!response.ok) throw new Error(`Island geometry request failed with status ${response.status}`);
       const islands = (await response.json()) as IslandCollection;
       islandCollection = islands;
@@ -2812,7 +2814,7 @@
     proposalExportComplete = false;
     proposalError = null;
     try {
-      const response = await fetch('/api/v1/scenarios/report.pdf', {
+      const response = await fetch(`${base}/api/v1/scenarios/report.pdf`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -3116,7 +3118,7 @@
 
   async function startPresentation(destinationIslandId: string): Promise<void> {
     if (selectedIslandId !== BAARAH_ISLAND_ID || destinationIslandId !== DESTINATION_ISLAND_ID) return;
-    const response = await fetch('/api/v1/presentation/story');
+    const response = await fetch(`${base}/api/v1/presentation/story`);
     if (!response.ok) return;
     presentationStory = (await response.json()) as PresentationStory;
     islandAnalyticsOpen = false;
@@ -3155,7 +3157,7 @@
 
   async function loadReaderScript(): Promise<PresentationScript | null> {
     try {
-      const response = await fetch('/presentation/presentation-script.json', { cache: 'no-store' });
+      const response = await fetch(`${base}/presentation/presentation-script.json`, { cache: 'no-store' });
       if (!response.ok) throw new Error('Reader script could not be loaded.');
       return v.parse(presentationScriptSchema, await response.json());
     } catch (error) {

@@ -2,6 +2,7 @@
   "name": "sveltekit-omakase",
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "pnpm@10.34.1",
   "license": "MIT",
   "scripts": {
     "dev": "vite dev",

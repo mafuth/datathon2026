@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
+
   import { requestPasswordReset } from '$remote/auth.remote';
 
   import { useFormValidation } from '$lib/hooks/use-form-validation.svelte';
@@ -50,7 +52,7 @@
   </form>
 
   <a
-    href="/login"
+    href={resolve('/login')}
     class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
   >
     <ArrowLeft size="14" />

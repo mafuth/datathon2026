@@ -95,6 +95,18 @@ Open `http://localhost:3000`. Set `DOCKER_PUBLIC_BASE_URL` and
 deployment. On systems without the Podman Compose plugin, use
 `podman-compose up --build` instead.
 
+### Production deployment and CI/CD
+
+GitHub Actions checks pull requests and `main`, builds the production image,
+and publishes successful `main` images to GitHub Container Registry. Production
+deployment uses a dedicated restricted SSH key and remains disabled until
+`DATATHON_DEPLOY_ENABLED` is set to `true`.
+
+Follow [the deployment setup guide](docs/cicd-setup.md) for the server installer,
+SSH keys, GitHub secrets and variables, HTTPS, database backups and rollback.
+The production configuration is in `deploy/server/compose.yaml`; the root
+`compose.yaml` remains the local development configuration.
+
 ## Project Structure
 
 ```

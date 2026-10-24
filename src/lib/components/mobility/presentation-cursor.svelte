@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   let { active = false }: { active?: boolean } = $props();
 </script>
 
 {#if active}
   <div class="presentation-cursor" data-presentation-cursor aria-hidden="true">
-    <img src="/cursor.png" alt="" width="42" height="42" />
+    <img src={`${base}/cursor.png`} alt="" width="42" height="42" />
   </div>
 {/if}
 

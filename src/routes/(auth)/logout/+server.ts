@@ -3,6 +3,8 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { redirect } from 'sveltekit-flash-message/server';
 
 import { auth, requireAuth } from '$lib/server/auth';
+import { getSafeChallengeNext } from '$lib/server/security';
+import { appPath } from '$lib/utils/app-path';
 
 import * as m from '$messages';
 
@@ -18,7 +20,7 @@ export const POST: RequestHandler = async (event) => {
   } catch (error) {
     console.log(error);
     redirect(
-      '/',
+      appPath('/'),
       {
         status: 500,
         type: 'error',
@@ -41,9 +43,5 @@ export const POST: RequestHandler = async (event) => {
 function getSafeRedirectTo(formData: FormData): string {
   const redirectTo = formData.get('redirectTo');
 
-  if (typeof redirectTo === 'string' && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
-    return redirectTo;
-  }
-
-  return '/';
+  return getSafeChallengeNext(typeof redirectTo === 'string' ? redirectTo : undefined, '/');
 }

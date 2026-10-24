@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { appPath } from '$lib/utils/app-path';
+
   import SettingsNavbar from '$components/settings-navbar.svelte';
   import { Separator } from '$components/ui/separator';
 
@@ -7,15 +9,15 @@
   const sidebarNavItems: { title: string; href: string }[] = [
     {
       title: 'Profile',
-      href: '/settings/profile'
+      href: appPath('/settings/profile')
     },
     {
       title: 'Security',
-      href: '/settings/security'
+      href: appPath('/settings/security')
     },
     {
       title: 'Appearance',
-      href: '/settings/appearance'
+      href: appPath('/settings/appearance')
     }
   ];
 </script>

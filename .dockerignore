@@ -20,3 +20,14 @@ playwright-report
 *.sqlite-*
 
 local.db.bak-*
+*.db.*
+*.sqlite.*
+*.bak-*
+*.backup-*
+**/__pycache__
+data/mobility/raw
+data/mobility/derived/vehicles-prepared-*.zip
+docs
+tests
+deploy
+scripts

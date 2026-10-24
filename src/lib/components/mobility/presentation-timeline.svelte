@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   import type { PresentationSection, PresentationStory } from '$lib/mobility/presentation-contracts';
 
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -87,14 +89,14 @@
 
   function modeIcon(mode: PresentationSection['mode']): { src: string; alt: string } {
     return {
-      ferry: { src: '/images/presentation/motor-boat.png', alt: 'Motor boat' },
-      aircraft: { src: '/images/presentation/airplane.png', alt: 'Airplane' },
-      walk: { src: '/images/presentation/walking.png', alt: 'Walking' },
-      transfer: { src: '/images/presentation/walking.png', alt: 'Transfer' },
-      bus: { src: '/images/presentation/bus.png', alt: 'Bus' },
-      wait: { src: '/images/presentation/standing.png', alt: 'Waiting' },
-      handoff: { src: '/images/presentation/ambulance.png', alt: 'Ambulance handoff' },
-      ambulance: { src: '/images/presentation/ambulance.png', alt: 'Ambulance' }
+      ferry: { src: `${base}/images/presentation/motor-boat.png`, alt: 'Motor boat' },
+      aircraft: { src: `${base}/images/presentation/airplane.png`, alt: 'Airplane' },
+      walk: { src: `${base}/images/presentation/walking.png`, alt: 'Walking' },
+      transfer: { src: `${base}/images/presentation/walking.png`, alt: 'Transfer' },
+      bus: { src: `${base}/images/presentation/bus.png`, alt: 'Bus' },
+      wait: { src: `${base}/images/presentation/standing.png`, alt: 'Waiting' },
+      handoff: { src: `${base}/images/presentation/ambulance.png`, alt: 'Ambulance handoff' },
+      ambulance: { src: `${base}/images/presentation/ambulance.png`, alt: 'Ambulance' }
     }[mode];
   }
 

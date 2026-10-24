@@ -1,4 +1,5 @@
 import { getRequestEvent } from '$app/server';
+import { base } from '$app/paths';
 
 import { redirect } from '@sveltejs/kit';
 import { setUserImageFromOAuth } from '$queries';
@@ -11,6 +12,7 @@ import { Account, Session, TwoFactor, User, Verification } from '$lib/db/models'
 import { EMAILS, sendEmail } from '$lib/mail/mailer';
 import db from '$lib/server/database';
 import { normalizeFullName } from '$lib/utils/name';
+import { appPath } from '$lib/utils/app-path';
 
 import { config } from '$config/server';
 
@@ -81,7 +83,12 @@ async function syncGoogleImage(account: OAuthAccount | null | undefined): Promis
   }
 }
 
+const authOrigin = new URL(process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || 'http://localhost:5173').origin;
+const authBasePath = `${base}/api/auth`;
+
 export const auth = betterAuth({
+  baseURL: authOrigin,
+  basePath: authBasePath,
   appName: config.app.name,
   database: drizzleAdapter(db, {
     provider: 'sqlite',
@@ -105,6 +112,7 @@ export const auth = betterAuth({
   ],
   advanced: {
     cookiePrefix: config.auth.session.cookiePrefix,
+    defaultCookieAttributes: { path: base || '/' },
     database: {
       generateId: false
     }
@@ -136,7 +144,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      redirectUri: `${process.env.PUBLIC_BASE_URL}/auth/social/callback/google`,
+      redirectUri: `${authOrigin}${authBasePath}/callback/google`,
       overrideUserInfoOnSignIn: false,
       mapProfileToUser: (profile) => {
         const image = getGoogleProfileImage(profile);
@@ -170,7 +178,7 @@ export function requireAuth() {
   const { locals } = getRequestEvent();
 
   if (!locals.user || !locals.session) {
-    redirect(303, '/login');
+    redirect(303, appPath('/login'));
   }
 
   return { user: locals.user, session: locals.session };
@@ -179,6 +187,6 @@ export function requireAuth() {
 export function requireGuest() {
   const { locals } = getRequestEvent();
   if (locals.user) {
-    redirect(302, '/dashboard');
+    redirect(302, appPath('/dashboard'));
   }
 }

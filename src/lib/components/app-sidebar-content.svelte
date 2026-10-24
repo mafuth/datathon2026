@@ -21,7 +21,8 @@
   } = $props();
 
   function isNavigationItemActive(pathname: string, itemUrl: Pathname): boolean {
-    return pathname === itemUrl || pathname.startsWith(`${itemUrl}/`);
+    const itemPath = resolve(itemUrl);
+    return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
   }
 </script>
 
